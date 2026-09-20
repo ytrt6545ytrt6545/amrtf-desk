@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Production builds and zip archives
+*.zip
+dist/
+
+# Large binaries & media assets (Prevent GitHub 100MB rejection)
+bin/
+assets/videos/*.mp4
+assets/videos/*.mkv
+
+# Runtime states & local config
+.env
+.env.local
+last-lesson.json
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

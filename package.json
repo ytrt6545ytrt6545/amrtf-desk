@@ -1,0 +1,20 @@
+{
+  "name": "amrtf-desk",
+  "version": "1.0.0",
+  "description": "大慈恩官網 (AMRTF) 獨立雙視窗播控艙",
+  "main": "server.mjs",
+  "type": "module",
+  "bin": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "build": "npx @yao-pkg/pkg server.mjs --targets node20-win-x64 --output dist/AMRTF-Desk.exe"
+  },
+  "pkg": {
+    "assets": [
+      "src/**/*"
+    ]
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

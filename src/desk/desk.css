@@ -1,0 +1,1313 @@
+/* ==============================================================================
+ * 🎛️ AMRTF 廣播級操作主控台樣式 (全量 Companion 預設按鈕矩陣版)
+ * ============================================================================== */
+
+:root {
+  --bg-base: #090d16;
+  --bg-surface: #0f172a;
+  --bg-card: #131d33;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-dim: #64748b;
+  
+  --btn-default-bg: #1e293b;
+  --btn-default-border: #334155;
+  --btn-default-text: #f1f5f9;
+  
+  --btn-play-bg: #059669;
+  --btn-pause-bg: #d97706;
+  --btn-stop-bg: #475569;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body.desk-body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 頂部工具列 */
+.desk-header {
+  height: 38px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  -webkit-app-region: drag;
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  -webkit-app-region: no-drag;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 800;
+  font-family: monospace;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.live {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.lesson-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #1e293b;
+  color: #38bdf8;
+  border: 1px solid #334155;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scroll-badge, .speech-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #94a3b8;
+}
+
+.speech-badge.active {
+  background: #0369a1;
+  color: #e0f2fe;
+  border-color: #0284c7;
+}
+
+.header-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  border-radius: 4px;
+  width: 28px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.1s ease;
+}
+
+.header-btn:hover {
+  background: #334155;
+  border-color: #64748b;
+}
+
+.header-btn.btn-exit {
+  background: #7f1d1d;
+  border-color: #991b1b;
+  color: #fecaca;
+}
+
+.header-btn.btn-exit:hover {
+  background: #dc2626;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.lesson-badge {
+  cursor: pointer;
+}
+
+.lesson-badge:hover {
+  border-color: #38bdf8;
+  background: #0369a1;
+  color: #ffffff;
+}
+
+/* 中央區域：LED 碼表與提詞機 (緊湊自適應，釋放空間給按鈕畫布) */
+.desk-main {
+  flex: 0 0 120px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px 4px 10px;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.time-display-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.led-clock {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #38bdf8;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+.speed-indicator {
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 800;
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.prompter-card {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.prompter-label {
+  font-size: 9px;
+  font-weight: 800;
+  font-family: monospace;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+
+.prompter-text {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: #e2e8f0;
+  overflow-y: auto;
+  word-break: break-all;
+  height: 100%;
+}
+
+/* 底部 Companion 全量預設鍵帽矩陣 */
+.desk-footer {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-color);
+  padding: 6px 10px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.button-row {
+  display: flex;
+  gap: 5px;
+  width: 100%;
+}
+
+.giant-row {
+  height: 48px;
+}
+
+.button-grid-7 {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.button-grid-8 {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+}
+
+/* 實體鍵帽 (Stream Deck Keycap Button) */
+.keycap-btn {
+  background: var(--btn-default-bg);
+  color: var(--btn-default-text);
+  border: 1px solid var(--btn-default-border);
+  border-bottom: 2.5px solid #0b1120;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 2px;
+  transition: all 0.08s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.keycap-btn:hover {
+  filter: brightness(1.2);
+  border-color: #64748b;
+}
+
+.keycap-btn:active {
+  transform: translateY(1.5px);
+  border-bottom-width: 1px;
+  box-shadow: none;
+}
+
+/* 50/50 巨型按鈕 */
+.btn-play-pause {
+  flex: 1;
+  font-size: 24px;
+  background: var(--btn-play-bg);
+  border-color: #047857;
+  border-bottom-color: #064e3b;
+  color: #ffffff;
+}
+
+.btn-play-pause.playing {
+  background: var(--btn-pause-bg);
+  border-color: #b45309;
+  border-bottom-color: #78350f;
+}
+
+.btn-stop {
+  flex: 1;
+  font-size: 20px;
+  background: var(--btn-stop-bg);
+  border-color: #334155;
+  border-bottom-color: #1e293b;
+  color: #f1f5f9;
+}
+
+.btn-quote {
+  background: #0284c7;
+  border-color: #0369a1;
+  border-bottom-color: #0c4a6e;
+  color: #ffffff;
+}
+
+.btn-loop.active {
+  background: #7c3aed;
+  border-color: #6d28d9;
+  border-bottom-color: #4c1d95;
+  color: #ffffff;
+}
+
+.btn-close-video {
+  background: #991b1b;
+  border-color: #7f1d1d;
+  border-bottom-color: #450a0a;
+  color: #fecaca;
+}
+
+.btn-video {
+  background: #1e1b4b;
+  border-color: #312e81;
+  color: #c7d2fe;
+}
+
+.btn-rate.active {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+/* 播稿與捲動之深淺狀態 (OFF/手動為淡色，ON/持續/區段為深色) */
+.keycap-btn.idle-light {
+  background: #334155;
+  border-color: #475569;
+  border-bottom-color: #1e293b;
+  color: #cbd5e1;
+}
+
+.keycap-btn.active-deep {
+  background: #1e1b4b;
+  border-color: #4f46e5;
+  border-bottom-color: #312e81;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+}
+
+/* 折疊 Mini 模式 */
+body.mini-mode .desk-main,
+body.mini-mode .button-grid-7,
+body.mini-mode .button-grid-8 {
+  display: none !important;
+}
+
+body.mini-mode .giant-row {
+  height: 40px;
+}
+
+/* QR Code Modal */
+.qr-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.qr-modal.active {
+  display: flex;
+}
+
+.qr-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  max-width: 280px;
+}
+
+.qr-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.qr-img {
+  width: 170px;
+  height: 170px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.qr-url {
+  font-size: 11px;
+  font-family: monospace;
+  color: #38bdf8;
+  word-break: break-all;
+  text-align: center;
+}
+
+.qr-close-btn {
+  width: 100%;
+  height: 32px;
+}
+
+/* 講師手抄稿精準區段選單樣式 */
+.interval-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+  border-radius: 6px;
+  padding: 3px 6px;
+  box-sizing: border-box;
+}
+
+.interval-field {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+}
+
+.interval-tag {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  padding: 0 2px;
+}
+
+.interval-arrow {
+  font-size: 10px;
+  color: #64748b;
+  user-select: none;
+}
+
+.interval-select {
+  flex: 1;
+  height: 28px;
+  background: #0f172a;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 4px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.interval-select:focus {
+  border-color: #38bdf8;
+}
+
+.btn-interval {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #1e293b;
+  color: #38bdf8;
+  border: 1px solid #0284c7;
+  white-space: nowrap;
+}
+
+.btn-interval:hover {
+  background: #0369a1;
+  color: #ffffff;
+}
+
+.btn-interval.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+.btn-interval-stop {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #991b1b;
+  color: #ffffff;
+  border: 1px solid #ef4444;
+}
+
+/* ==============================================================================
+ * 🎨 廣播級 8 欄磁吸畫布與自訂操作艙樣式 (Customizable Deck Canvas)
+ * ============================================================================== */
+
+/* 1. 編輯模式頂部按鈕與狀態 */
+.btn-edit-toggle {
+  background: #1e293b;
+  color: #38bdf8;
+  border: 1px solid #0284c7;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-edit-toggle:hover {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.btn-edit-toggle.active-editing {
+  background: #d97706 !important;
+  color: #ffffff !important;
+  border-color: #f59e0b !important;
+  animation: pulse-amber 2s infinite ease-in-out;
+}
+
+@keyframes pulse-amber {
+  0%, 100% { box-shadow: 0 0 6px rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.8); }
+}
+
+/* 2. 琥珀黃全螢幕呼吸光暈防護 */
+body.mode-custom-editing {
+  outline: 2px solid #f59e0b;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.25);
+}
+
+body.mode-custom-editing .desk-header {
+  border-bottom: 2px solid #f59e0b;
+}
+
+/* 3. 頂部抽屜式未上陣倉庫 (Drawer Dock) */
+.deck-drawer-container {
+  display: none;
+  background: #0b1120;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 8px 12px;
+  max-height: 120px;
+  overflow-y: auto;
+  animation: slide-down 0.2s ease-out;
+}
+
+.deck-drawer-container.show {
+  display: block;
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.drawer-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fbbf24;
+  letter-spacing: 0.5px;
+}
+
+.drawer-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.drawer-action-btn {
+  background: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.drawer-action-btn:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
+.drawer-action-btn.file-label {
+  cursor: pointer;
+}
+
+.drawer-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 28px;
+  align-items: center;
+}
+
+.drawer-tag-btn {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px dashed #475569;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.drawer-tag-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-style: solid;
+  border-color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+.drawer-empty-hint {
+  font-size: 11px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* 4. 主操作區 8 欄 CSS Grid 容器 */
+.deck-grid-container {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* 5. 網格單元 .deck-grid-cell */
+.deck-grid-cell {
+  position: relative;
+  display: flex;
+  min-height: 48px;
+  border-radius: 6px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.deck-grid-cell > .keycap-btn,
+.deck-grid-cell > .interval-row {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 編輯態下的按鈕外框與握柄 */
+body.mode-custom-editing .deck-grid-cell {
+  outline: 1px dashed rgba(245, 158, 11, 0.4);
+  cursor: move;
+}
+
+body.mode-custom-editing .deck-grid-cell:hover {
+  outline: 1.5px solid #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+/* 拖曳狀態 */
+.deck-grid-cell.is-dragging {
+  opacity: 0.35;
+  transform: scale(0.96);
+}
+
+.deck-grid-cell.drag-over-target {
+  outline: 2px solid #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.15) !important;
+}
+
+/* 編輯態把手: 右上角關閉 ✕ (加大感應熱區 24px，頂層 z-index 999 保證一擊必中) */
+.cell-btn-close {
+  display: none;
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 24px;
+  height: 24px;
+  background: #ef4444;
+  color: #ffffff;
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+body.mode-custom-editing .cell-btn-close {
+  display: flex;
+}
+
+.cell-btn-close:hover {
+  background: #dc2626;
+  transform: scale(1.2);
+}
+
+.cell-btn-close:active {
+  transform: scale(0.9);
+}
+
+/* 編輯態把手: 右下角拉伸 ⤡ (加大熱區 22px，醒目微光) */
+.cell-handle-resize {
+  display: none;
+  position: absolute;
+  bottom: -2px;
+  right: 0px;
+  width: 22px;
+  height: 22px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+  color: #fbbf24;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  user-select: none;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+body.mode-custom-editing .cell-handle-resize {
+  display: flex;
+}
+
+.cell-handle-resize:hover {
+  transform: scale(1.25);
+  background: #f59e0b;
+  color: #0f172a;
+}
+
+/* 6. 動態階梯式尺寸響應 (Responsive Font & Proportions) */
+/* 1x1: 緊湊小鍵 */
+.deck-grid-cell.sz-1x1 {
+  min-height: 42px;
+}
+.deck-grid-cell.sz-1x1 > .keycap-btn {
+  font-size: 11px !important;
+  padding: 2px 4px !important;
+}
+
+/* 2x1: 標準橫鍵 */
+.deck-grid-cell.sz-2x1 {
+  min-height: 48px;
+}
+.deck-grid-cell.sz-2x1 > .keycap-btn {
+  font-size: 13px !important;
+}
+
+/* 2x2: 正方大鍵 */
+.deck-grid-cell.sz-2x2 {
+  min-height: 96px;
+}
+.deck-grid-cell.sz-2x2 > .keycap-btn {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+}
+
+/* 4x1: 半版橫條鍵 */
+.deck-grid-cell.sz-4x1 {
+  min-height: 52px;
+}
+.deck-grid-cell.sz-4x1 > .keycap-btn {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+/* 4x2: 巨型主控鍵 (播放/段落/靜音專屬) */
+.deck-grid-cell.sz-4x2 {
+  min-height: 104px;
+}
+.deck-grid-cell.sz-4x2 > .keycap-btn {
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  letter-spacing: 1px !important;
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.25), 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 8x1: 滿版橫條 */
+.deck-grid-cell.sz-8x1 {
+  min-height: 44px;
+}
+
+/* 8x2: 滿版模組卡片 */
+.deck-grid-cell.sz-8x2 {
+  min-height: 96px;
+}
+
+/* 7. 快速尺寸選擇面板 Modal */
+.deck-size-picker-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.deck-size-picker-modal.show {
+  display: flex;
+}
+
+.size-picker-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 16px;
+  width: 320px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+  animation: scale-up 0.15s ease-out;
+}
+
+@keyframes scale-up {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.size-picker-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #38bdf8;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.size-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.size-opt-btn {
+  background: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.size-opt-btn small {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: normal;
+}
+
+.size-opt-btn:hover {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.size-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.size-cancel-btn {
+  background: #334155;
+  color: #94a3b8;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.size-cancel-btn:hover {
+  background: #475569;
+  color: #ffffff;
+}
+
+/* ==============================================================================
+   📱 AMRTF 4×8 手機模擬編排艙樣式 (Mobile Studio Drawer)
+   ============================================================================== */
+
+.mobile-studio-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-studio-drawer.active {
+  display: block;
+  opacity: 1;
+}
+
+.studio-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(8px);
+}
+
+.studio-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 92vw;
+  max-width: 900px;
+  height: 90vh;
+  max-height: 840px;
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 頂部導航列 */
+.studio-header {
+  padding: 12px 20px;
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.studio-title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.5px;
+}
+
+.studio-subtitle {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.studio-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.studio-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.studio-btn:hover {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+.studio-btn.btn-warn:hover {
+  background: #dc2626;
+  border-color: #ef4444;
+}
+
+.studio-close-btn {
+  background: #334155;
+  border: none;
+  color: #cbd5e1;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.studio-close-btn:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* 工作區 */
+.studio-workspace {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  overflow: hidden;
+  background: radial-gradient(circle at 30% 30%, #0d1527 0%, #060911 100%);
+}
+
+/* 📱 1:1 手機模擬器外框 */
+.phone-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.phone-frame {
+  width: 330px;
+  height: 640px;
+  background: #020617;
+  border: 4px solid #334155;
+  border-radius: 36px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), inset 0 0 0 2px rgba(0, 0, 0, 0.8);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 8px 10px 8px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.phone-speaker-notch {
+  width: 70px;
+  height: 4px;
+  background: #1e293b;
+  border-radius: 4px;
+  margin: 0 auto 10px auto;
+}
+
+/* 4×8 磁吸網格 */
+.phone-canvas-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  gap: 5px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 25% 12.5%;
+  border-radius: 12px;
+  position: relative;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  padding: 2px;
+}
+
+/* 畫布按鈕卡片 */
+.mock-item {
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+  user-select: none;
+  overflow: hidden;
+  transition: transform 0.08s ease;
+}
+
+.mock-item:active {
+  cursor: grabbing;
+}
+
+.mock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px;
+  background: rgba(0, 0, 0, 0.3);
+  font-size: 9px;
+}
+
+.mock-size-badge {
+  background: #0284c7;
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mock-size-badge:hover {
+  filter: brightness(1.2);
+}
+
+.mock-remove-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.mock-remove-btn:hover {
+  color: #ef4444;
+}
+
+.mock-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.mock-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.mock-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+  margin-top: 2px;
+}
+
+/* 懸浮磁吸拉伸把手 */
+.mock-resize-handle {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 14px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 2px;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: nwse-resize;
+  z-index: 10;
+}
+
+.mock-resize-handle:hover {
+  background: #38bdf8;
+  color: #020617;
+}
+
+.phone-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* 溢出微震動動畫 */
+@keyframes phoneShake {
+  0%, 100% { transform: translateX(0); border-color: #334155; }
+  20%, 60% { transform: translateX(-6px); border-color: #ef4444; }
+  40%, 80% { transform: translateX(6px); border-color: #ef4444; }
+}
+
+.phone-frame.shake {
+  animation: phoneShake 0.4s ease;
+}
+
+/* 🧰 右側元件庫存盒 */
+.arsenal-panel {
+  width: 280px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.arsenal-header {
+  padding: 10px 14px;
+  background: #0b1120;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.arsenal-count {
+  font-size: 11px;
+  color: #38bdf8;
+}
+
+.arsenal-list {
+  flex: 1;
+  padding: 8px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.arsenal-item {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: grab;
+  transition: all 0.12s ease;
+}
+
+.arsenal-item:hover {
+  border-color: #0284c7;
+  background: #1a2744;
+}
+
+.arsenal-icon {
+  font-size: 20px;
+}
+
+.arsenal-info {
+  flex: 1;
+}
+
+.arsenal-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.arsenal-sub {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.arsenal-add-btn {
+  background: #0284c7;
+  border: none;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.arsenal-add-btn:hover {
+  background: #0369a1;
+}
+
+.arsenal-empty {
+  padding: 20px;
+  text-align: center;
+  color: #10b981;
+  font-size: 12px;
+  font-weight: 700;
+}
+
