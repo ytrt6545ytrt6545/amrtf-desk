@@ -38,7 +38,12 @@ export const ARSENAL_CATALOG = [
   { id: 'btn-loop-interval', type: 'button', defaultW: 2, defaultH: 1, action: 'loop_interval', label: '🔁 段落循環', style: 'btn-warning', category: 'playback', icon: '🔁' },
   { id: 'btn-prev-lecture', type: 'button', defaultW: 2, defaultH: 1, action: 'prev_lecture', label: '⏮ 上一講', style: 'btn-secondary', category: 'navigation', icon: '⏮' },
   { id: 'btn-next-lecture', type: 'button', defaultW: 2, defaultH: 1, action: 'next_lecture', label: '⏭ 下一講', style: 'btn-secondary', category: 'navigation', icon: '⏭' },
-  { id: 'btn-fullscreen', type: 'button', defaultW: 2, defaultH: 1, action: 'fullscreen', label: '⛶ 全螢幕', style: 'btn-dark', category: 'display', icon: '⛶' }
+  { id: 'btn-fullscreen', type: 'button', defaultW: 2, defaultH: 1, action: 'fullscreen', label: '⛶ 全螢幕', style: 'btn-dark', category: 'display', icon: '⛶' },
+  // 🎬 現場影片播映專用控制鍵 (密集嘛 / 前行 / 迴向 / 關閉影片)
+  { id: 'btn-video-migtsema', type: 'button', defaultW: 2, defaultH: 1, action: 'modal_migtsema', label: '🎬 密集嘛', style: 'btn-video', category: 'video', icon: '🎬' },
+  { id: 'btn-video-prep', type: 'button', defaultW: 2, defaultH: 1, action: 'modal_prep_video', label: '🎬 前行片', style: 'btn-video', category: 'video', icon: '🎬' },
+  { id: 'btn-video-dedication', type: 'button', defaultW: 2, defaultH: 1, action: 'modal_dedication_video', label: '🎬 迴向片', style: 'btn-video', category: 'video', icon: '🎬' },
+  { id: 'btn-close-video', type: 'button', defaultW: 2, defaultH: 1, action: 'close_video', label: '✕ 關閉影片', style: 'btn-close-video', category: 'video', icon: '✕' }
 ];
 
 export class MobileLayoutStore {

@@ -229,6 +229,8 @@
       if (found && found.icon) return found.icon;
       if (item.action === 'play') return '▶';
       if (item.action === 'stop') return '⏹';
+      if (item.action === 'modal_migtsema' || item.action === 'modal_prep_video' || item.action === 'modal_dedication_video') return '🎬';
+      if (item.action === 'close_video') return '✕';
       if (item.id === 'header-info') return '⏱️';
       if (item.id === 'widget-teleprompter') return '📜';
       return '⚡';

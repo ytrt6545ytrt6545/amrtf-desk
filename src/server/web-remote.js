@@ -238,6 +238,8 @@ export class WebRemoteServer {
     .btn-warning { background: linear-gradient(135deg, #ea580c, #c2410c); border-color: #fb923c; }
     .btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: #60a5fa; }
     .btn-dark { background: linear-gradient(135deg, #18181b, #09090b); border-color: #27272a; }
+    .btn-video { background: linear-gradient(135deg, #1e3a8a, #172554); border-color: #3b82f6; }
+    .btn-close-video { background: linear-gradient(135deg, #7f1d1d, #450a0a); border-color: #ef4444; }
 
     /* 時鐘與講次 Widget */
     .widget-header-info {
@@ -389,6 +391,8 @@ export class WebRemoteServer {
           else if (item.action === 'prev_lecture') icon = '⏮';
           else if (item.action === 'next_lecture') icon = '⏭';
           else if (item.action === 'fullscreen') icon = '⛶';
+          else if (item.action === 'modal_migtsema' || item.action === 'modal_prep_video' || item.action === 'modal_dedication_video') icon = '🎬';
+          else if (item.action === 'close_video') icon = '✕';
 
           el.innerHTML = '<div class="btn-icon">' + icon + '</div>' +
                          '<div class="btn-text">' + (item.label || item.id) + '</div>';
@@ -426,6 +430,9 @@ export class WebRemoteServer {
         sendCommand('NEXT_LECTURE');
       } else if (item.action === 'fullscreen') {
         sendCommand('FULLSCREEN');
+      } else if (item.action) {
+        // 通用直通信令 (包含 modal_migtsema, modal_prep_video, modal_dedication_video, close_video 等)
+        sendCommand(item.action);
       }
     }
 

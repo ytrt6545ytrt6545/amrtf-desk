@@ -97,6 +97,21 @@ body.desk-body {
   color: #94a3b8;
 }
 
+.speech-badge.mock-item.btn-dark {
+  background: linear-gradient(135deg, #18181b, #09090b);
+  border-color: #27272a;
+}
+
+.mock-item.btn-video {
+  background: linear-gradient(135deg, #1e3a8a, #172554);
+  border-color: #3b82f6;
+}
+
+.mock-item.btn-close-video {
+  background: linear-gradient(135deg, #7f1d1d, #450a0a);
+  border-color: #ef4444;
+}
+
 .speech-badge.active {
   background: #0369a1;
   color: #e0f2fe;

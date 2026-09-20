@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": 1789909401237,
+  "updatedAt": 1789909883124,
   "grid": {
     "cols": 4,
     "rows": 8
@@ -38,26 +38,51 @@
       "style": "btn-stop"
     },
     {
-      "id": "btn-bwd",
+      "id": "btn-theme",
       "type": "button",
-      "col": 1,
-      "row": 4,
+      "col": 3,
+      "row": 5,
       "w": 2,
       "h": 1,
-      "action": "seek_bwd",
-      "label": "⏪ 5s 倒退",
-      "style": "btn-secondary"
+      "action": "toggle_theme",
+      "label": "🌓 亮暗色",
+      "style": "btn-dark"
     },
     {
-      "id": "btn-fwd",
+      "id": "btn-speech-lead",
       "type": "button",
       "col": 3,
       "row": 4,
       "w": 2,
       "h": 1,
-      "action": "seek_fwd",
-      "label": "5s ⏩ 快進",
-      "style": "btn-secondary"
+      "action": "toggle_speech_lead",
+      "label": "🗣️ 播稿模式",
+      "style": "btn-primary",
+      "category": "display"
+    },
+    {
+      "id": "btn-scroll-mode",
+      "type": "button",
+      "col": 1,
+      "row": 4,
+      "w": 2,
+      "h": 1,
+      "action": "toggle_scroll",
+      "label": "📜 持續捲動",
+      "style": "btn-primary",
+      "category": "display"
+    },
+    {
+      "id": "btn-fullscreen",
+      "type": "button",
+      "col": 1,
+      "row": 5,
+      "w": 2,
+      "h": 1,
+      "action": "fullscreen",
+      "label": "⛶ 全螢幕",
+      "style": "btn-dark",
+      "category": "display"
     }
   ]
 }
