@@ -1,0 +1,63 @@
+{
+  "version": "1.0.0",
+  "updatedAt": 1789909401237,
+  "grid": {
+    "cols": 4,
+    "rows": 8
+  },
+  "items": [
+    {
+      "id": "header-info",
+      "type": "widget",
+      "col": 1,
+      "row": 1,
+      "w": 4,
+      "h": 1,
+      "label": "時鐘與講次"
+    },
+    {
+      "id": "btn-play",
+      "type": "button",
+      "col": 1,
+      "row": 2,
+      "w": 2,
+      "h": 2,
+      "action": "play",
+      "label": "▶ 播放",
+      "style": "btn-play"
+    },
+    {
+      "id": "btn-stop",
+      "type": "button",
+      "col": 3,
+      "row": 2,
+      "w": 2,
+      "h": 2,
+      "action": "stop",
+      "label": "⏹ 停止",
+      "style": "btn-stop"
+    },
+    {
+      "id": "btn-bwd",
+      "type": "button",
+      "col": 1,
+      "row": 4,
+      "w": 2,
+      "h": 1,
+      "action": "seek_bwd",
+      "label": "⏪ 5s 倒退",
+      "style": "btn-secondary"
+    },
+    {
+      "id": "btn-fwd",
+      "type": "button",
+      "col": 3,
+      "row": 4,
+      "w": 2,
+      "h": 1,
+      "action": "seek_fwd",
+      "label": "5s ⏩ 快進",
+      "style": "btn-secondary"
+    }
+  ]
+}

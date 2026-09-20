@@ -1,6 +1,6 @@
 // ==============================================================================
-// 📱 AMRTF-Desk 1:1 手機模擬編排艙模組 (Mobile Studio Drawer)
-// 支援 4 欄 × 8 列磁吸畫布、Drag & Drop、⤡ 磁吸拉伸把手、快捷尺規與智慧推擠
+// 📱 AMRTF-Desk 1:1 手機模擬編排艙模組 (Mobile Studio Drawer · 強固自適應版)
+// 支援 4 欄 × 8 列磁吸畫布、Drag & Drop、⤡ 拉伸、尺寸降級自動適應與覆蓋置換
 // ==============================================================================
 
 (function () {
@@ -9,7 +9,6 @@
       this.isOpen = false;
       this.layout = null;
       this.catalog = [];
-      this.activeResizingItem = null;
       this.draggedCatalogItem = null;
       this.draggedCanvasItem = null;
 
@@ -18,7 +17,6 @@
     }
 
     initDom() {
-      // 建立抽屜容器外框
       const drawer = document.createElement('div');
       drawer.id = 'mobileStudioDrawer';
       drawer.className = 'mobile-studio-drawer';
@@ -29,7 +27,7 @@
           <div class="studio-header">
             <div class="studio-title-group">
               <span class="studio-title">📱 4×8 行動操作艙模擬編排</span>
-              <span class="studio-subtitle">1:1 真實比例 · 磁吸拖曳 · 50ms 即時雙端熱同步</span>
+              <span class="studio-subtitle">1:1 真實比例 · 磁吸拖曳 · 智慧自適應 · 50ms 即時雙端熱同步</span>
             </div>
             <div class="studio-actions">
               <button class="studio-btn" id="btnTplMinimal">📋 精簡6鍵模板</button>
@@ -44,12 +42,10 @@
             <!-- 📱 左側手機模擬器 -->
             <div class="phone-stage">
               <div class="phone-frame" id="phoneMockupFrame">
-                <!-- 手機頂部聽筒造型微飾條 -->
                 <div class="phone-speaker-notch"></div>
-                <!-- 4 欄 × 8 列 (32格) 磁吸網格 -->
                 <div class="phone-canvas-grid" id="phoneCanvasGrid"></div>
               </div>
-              <div class="phone-hint">💡 提示：拖曳按鈕換位，拉伸右下角 ⤡ 或點擊尺寸膠囊改大小，放開即自動同步手機！</div>
+              <div class="phone-hint">💡 提示：點擊右側庫存即可加入；拖曳按鈕可換位或覆蓋；拉伸 ⤡ 或點擊尺寸膠囊改大小！</div>
             </div>
 
             <!-- 🧰 右側元件庫存盒 (Toolbox) -->
@@ -130,6 +126,10 @@
       }
     }
 
+    getEngine() {
+      return window.MobileReflowEngine || globalThis.MobileReflowEngine;
+    }
+
     renderCanvas() {
       const grid = document.getElementById('phoneCanvasGrid');
       grid.innerHTML = '';
@@ -143,7 +143,6 @@
         card.style.gridRow = `${item.row} / span ${item.h}`;
         card.draggable = true;
 
-        // 尺寸快捷顯示
         const sizeBadge = `${item.w}×${item.h}`;
 
         card.innerHTML = `
@@ -155,7 +154,6 @@
             <span class="mock-icon">${this.getItemIcon(item)}</span>
             <span class="mock-label">${item.label || item.id}</span>
           </div>
-          <!-- 右下角懸浮磁吸拉伸把手 -->
           <div class="mock-resize-handle" title="拖拉改變跨欄與跨列">⤡</div>
         `;
 
@@ -171,7 +169,7 @@
           this.cycleItemSize(item);
         });
 
-        // 畫布內拖曳
+        // 畫布內拖曳換位
         card.addEventListener('dragstart', (e) => {
           this.draggedCanvasItem = item;
           e.dataTransfer.setData('text/plain', item.id);
@@ -212,7 +210,8 @@
           <button class="arsenal-add-btn" title="加入手機畫布">+ 放入</button>
         `;
 
-        row.querySelector('.arsenal-add-btn').addEventListener('click', () => {
+        // 點擊整列或點擊按鈕皆可加入
+        row.addEventListener('click', () => {
           this.addItemToCanvas(item);
         });
 
@@ -235,23 +234,71 @@
       return '⚡';
     }
 
+    /**
+     * 核心加入函式：具備自適應尺寸降級與自動壓縮提詞機能力
+     */
     addItemToCanvas(catItem) {
-      if (!window.MobileReflowEngine) return;
-      const occupiedMap = window.MobileReflowEngine.buildOccupiedMap(this.layout.items);
-      const slot = window.MobileReflowEngine.findNextAvailableSlot(occupiedMap, catItem.defaultW, catItem.defaultH, 1, 1);
+      const engine = this.getEngine();
+      if (!engine) {
+        console.error('[MobileStudio] 致命錯誤：MobileReflowEngine 尚未載入');
+        return;
+      }
 
-      if (!slot) {
-        this.triggerPhoneShake('畫布空間不足，無法容納該元件！');
+      let occupiedMap = engine.buildOccupiedMap(this.layout.items);
+
+      // 候選尺寸降級鏈：優先預設尺寸 ➔ 2x1 ➔ 1x1
+      const sizeCandidates = [
+        { w: catItem.defaultW, h: catItem.defaultH }
+      ];
+      if (catItem.defaultW > 2 || catItem.defaultH > 1) {
+        sizeCandidates.push({ w: Math.min(2, catItem.defaultW), h: 1 });
+      }
+      if (catItem.defaultW > 1 || catItem.defaultH > 1) {
+        sizeCandidates.push({ w: 1, h: 1 });
+      }
+
+      let foundSlot = null;
+      let chosenSize = null;
+
+      for (const sz of sizeCandidates) {
+        const slot = engine.findNextAvailableSlot(occupiedMap, sz.w, sz.h, 1, 1);
+        if (slot) {
+          foundSlot = slot;
+          chosenSize = sz;
+          break;
+        }
+      }
+
+      // 若仍找不到空格，嘗試自動壓縮提詞機（由 4x3 縮為 4x2，瞬間釋放 4 格空間）
+      if (!foundSlot) {
+        const prompter = this.layout.items.find(it => it.id === 'widget-teleprompter');
+        if (prompter && prompter.h > 2) {
+          prompter.h = 2; // 壓縮提詞機
+          occupiedMap = engine.buildOccupiedMap(this.layout.items);
+          for (const sz of sizeCandidates) {
+            const slot = engine.findNextAvailableSlot(occupiedMap, sz.w, sz.h, 1, 1);
+            if (slot) {
+              foundSlot = slot;
+              chosenSize = sz;
+              break;
+            }
+          }
+        }
+      }
+
+      // 若騰出空間後仍無法容納，啟動微震提示
+      if (!foundSlot) {
+        this.triggerPhoneShake('畫布空間不足！請先按 ✕ 移除或縮小其他按鈕');
         return;
       }
 
       const newItem = {
         id: catItem.id,
         type: catItem.type,
-        col: slot.col,
-        row: slot.row,
-        w: catItem.defaultW,
-        h: catItem.defaultH,
+        col: foundSlot.col,
+        row: foundSlot.row,
+        w: chosenSize.w,
+        h: chosenSize.h,
         action: catItem.action,
         label: catItem.label,
         style: catItem.style,
@@ -268,8 +315,9 @@
     }
 
     cycleItemSize(item) {
-      if (!window.MobileReflowEngine) return;
-      // 輪詢預設尺規順序
+      const engine = this.getEngine();
+      if (!engine) return;
+
       const presets = [
         { w: 1, h: 1 },
         { w: 2, h: 1 },
@@ -291,7 +339,7 @@
         h: nextPreset.h
       };
 
-      const reflow = window.MobileReflowEngine.resolveReflow(this.layout.items, item.id, targetRect);
+      const reflow = engine.resolveReflow(this.layout.items, item.id, targetRect);
       if (reflow.success) {
         this.layout.items = reflow.items;
         this.commitLayout();
@@ -302,6 +350,9 @@
 
     handleCanvasDrop(e) {
       e.preventDefault();
+      const engine = this.getEngine();
+      if (!engine) return;
+
       const canvas = document.getElementById('phoneCanvasGrid');
       const rect = canvas.getBoundingClientRect();
       const cellW = rect.width / 4;
@@ -323,7 +374,7 @@
           w: it.w,
           h: it.h
         };
-        const reflow = window.MobileReflowEngine.resolveReflow(this.layout.items, it.id, targetRect);
+        const reflow = engine.resolveReflow(this.layout.items, it.id, targetRect);
         if (reflow.success) {
           this.layout.items = reflow.items;
           this.commitLayout();
@@ -334,6 +385,8 @@
         // 從庫存盒拉入
         const cat = this.draggedCatalogItem;
         this.draggedCatalogItem = null;
+
+        // 檢查目標位置是否已有元件（若有且推擠失敗，啟動直接覆蓋置換模式）
         const targetRect = {
           col: Math.min(targetCol, 4 - cat.defaultW + 1),
           row: Math.min(targetRow, 8 - cat.defaultH + 1),
@@ -355,13 +408,23 @@
         };
 
         this.layout.items.push(newItem);
-        const reflow = window.MobileReflowEngine.resolveReflow(this.layout.items, cat.id, targetRect);
+        let reflow = engine.resolveReflow(this.layout.items, cat.id, targetRect);
+
         if (reflow.success) {
           this.layout.items = reflow.items;
           this.commitLayout();
         } else {
-          this.layout.items.pop(); // 回滾
-          this.triggerPhoneShake('無法放入：空間不足');
+          // 推擠失敗：啟動「直接覆蓋置換」模式（把撞到的舊元件移回庫存，新元件直接入駐）
+          this.layout.items.pop(); // 先拿掉剛 push 的
+          const colliders = this.layout.items.filter(it => engine.checkOverlap(targetRect, it));
+          if (colliders.length > 0) {
+            const colliderIds = new Set(colliders.map(c => c.id));
+            this.layout.items = this.layout.items.filter(it => !colliderIds.has(it.id));
+            this.layout.items.push(newItem);
+            this.commitLayout();
+          } else {
+            this.triggerPhoneShake('無法放入：空間不足');
+          }
         }
       }
     }
@@ -369,6 +432,9 @@
     startResizing(e, item, cardEl) {
       e.stopPropagation();
       e.preventDefault();
+      const engine = this.getEngine();
+      if (!engine) return;
+
       const canvas = document.getElementById('phoneCanvasGrid');
       const rect = canvas.getBoundingClientRect();
       const cellW = rect.width / 4;
@@ -386,7 +452,7 @@
 
         if (newW !== item.w || newH !== item.h) {
           const targetRect = { col: item.col, row: item.row, w: newW, h: newH };
-          const reflow = window.MobileReflowEngine.resolveReflow(this.layout.items, item.id, targetRect);
+          const reflow = engine.resolveReflow(this.layout.items, item.id, targetRect);
           if (reflow.success) {
             this.layout.items = reflow.items;
             this.renderCanvas();
@@ -419,7 +485,6 @@
     }
 
     async applyMinimalTemplate() {
-      // 精簡 6 鍵模板
       this.layout = {
         version: '1.0.0',
         grid: { cols: 4, rows: 8 },
@@ -436,7 +501,6 @@
     }
 
     async applyFullTemplate() {
-      // 導播全功能模板
       this.layout = {
         version: '1.0.0',
         grid: { cols: 4, rows: 8 },
@@ -476,6 +540,5 @@
     }
   }
 
-  // 掛載至全域
   window.MobileStudio = new MobileStudioDrawer();
 })();

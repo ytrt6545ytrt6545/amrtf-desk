@@ -1,11 +1,21 @@
-import assert from 'assert';
-import {
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 讀取並執行 UMD 模組
+const engineCode = fs.readFileSync(path.join(__dirname, '../src/desk/modules/mobile-reflow-engine.js'), 'utf8');
+eval(engineCode);
+const {
   isWithinGrid,
   getOccupiedCells,
   checkOverlap,
   findNextAvailableSlot,
   resolveReflow
-} from '../src/desk/modules/mobile-reflow-engine.js';
+} = globalThis.MobileReflowEngine;
 
 console.log('🧪 啟動 Ticket 03 單元測試: Auto-Reflow Engine (10 組極限邊界盲測)...');
 
@@ -48,11 +58,10 @@ try {
   const res1 = resolveReflow(items1, 'btn-1', { col: 2, row: 1, w: 1, h: 1 });
   assert.strictEqual(res1.success, true);
   assert.strictEqual(res1.items[0].col, 2);
-  // btn-2 應被推擠至 (3, 1) 或可用格位
   assert.ok(res1.items[1].col > 2 || res1.items[1].row > 1);
   console.log('  ✅ 案例 5: 1x1 單一碰撞推擠通過');
 
-  // 案例 6: 放大為 2x2 碰撞推擠
+  // 案例 6: 放大為 2x2 多向推擠
   const items2 = [
     { id: 'btn-1', col: 1, row: 1, w: 1, h: 1 },
     { id: 'btn-2', col: 2, row: 1, w: 1, h: 1 },
@@ -62,13 +71,12 @@ try {
   assert.strictEqual(res2.success, true);
   assert.strictEqual(res2.items[0].w, 2);
   assert.strictEqual(res2.items[0].h, 2);
-  // btn-2 和 btn-3 原佔 (2,1) 和 (1,2)，現在必須被推到 2x2 以外
   const occ1 = getOccupiedCells(1, 1, 2, 2);
   assert.ok(!occ1.includes(`${res2.items[1].col},${res2.items[1].row}`));
   assert.ok(!occ1.includes(`${res2.items[2].col},${res2.items[2].row}`));
   console.log('  ✅ 案例 6: 按鈕放大為 2x2 多向推擠通過');
 
-  // 案例 7: 骨牌連續推擠
+  // 案例 7: 障礙跳躍與換行推擠
   const items3 = [
     { id: 'btn-1', col: 1, row: 1, w: 1, h: 1 },
     { id: 'btn-2', col: 2, row: 1, w: 1, h: 1 },
@@ -78,18 +86,16 @@ try {
   const res3 = resolveReflow(items3, 'btn-1', { col: 1, row: 1, w: 2, h: 1 });
   assert.strictEqual(res3.success, true);
   assert.strictEqual(res3.items[0].w, 2);
-  // 被碰撞的 btn-2 遇到 (3,1) 與 (4,1) 障礙，自動順移換行到第 2 行 (1, 2)
   assert.strictEqual(res3.items[1].row, 2, 'btn-2 應換行順移至 row 2');
   console.log('  ✅ 案例 7: 障礙跳躍與換行推擠通過');
 
-  // 案例 8: 滿格熔斷防禦 (當畫布已經放滿無法推擠時)
+  // 案例 8: 滿格 32 格溢出熔斷保護
   const fullItems = [];
   for (let r = 1; r <= 8; r++) {
     for (let c = 1; c <= 4; c++) {
       fullItems.push({ id: `cell-${c}-${r}`, col: c, row: r, w: 1, h: 1 });
     }
   }
-  // 嘗試把其中一個 1x1 變成 2x2（總格數需 33 格，超出 32 格上限）
   const resFull = resolveReflow(fullItems, 'cell-1-1', { col: 1, row: 1, w: 2, h: 2 });
   assert.strictEqual(resFull.success, false);
   assert.strictEqual(resFull.overflow, true);
@@ -100,25 +106,23 @@ try {
     { id: 'btn-1', col: 1, row: 5, w: 2, h: 1 },
     { id: 'prompter', col: 1, row: 6, w: 4, h: 3 }
   ];
-  // 把 btn-1 移到 (1, 6) 撞到 prompter，prompter 往下無空間（需 3 行），自動回捲至前面 (1, 1) 成功安置！
   const resP = resolveReflow(itemsPrompter, 'btn-1', { col: 1, row: 6, w: 2, h: 1 });
   assert.strictEqual(resP.success, true);
   assert.strictEqual(resP.items[1].row, 1, 'prompter 應回捲至 row 1');
   console.log('  ✅ 案例 9: 巨幅組件空間探測與回捲安置通過');
 
-  // 案例 9b: 真正無法安置時的溢出熔斷
+  // 案例 9b: 空間全數耗盡之溢出熔斷
   const crowdedItems = [
-    { id: 'btn-top', col: 1, row: 1, w: 4, h: 6 }, // 佔滿 1~6 行
-    { id: 'prompter', col: 1, row: 7, w: 4, h: 2 }, // 佔滿 7~8 行
+    { id: 'btn-top', col: 1, row: 1, w: 4, h: 6 },
+    { id: 'prompter', col: 1, row: 7, w: 4, h: 2 },
     { id: 'btn-extra', col: 1, row: 8, w: 2, h: 1 }
   ];
-  // 嘗試將 btn-extra 放大為 4x2，此時畫布完全無法容納
   const resCrowded = resolveReflow(crowdedItems, 'btn-extra', { col: 1, row: 7, w: 4, h: 2 });
   assert.strictEqual(resCrowded.overflow, true, '應觸發溢出熔斷');
   console.log('  ✅ 案例 9b: 空間全數耗盡之溢出熔斷通過');
 
   // 案例 10: 找到可用格位演算法
-  const map = new Set(['1,1', '2,1', '3,1', '4,1']); // 第 1 行全滿
+  const map = new Set(['1,1', '2,1', '3,1', '4,1']);
   const slot = findNextAvailableSlot(map, 2, 2, 1, 1);
   assert.deepStrictEqual(slot, { col: 1, row: 2 });
   console.log('  ✅ 案例 10: 空格探測自適應換行通過');
