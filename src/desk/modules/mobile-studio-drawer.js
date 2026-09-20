@@ -180,68 +180,76 @@
           if (item.id === 'header-info') {
             card.className += ' widget-header-info';
             card.innerHTML = `
-              ${isEdit ? `
-              <div class="mock-header">
-                <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
-                <button class="mock-remove-btn" title="移回庫存">✕</button>
-              </div>` : ''}
-              <div class="led-time" id="mockLedTime">00:00 / 00:00</div>
-              <div class="lesson-title" id="mockLessonTitle">AMRTF 模擬就緒</div>
-              ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
+              <div class="lcd-monitor-screen">
+                ${isEdit ? `
+                <div class="mock-header">
+                  <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
+                  <button class="mock-remove-btn" title="移回庫存">✕</button>
+                </div>` : ''}
+                <div class="led-time" id="mockLedTime">00:00 / 00:00</div>
+                <div class="lesson-title" id="mockLessonTitle">AMRTF 模擬就緒</div>
+                ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
+              </div>
             `;
           } else if (item.id === 'widget-teleprompter') {
             card.className += ' widget-teleprompter';
             card.innerHTML = `
-              ${isEdit ? `
-              <div class="mock-header">
-                <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
-                <button class="mock-remove-btn" title="移回庫存">✕</button>
-              </div>` : ''}
-              <div class="prompter-header"><span>師父開示逐字提詞</span><span>即時</span></div>
-              <div class="prompter-content" id="mockPrompterBox">手抄稿即時提詞中...</div>
-              ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
+              <div class="lcd-monitor-screen">
+                ${isEdit ? `
+                <div class="mock-header">
+                  <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
+                  <button class="mock-remove-btn" title="移回庫存">✕</button>
+                </div>` : ''}
+                <div class="prompter-header"><span>師父開示逐字提詞</span><span>即時</span></div>
+                <div class="prompter-content" id="mockPrompterBox">手抄稿即時提詞中...</div>
+                ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
+              </div>
             `;
           } else if (item.id === 'widget-interval') {
             card.className += ' widget-interval-box';
             card.innerHTML = `
-              ${isEdit ? `
-              <div class="mock-header">
-                <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
-                <button class="mock-remove-btn" title="移回庫存">✕</button>
-              </div>` : ''}
-              <div class="interval-select-row">
-                <div class="interval-field">
-                  <span class="field-tag">起</span>
-                  <select class="mobile-select" id="mockIntervalStart"><option value="0">00:00 起點</option></select>
+              <div class="lcd-monitor-screen">
+                ${isEdit ? `
+                <div class="mock-header">
+                  <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
+                  <button class="mock-remove-btn" title="移回庫存">✕</button>
+                </div>` : ''}
+                <div class="interval-select-row">
+                  <div class="interval-field">
+                    <span class="field-tag">起</span>
+                    <select class="mobile-select" id="mockIntervalStart"><option value="0">00:00 起點</option></select>
+                  </div>
+                  <div class="interval-field">
+                    <span class="field-tag">迄</span>
+                    <select class="mobile-select" id="mockIntervalEnd"><option value="0">00:00 訖點</option></select>
+                  </div>
                 </div>
-                <div class="interval-field">
-                  <span class="field-tag">迄</span>
-                  <select class="mobile-select" id="mockIntervalEnd"><option value="0">00:00 訖點</option></select>
+                <div class="interval-btn-row">
+                  <button class="int-action-btn btn-int-play" id="btnMockPlayInterval">▶ 區間</button>
+                  <button class="int-action-btn btn-int-loop" id="btnMockLoopInterval">🔁 循環</button>
+                  <button class="int-action-btn btn-int-stop" id="btnMockStopInterval">⏹ 急煞</button>
                 </div>
+                ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
               </div>
-              <div class="interval-btn-row">
-                <button class="int-action-btn btn-int-play" id="btnMockPlayInterval">▶ 區間</button>
-                <button class="int-action-btn btn-int-loop" id="btnMockLoopInterval">🔁 循環</button>
-                <button class="int-action-btn btn-int-stop" id="btnMockStopInterval">⏹ 急煞</button>
-              </div>
-              ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
             `;
             setTimeout(() => this.bindMockIntervalEvents(card), 20);
           }
         } else {
-          // 一般按鈕
+          // 一般按鈕 (Stream Deck 3D 水晶透光鍵帽)
           const sizeBadge = `${item.w}×${item.h}`;
           card.innerHTML = `
-            ${isEdit ? `
-            <div class="mock-header">
-              <span class="mock-size-badge" title="點擊切換尺寸">${sizeBadge}</span>
-              <button class="mock-remove-btn" title="移回庫存盒">✕</button>
-            </div>` : ''}
-            <div class="mock-body">
-              <span class="mock-icon">${this.getItemIcon(item)}</span>
-              <span class="mock-label">${item.label || item.id}</span>
+            <div class="mock-item-crystal">
+              ${isEdit ? `
+              <div class="mock-header">
+                <span class="mock-size-badge" title="點擊切換尺寸">${sizeBadge}</span>
+                <button class="mock-remove-btn" title="移回庫存盒">✕</button>
+              </div>` : ''}
+              <div class="mock-body">
+                <span class="mock-icon">${this.getItemIcon(item)}</span>
+                <span class="mock-label">${item.label || item.id}</span>
+              </div>
+              ${isEdit ? '<div class="mock-resize-handle" title="拖拉改變跨欄與跨列">⤡</div>' : ''}
             </div>
-            ${isEdit ? '<div class="mock-resize-handle" title="拖拉改變跨欄與跨列">⤡</div>' : ''}
           `;
 
           // 在真機預覽模式下，點擊卡片直接發送信令！

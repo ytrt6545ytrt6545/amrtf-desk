@@ -189,72 +189,131 @@ export class WebRemoteServer {
       width: 100%;
       height: 100%;
     }
-    /* 積木元件基底 */
+
+    /* 沉雕金屬外框凹槽 (Stream Deck Recessed Bezel Housing) */
     .deck-item {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: stretch;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(145deg, #222733, #0d1017);
+      padding: 3px;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.85), 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    /* 3D 壓克力透光水晶鍵帽本體 (Crystal Acrylic Cap) */
+    .deck-btn {
+      cursor: pointer;
+      border: none;
+      padding: 0;
+      background: transparent;
+    }
+    .deck-btn-crystal {
+      width: 100%;
+      height: 100%;
+      border-radius: 9px;
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      border-radius: 10px;
-      position: relative;
       overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-      transition: transform 0.08s ease, filter 0.08s ease;
+      box-shadow: inset 0 1.5px 2px rgba(255,255,255,0.65), inset 0 -3px 6px rgba(0,0,0,0.65), 0 3px 6px rgba(0,0,0,0.35);
+      transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.08s ease, filter 0.08s ease;
     }
-    .deck-btn {
-      border: 1px solid rgba(255,255,255,0.1);
-      cursor: pointer;
-      font-weight: 800;
-      color: #ffffff;
-      text-align: center;
-      padding: 4px;
+
+    /* 頂部拋物弧面反光罩 (Curved Specular Sheen) */
+    .deck-btn-crystal::before {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 3px;
+      right: 3px;
+      height: 42%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.46) 0%, rgba(255, 255, 255, 0.12) 65%, transparent 100%);
+      border-radius: 8px 8px 50% 50% / 8px 8px 25% 25%;
+      pointer-events: none;
+      z-index: 2;
+      transition: opacity 0.08s ease;
     }
-    .deck-btn:active {
-      transform: scale(0.95);
-      filter: brightness(1.2);
+
+    /* 三維機械開關按壓微動反饋 (Tactile Micro-Switch Feedback) */
+    .deck-btn:active .deck-btn-crystal {
+      transform: translateY(2px) scale(0.96);
+      box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.95), 0 1px 2px rgba(0, 0, 0, 0.4);
+      filter: brightness(1.15);
     }
-    .deck-btn .btn-icon {
+    .deck-btn:active .deck-btn-crystal::before {
+      opacity: 0.22;
+    }
+
+    /* Stream Deck 經典圖文配置 */
+    .btn-glyph {
       font-size: 24px;
       line-height: 1;
+      z-index: 3;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
       margin-bottom: 2px;
     }
-    .deck-btn .btn-text {
-      font-size: 13px;
+    .btn-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.92);
+      z-index: 3;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
       letter-spacing: 0.5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 92%;
+      text-align: center;
     }
-    /* 巨大按鈕時加大字體 */
-    .deck-btn.span-2x2 .btn-icon { font-size: 40px; margin-bottom: 4px; }
-    .deck-btn.span-2x2 .btn-text { font-size: 18px; }
+    /* 巨大按鈕時加大圖文比例 */
+    .deck-btn.span-2x2 .btn-glyph { font-size: 42px; margin-bottom: 4px; }
+    .deck-btn.span-2x2 .btn-label { font-size: 14px; }
 
-    /* 按鈕樣式調色盤 (對標廣播級高對比) */
-    .btn-play { background: linear-gradient(135deg, #059669, #047857); border-color: #10b981; }
-    .btn-play.playing { background: linear-gradient(135deg, #d97706, #b45309); border-color: #f59e0b; }
-    .btn-stop { background: linear-gradient(135deg, #334155, #1e293b); border-color: #475569; }
-    .btn-secondary { background: linear-gradient(135deg, #1e293b, #0f172a); border-color: #334155; }
-    .btn-info { background: linear-gradient(135deg, #0284c7, #0369a1); border-color: #38bdf8; }
-    .btn-warning { background: linear-gradient(135deg, #ea580c, #c2410c); border-color: #fb923c; }
-    .btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: #60a5fa; }
-    .btn-dark { background: linear-gradient(135deg, #18181b, #09090b); border-color: #27272a; }
-    .btn-video { background: linear-gradient(135deg, #1e3a8a, #172554); border-color: #3b82f6; }
-    .btn-close-video { background: linear-gradient(135deg, #7f1d1d, #450a0a); border-color: #ef4444; }
+    /* 按鈕樣式調色盤 (高彩度 LCD 背光色相) */
+    .btn-play .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #00a2ff, #005ce6 60%, #003899); }
+    .btn-play.playing .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #ffb300, #d97706 60%, #8c4a00); }
+    .btn-stop .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #ff4d4d, #cc1111 60%, #770000); }
+    .btn-secondary .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #a855f7, #7e22ce 60%, #4c1182); }
+    .btn-info .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #00e5ff, #00a3cc 60%, #005a73); }
+    .btn-warning .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #fb923c, #ea580c 60%, #8c2e04); }
+    .btn-primary .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #38bdf8, #0284c7 60%, #034f78); }
+    .btn-dark .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #334155, #1e293b 60%, #0f172a); }
+    .btn-video .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #ffd700, #d49b00 60%, #805500); }
+    .btn-close-video .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #64748b, #334155 60%, #1e293b); }
+
+    /* 嵌入式 LCD 液晶監視艙基底 (起訖模組 / 提詞機 / 時鐘) */
+    .lcd-monitor-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 9px;
+      background: #080a10;
+      border: 1.5px solid #232936;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.85);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
     /* 時鐘與講次 Widget */
-    .widget-header-info {
-      background: #020617;
-      border: 1px solid #1e293b;
+    .widget-header-info .lcd-monitor-screen {
       padding: 4px 8px;
       justify-content: center;
+      align-items: center;
       text-align: center;
     }
     .widget-header-info .led-time {
       font-family: monospace;
       font-size: 20px;
       font-weight: 900;
-      color: #38bdf8;
-      text-shadow: 0 0 8px rgba(56,189,248,0.35);
+      color: #00e5ff;
+      text-shadow: 0 0 8px rgba(0,229,255,0.45);
       line-height: 1.1;
     }
     .widget-header-info .lesson-title {
@@ -268,44 +327,40 @@ export class WebRemoteServer {
     }
 
     /* 師父逐字稿提詞機 Widget */
-    .widget-teleprompter {
-      background: #0a0f1d;
-      border: 1px solid #1e293b;
+    .widget-teleprompter .lcd-monitor-screen {
       padding: 8px 10px;
       align-items: stretch;
       justify-content: flex-start;
-      overflow: hidden;
     }
     .prompter-header {
       font-size: 10px;
-      color: #64748b;
+      color: #00e5ff;
       font-weight: 700;
       display: flex;
       justify-content: space-between;
       margin-bottom: 4px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(0,229,255,0.15);
       padding-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .prompter-content {
       flex: 1;
       overflow-y: auto;
       font-size: 14px;
       line-height: 1.5;
-      color: #cbd5e1;
+      color: #00e676;
+      text-shadow: 0 0 2px rgba(0,230,118,0.25);
       word-break: break-word;
       padding-bottom: 4px;
       -webkit-overflow-scrolling: touch;
     }
     .prompter-content::-webkit-scrollbar { width: 3px; }
-    .prompter-content::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .prompter-content::-webkit-scrollbar-thumb { background: #232936; border-radius: 3px; }
 
     /* ⏱️ 手機端起訖段落控制艙 Widget */
-    .widget-interval-box {
-      background: #050a15;
-      border: 1px solid #1e293b;
+    .widget-interval-box .lcd-monitor-screen {
       padding: 6px;
-      display: flex;
-      flex-direction: column;
       justify-content: space-between;
       gap: 5px;
     }
@@ -318,8 +373,8 @@ export class WebRemoteServer {
       flex: 1;
       display: flex;
       align-items: center;
-      background: #0f172a;
-      border: 1px solid #334155;
+      background: #0f1420;
+      border: 1px solid #232d3d;
       border-radius: 6px;
       padding: 2px 4px;
       overflow: hidden;
@@ -327,7 +382,7 @@ export class WebRemoteServer {
     .field-tag {
       font-size: 11px;
       font-weight: 900;
-      color: #38bdf8;
+      color: #00e5ff;
       margin-right: 4px;
     }
     .mobile-select {
@@ -341,7 +396,7 @@ export class WebRemoteServer {
       width: 100%;
     }
     .mobile-select option {
-      background: #0f172a;
+      background: #0f1420;
       color: #f8fafc;
     }
     .interval-btn-row {
@@ -349,6 +404,7 @@ export class WebRemoteServer {
       gap: 6px;
       width: 100%;
     }
+    /* 嵌入式微型水晶操作鍵 */
     .int-action-btn {
       flex: 1;
       padding: 6px 0;
@@ -358,14 +414,19 @@ export class WebRemoteServer {
       font-weight: 900;
       color: #ffffff;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.4);
+      transition: transform 0.08s ease, filter 0.08s ease;
     }
     .int-action-btn:active {
-      transform: scale(0.95);
+      transform: translateY(1px) scale(0.96);
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.9);
+      filter: brightness(1.2);
     }
-    .btn-int-play { background: linear-gradient(135deg, #d97706, #b45309); }
-    .btn-int-loop { background: linear-gradient(135deg, #ea580c, #c2410c); }
-    .btn-int-stop { background: linear-gradient(135deg, #475569, #334155); }
+    .btn-int-play { background: radial-gradient(circle at 50% 30%, #ffaa00, #d97706 60%, #8c4a00); }
+    .btn-int-loop { background: radial-gradient(circle at 50% 30%, #a855f7, #7e22ce 60%, #4c1182); }
+    .btn-int-stop { background: radial-gradient(circle at 50% 30%, #64748b, #475569 60%, #334155); }
   </style>
 </head>
 <body>
@@ -434,33 +495,39 @@ export class WebRemoteServer {
         if (item.type === 'widget') {
           if (item.id === 'header-info') {
             el.className += ' widget-header-info';
-            el.innerHTML = '<div class="led-time" id="ledTime">00:00 / 00:00</div>' +
-                           '<div class="lesson-title" id="lessonTitle">AMRTF 4×8 就緒</div>';
+            el.innerHTML = '<div class="lcd-monitor-screen">' +
+                             '<div class="led-time" id="ledTime">00:00 / 00:00</div>' +
+                             '<div class="lesson-title" id="lessonTitle">AMRTF 4×8 就緒</div>' +
+                           '</div>';
           } else if (item.id === 'widget-teleprompter') {
             el.className += ' widget-teleprompter';
-            el.innerHTML = '<div class="prompter-header"><span>師父開示逐字提詞</span><span id="prompterStatus">即時</span></div>' +
-                           '<div class="prompter-content" id="prompterBox">手抄稿即時提詞就緒...</div>';
+            el.innerHTML = '<div class="lcd-monitor-screen">' +
+                             '<div class="prompter-header"><span>師父開示逐字提詞</span><span id="prompterStatus">即時</span></div>' +
+                             '<div class="prompter-content" id="prompterBox">手抄稿即時提詞就緒...</div>' +
+                           '</div>';
           } else if (item.id === 'widget-interval') {
             el.className += ' widget-interval-box';
-            el.innerHTML = '<div class="interval-select-row">' +
-                             '<div class="interval-field">' +
-                               '<span class="field-tag">起</span>' +
-                               '<select class="mobile-select" id="mobileSelectStart"><option value="0">00:00 起點</option></select>' +
+            el.innerHTML = '<div class="lcd-monitor-screen">' +
+                             '<div class="interval-select-row">' +
+                               '<div class="interval-field">' +
+                                 '<span class="field-tag">起</span>' +
+                                 '<select class="mobile-select" id="mobileSelectStart"><option value="0">00:00 起點</option></select>' +
+                               '</div>' +
+                               '<div class="interval-field">' +
+                                 '<span class="field-tag">迄</span>' +
+                                 '<select class="mobile-select" id="mobileSelectEnd"><option value="0">00:00 訖點</option></select>' +
+                               '</div>' +
                              '</div>' +
-                             '<div class="interval-field">' +
-                               '<span class="field-tag">迄</span>' +
-                               '<select class="mobile-select" id="mobileSelectEnd"><option value="0">00:00 訖點</option></select>' +
+                             '<div class="interval-btn-row">' +
+                               '<button class="int-action-btn btn-int-play" id="btnMobilePlayInterval">▶ 區間</button>' +
+                               '<button class="int-action-btn btn-int-loop" id="btnMobileLoopInterval">🔁 循環</button>' +
+                               '<button class="int-action-btn btn-int-stop" id="btnMobileStopInterval">⏹ 急煞</button>' +
                              '</div>' +
-                           '</div>' +
-                           '<div class="interval-btn-row">' +
-                             '<button class="int-action-btn btn-int-play" id="btnMobilePlayInterval">▶ 區間</button>' +
-                             '<button class="int-action-btn btn-int-loop" id="btnMobileLoopInterval">🔁 循環</button>' +
-                             '<button class="int-action-btn btn-int-stop" id="btnMobileStopInterval">⏹ 急煞</button>' +
                            '</div>';
             setTimeout(() => setupMobileIntervalEvents(), 20);
           }
         } else {
-          // 一般按鈕
+          // 一般按鈕 (Stream Deck 3D 水晶透光鍵帽)
           el.className += ' deck-btn ' + (item.style || 'btn-secondary');
           if (item.w >= 2 && item.h >= 2) el.className += ' span-2x2';
 
@@ -480,8 +547,10 @@ export class WebRemoteServer {
           else if (item.action === 'modal_migtsema' || item.action === 'modal_prep_video' || item.action === 'modal_dedication_video') icon = '🎬';
           else if (item.action === 'close_video') icon = '✕';
 
-          el.innerHTML = '<div class="btn-icon">' + icon + '</div>' +
-                         '<div class="btn-text">' + (item.label || item.id) + '</div>';
+          el.innerHTML = '<div class="deck-btn-crystal">' +
+                           '<div class="btn-glyph">' + icon + '</div>' +
+                           '<div class="btn-label">' + (item.label || item.id) + '</div>' +
+                         '</div>';
 
           el.onclick = () => handleButtonClick(item);
         }
