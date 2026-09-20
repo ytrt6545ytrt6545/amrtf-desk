@@ -1,14 +1,16 @@
 // ==============================================================================
-// 📱 AMRTF-Desk 1:1 手機模擬編排艙模組 (Mobile Studio Drawer · 強固自適應版)
-// 支援 4 欄 × 8 列磁吸畫布、Drag & Drop、⤡ 拉伸、尺寸降級自動適應與覆蓋置換
+// 📱 AMRTF-Desk 1:1 手機模擬編排艙模組 (Mobile Studio Drawer · 真機互動預覽版)
+// 支援 4×8 磁吸畫布、Drag & Drop、⤡ 拉伸、尺寸降級適應、覆蓋置換與「🎮 真機操作預覽」
 // ==============================================================================
 
 (function () {
   class MobileStudioDrawer {
     constructor() {
       this.isOpen = false;
+      this.mode = 'edit'; // 'edit' | 'preview'
       this.layout = null;
       this.catalog = [];
+      this.liveState = null;
       this.draggedCatalogItem = null;
       this.draggedCanvasItem = null;
 
@@ -26,10 +28,12 @@
           <!-- 頂部導航列 -->
           <div class="studio-header">
             <div class="studio-title-group">
-              <span class="studio-title">📱 4×8 行動操作艙模擬編排</span>
-              <span class="studio-subtitle">1:1 真實比例 · 磁吸拖曳 · 智慧自適應 · 50ms 即時雙端熱同步</span>
+              <span class="studio-title">📱 4×8 行動操作艙編排與實機預覽</span>
+              <span class="studio-subtitle" id="studioSubTitle">1:1 真實比例 · 磁吸拖曳 · 50ms 即時雙端熱同步</span>
             </div>
             <div class="studio-actions">
+              <!-- 🎮 模式切換鈕 -->
+              <button class="studio-btn btn-mode-toggle" id="btnStudioModeToggle">🎮 切換真機預覽操作</button>
               <button class="studio-btn" id="btnTplMinimal">📋 精簡6鍵模板</button>
               <button class="studio-btn" id="btnTplFull">🚀 導播全功能模板</button>
               <button class="studio-btn btn-warn" id="btnStudioReset">🔄 重設預設</button>
@@ -45,11 +49,11 @@
                 <div class="phone-speaker-notch"></div>
                 <div class="phone-canvas-grid" id="phoneCanvasGrid"></div>
               </div>
-              <div class="phone-hint">💡 提示：點擊右側庫存即可加入；拖曳按鈕可換位或覆蓋；拉伸 ⤡ 或點擊尺寸膠囊改大小！</div>
+              <div class="phone-hint" id="phoneHintText">💡 提示：點擊右側庫存即可加入；拖曳按鈕換位；點擊頂部「🎮」可直接在電腦上實機點按！</div>
             </div>
 
             <!-- 🧰 右側元件庫存盒 (Toolbox) -->
-            <div class="arsenal-panel">
+            <div class="arsenal-panel" id="arsenalPanel">
               <div class="arsenal-header">
                 <span>🧰 按鈕與元件庫存盒</span>
                 <span class="arsenal-count" id="arsenalCount">0 項可用</span>
@@ -64,19 +68,19 @@
     }
 
     bindEvents() {
-      // 頂部開啟按鈕
       const toggleBtn = document.getElementById('btnMobileStudioToggle');
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => this.toggle());
-      }
+      if (toggleBtn) toggleBtn.addEventListener('click', () => this.toggle());
 
-      // 抽屜關閉
       const closeBtn = document.getElementById('btnStudioClose');
       const backdrop = document.getElementById('studioBackdrop');
       if (closeBtn) closeBtn.addEventListener('click', () => this.close());
       if (backdrop) backdrop.addEventListener('click', () => this.close());
 
-      // 模板切換
+      // 模式切換按鈕
+      const modeBtn = document.getElementById('btnStudioModeToggle');
+      if (modeBtn) modeBtn.addEventListener('click', () => this.toggleMode());
+
+      // 模板與重設
       const btnMinimal = document.getElementById('btnTplMinimal');
       const btnFull = document.getElementById('btnTplFull');
       const btnReset = document.getElementById('btnStudioReset');
@@ -88,11 +92,38 @@
       // 畫布放下 (Drop) 監聽
       const canvas = document.getElementById('phoneCanvasGrid');
       canvas.addEventListener('dragover', (e) => {
+        if (this.mode !== 'edit') return;
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
       });
 
       canvas.addEventListener('drop', (e) => this.handleCanvasDrop(e));
+    }
+
+    toggleMode() {
+      this.mode = (this.mode === 'edit') ? 'preview' : 'edit';
+      const modeBtn = document.getElementById('btnStudioModeToggle');
+      const subTitle = document.getElementById('studioSubTitle');
+      const hintText = document.getElementById('phoneHintText');
+      const arsenal = document.getElementById('arsenalPanel');
+
+      if (this.mode === 'preview') {
+        modeBtn.textContent = '🛠️ 返回編輯排版模式';
+        modeBtn.style.background = '#059669';
+        modeBtn.style.borderColor = '#10b981';
+        subTitle.textContent = '● 真機互動預覽中 · 在電腦上點擊直接遙控放映艙！';
+        hintText.textContent = '🎮 預覽模式已啟用：直接點擊手機螢幕按鈕，現場放映艙同步響應！';
+        if (arsenal) arsenal.style.opacity = '0.4';
+      } else {
+        modeBtn.textContent = '🎮 切換真機預覽操作';
+        modeBtn.style.background = '#1e293b';
+        modeBtn.style.borderColor = '#334155';
+        subTitle.textContent = '1:1 真實比例 · 磁吸拖曳 · 50ms 即時雙端熱同步';
+        hintText.textContent = '💡 提示：點擊右側庫存即可加入；拖曳按鈕換位；點擊頂部「🎮」可直接在電腦上實機點按！';
+        if (arsenal) arsenal.style.opacity = '1';
+      }
+
+      this.renderCanvas();
     }
 
     async open() {
@@ -135,51 +166,252 @@
       grid.innerHTML = '';
       if (!this.layout || !this.layout.items) return;
 
+      const isEdit = (this.mode === 'edit');
+
       for (const item of this.layout.items) {
         const card = document.createElement('div');
         card.className = `mock-item ${item.type === 'widget' ? 'is-widget' : 'is-btn'} ${item.style || 'btn-secondary'}`;
         card.id = `mock-${item.id}`;
         card.style.gridColumn = `${item.col} / span ${item.w}`;
         card.style.gridRow = `${item.row} / span ${item.h}`;
-        card.draggable = true;
+        card.draggable = isEdit;
 
-        const sizeBadge = `${item.w}×${item.h}`;
+        if (item.type === 'widget') {
+          if (item.id === 'header-info') {
+            card.className += ' widget-header-info';
+            card.innerHTML = `
+              ${isEdit ? `
+              <div class="mock-header">
+                <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
+                <button class="mock-remove-btn" title="移回庫存">✕</button>
+              </div>` : ''}
+              <div class="led-time" id="mockLedTime">00:00 / 00:00</div>
+              <div class="lesson-title" id="mockLessonTitle">AMRTF 模擬就緒</div>
+              ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
+            `;
+          } else if (item.id === 'widget-teleprompter') {
+            card.className += ' widget-teleprompter';
+            card.innerHTML = `
+              ${isEdit ? `
+              <div class="mock-header">
+                <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
+                <button class="mock-remove-btn" title="移回庫存">✕</button>
+              </div>` : ''}
+              <div class="prompter-header"><span>師父開示逐字提詞</span><span>即時</span></div>
+              <div class="prompter-content" id="mockPrompterBox">手抄稿即時提詞中...</div>
+              ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
+            `;
+          } else if (item.id === 'widget-interval') {
+            card.className += ' widget-interval-box';
+            card.innerHTML = `
+              ${isEdit ? `
+              <div class="mock-header">
+                <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
+                <button class="mock-remove-btn" title="移回庫存">✕</button>
+              </div>` : ''}
+              <div class="interval-select-row">
+                <div class="interval-field">
+                  <span class="field-tag">起</span>
+                  <select class="mobile-select" id="mockIntervalStart"><option value="0">00:00 起點</option></select>
+                </div>
+                <div class="interval-field">
+                  <span class="field-tag">迄</span>
+                  <select class="mobile-select" id="mockIntervalEnd"><option value="0">00:00 訖點</option></select>
+                </div>
+              </div>
+              <div class="interval-btn-row">
+                <button class="int-action-btn btn-int-play" id="btnMockPlayInterval">▶ 區間</button>
+                <button class="int-action-btn btn-int-loop" id="btnMockLoopInterval">🔁 循環</button>
+                <button class="int-action-btn btn-int-stop" id="btnMockStopInterval">⏹ 急煞</button>
+              </div>
+              ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
+            `;
+            setTimeout(() => this.bindMockIntervalEvents(card), 20);
+          }
+        } else {
+          // 一般按鈕
+          const sizeBadge = `${item.w}×${item.h}`;
+          card.innerHTML = `
+            ${isEdit ? `
+            <div class="mock-header">
+              <span class="mock-size-badge" title="點擊切換尺寸">${sizeBadge}</span>
+              <button class="mock-remove-btn" title="移回庫存盒">✕</button>
+            </div>` : ''}
+            <div class="mock-body">
+              <span class="mock-icon">${this.getItemIcon(item)}</span>
+              <span class="mock-label">${item.label || item.id}</span>
+            </div>
+            ${isEdit ? '<div class="mock-resize-handle" title="拖拉改變跨欄與跨列">⤡</div>' : ''}
+          `;
 
-        card.innerHTML = `
-          <div class="mock-header">
-            <span class="mock-size-badge" title="點擊切換尺寸">${sizeBadge}</span>
-            <button class="mock-remove-btn" title="移回庫存盒">✕</button>
-          </div>
-          <div class="mock-body">
-            <span class="mock-icon">${this.getItemIcon(item)}</span>
-            <span class="mock-label">${item.label || item.id}</span>
-          </div>
-          <div class="mock-resize-handle" title="拖拉改變跨欄與跨列">⤡</div>
-        `;
+          // 在真機預覽模式下，點擊卡片直接發送信令！
+          if (!isEdit) {
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+              this.dispatchLiveCommand(item);
+            });
+          }
+        }
 
-        // 移除回到庫存
-        card.querySelector('.mock-remove-btn').addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.removeItemFromCanvas(item.id);
-        });
+        if (isEdit) {
+          const removeBtn = card.querySelector('.mock-remove-btn');
+          if (removeBtn) {
+            removeBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              this.removeItemFromCanvas(item.id);
+            });
+          }
 
-        // 點擊尺寸 Badge 快速切換
-        card.querySelector('.mock-size-badge').addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.cycleItemSize(item);
-        });
+          const sizeBadgeEl = card.querySelector('.mock-size-badge');
+          if (sizeBadgeEl) {
+            sizeBadgeEl.addEventListener('click', (e) => {
+              e.stopPropagation();
+              this.cycleItemSize(item);
+            });
+          }
 
-        // 畫布內拖曳換位
-        card.addEventListener('dragstart', (e) => {
-          this.draggedCanvasItem = item;
-          e.dataTransfer.setData('text/plain', item.id);
-        });
+          card.addEventListener('dragstart', (e) => {
+            this.draggedCanvasItem = item;
+            e.dataTransfer.setData('text/plain', item.id);
+          });
 
-        // 拉伸把手事件
-        const handle = card.querySelector('.mock-resize-handle');
-        handle.addEventListener('mousedown', (e) => this.startResizing(e, item, card));
+          const handle = card.querySelector('.mock-resize-handle');
+          if (handle) {
+            handle.addEventListener('mousedown', (e) => this.startResizing(e, item, card));
+          }
+        }
 
         grid.appendChild(card);
+      }
+
+      this.updateMockLiveState();
+    }
+
+    bindMockIntervalEvents(container) {
+      const btnPlay = container.querySelector('#btnMockPlayInterval');
+      const btnLoop = container.querySelector('#btnMockLoopInterval');
+      const btnStop = container.querySelector('#btnMockStopInterval');
+      const selStart = container.querySelector('#mockIntervalStart');
+      const selEnd = container.querySelector('#mockIntervalEnd');
+
+      if (btnPlay) {
+        btnPlay.onclick = (e) => {
+          e.stopPropagation();
+          const start = parseFloat(selStart?.value) || 0;
+          const end = parseFloat(selEnd?.value) || 0;
+          if (end > start) {
+            this.sendLiveCmd('play_interval', { start, end, loop: false });
+          } else {
+            alert('訖點必須大於起點！');
+          }
+        };
+      }
+      if (btnLoop) {
+        btnLoop.onclick = (e) => {
+          e.stopPropagation();
+          const start = parseFloat(selStart?.value) || 0;
+          const end = parseFloat(selEnd?.value) || 0;
+          if (end > start) {
+            this.sendLiveCmd('play_interval', { start, end, loop: true });
+          } else {
+            alert('訖點必須大於起點！');
+          }
+        };
+      }
+      if (btnStop) {
+        btnStop.onclick = (e) => {
+          e.stopPropagation();
+          this.sendLiveCmd('stop_interval');
+          this.sendLiveCmd('pause');
+        };
+      }
+
+      if (this.liveState && this.liveState.markers) {
+        this.populateMockIntervalOptions(this.liveState.markers);
+      }
+    }
+
+    populateMockIntervalOptions(markers) {
+      if (!Array.isArray(markers) || markers.length === 0) return;
+      const selStart = document.getElementById('mockIntervalStart');
+      const selEnd = document.getElementById('mockIntervalEnd');
+      if (!selStart || !selEnd) return;
+
+      const curStart = selStart.value;
+      const curEnd = selEnd.value;
+
+      selStart.innerHTML = '';
+      selEnd.innerHTML = '';
+
+      markers.forEach((m, idx) => {
+        const timeVal = parseFloat(m.seconds || m.time || 0);
+        const labelText = m.label || m.title || `第 ${idx + 1} 段`;
+
+        const optS = document.createElement('option');
+        optS.value = timeVal;
+        optS.textContent = `${m.timeStr || ''} ${labelText}`.trim();
+        selStart.appendChild(optS);
+
+        const optE = document.createElement('option');
+        optE.value = timeVal;
+        optE.textContent = `${m.timeStr || ''} ${labelText}`.trim();
+        selEnd.appendChild(optE);
+      });
+
+      if (curStart) selStart.value = curStart;
+      if (curEnd) selEnd.value = curEnd;
+      else if (markers.length > 1) selEnd.selectedIndex = 1;
+    }
+
+    /**
+     * 真機指令發送器 (直通電腦端主控台信令中樞)
+     */
+    sendLiveCmd(cmd, params = {}) {
+      console.log(`[MobileStudio 🎮 真機遙控] 發送信令: ${cmd}`, params);
+      if (typeof window.sendDeskCommand === 'function') {
+        window.sendDeskCommand(cmd, params);
+      } else {
+        console.warn('window.sendDeskCommand 未就緒');
+      }
+    }
+
+    dispatchLiveCommand(item) {
+      const act = item.action;
+      if (act === 'play') this.sendLiveCmd('toggle_play');
+      else if (act === 'stop') this.sendLiveCmd('restart');
+      else if (act === 'seek_bwd') this.sendLiveCmd('rewind_10s');
+      else if (act === 'seek_fwd') this.sendLiveCmd('forward_10s');
+      else if (act === 'toggle_quote') this.sendLiveCmd('seek_quote');
+      else if (act === 'toggle_theme') this.sendLiveCmd('toggle_theme');
+      else if (act === 'toggle_scroll') this.sendLiveCmd('toggle_scroll_mode');
+      else if (act === 'toggle_speech_lead') this.sendLiveCmd('toggle_speech_lead');
+      else if (act === 'loop_interval') this.sendLiveCmd('play_interval', { loop: true });
+      else if (act === 'prev_lecture') this.sendLiveCmd('prev_lecture');
+      else if (act === 'next_lecture') this.sendLiveCmd('next_lecture');
+      else if (act === 'fullscreen') this.sendLiveCmd('toggle_fullscreen');
+      else if (act) this.sendLiveCmd(act);
+    }
+
+    /**
+     * 接收主控台即時狀態同步 (供時鐘/字幕/按鈕即時跳動)
+     */
+    syncLiveState(state) {
+      this.liveState = state;
+      this.updateMockLiveState();
+    }
+
+    updateMockLiveState() {
+      if (!this.liveState) return;
+      const led = document.getElementById('mockLedTime');
+      const title = document.getElementById('mockLessonTitle');
+      const prompter = document.getElementById('mockPrompterBox');
+
+      if (led && this.liveState.timeStr) led.textContent = this.liveState.timeStr;
+      if (title && this.liveState.title) title.textContent = this.liveState.title;
+      if (prompter && this.liveState.activeText) prompter.textContent = this.liveState.activeText;
+
+      if (this.liveState.markers) {
+        this.populateMockIntervalOptions(this.liveState.markers);
       }
     }
 
@@ -210,7 +442,6 @@
           <button class="arsenal-add-btn" title="加入手機畫布">+ 放入</button>
         `;
 
-        // 點擊整列或點擊按鈕皆可加入
         row.addEventListener('click', () => {
           this.addItemToCanvas(item);
         });
@@ -233,22 +464,16 @@
       if (item.action === 'close_video') return '✕';
       if (item.id === 'header-info') return '⏱️';
       if (item.id === 'widget-teleprompter') return '📜';
+      if (item.id === 'widget-interval') return '⏱️';
       return '⚡';
     }
 
-    /**
-     * 核心加入函式：具備自適應尺寸降級與自動壓縮提詞機能力
-     */
     addItemToCanvas(catItem) {
       const engine = this.getEngine();
-      if (!engine) {
-        console.error('[MobileStudio] 致命錯誤：MobileReflowEngine 尚未載入');
-        return;
-      }
+      if (!engine) return;
 
       let occupiedMap = engine.buildOccupiedMap(this.layout.items);
 
-      // 候選尺寸降級鏈：優先預設尺寸 ➔ 2x1 ➔ 1x1
       const sizeCandidates = [
         { w: catItem.defaultW, h: catItem.defaultH }
       ];
@@ -271,11 +496,10 @@
         }
       }
 
-      // 若仍找不到空格，嘗試自動壓縮提詞機（由 4x3 縮為 4x2，瞬間釋放 4 格空間）
       if (!foundSlot) {
         const prompter = this.layout.items.find(it => it.id === 'widget-teleprompter');
         if (prompter && prompter.h > 2) {
-          prompter.h = 2; // 壓縮提詞機
+          prompter.h = 2;
           occupiedMap = engine.buildOccupiedMap(this.layout.items);
           for (const sz of sizeCandidates) {
             const slot = engine.findNextAvailableSlot(occupiedMap, sz.w, sz.h, 1, 1);
@@ -288,7 +512,6 @@
         }
       }
 
-      // 若騰出空間後仍無法容納，啟動微震提示
       if (!foundSlot) {
         this.triggerPhoneShake('畫布空間不足！請先按 ✕ 移除或縮小其他按鈕');
         return;
@@ -367,7 +590,6 @@
       const targetRow = Math.max(1, Math.min(8, Math.floor(clickY / cellH) + 1));
 
       if (this.draggedCanvasItem) {
-        // 畫布內移動換位
         const it = this.draggedCanvasItem;
         this.draggedCanvasItem = null;
         const targetRect = {
@@ -384,11 +606,9 @@
           this.triggerPhoneShake('移動碰撞：' + reflow.reason);
         }
       } else if (this.draggedCatalogItem) {
-        // 從庫存盒拉入
         const cat = this.draggedCatalogItem;
         this.draggedCatalogItem = null;
 
-        // 檢查目標位置是否已有元件（若有且推擠失敗，啟動直接覆蓋置換模式）
         const targetRect = {
           col: Math.min(targetCol, 4 - cat.defaultW + 1),
           row: Math.min(targetRow, 8 - cat.defaultH + 1),
@@ -416,8 +636,7 @@
           this.layout.items = reflow.items;
           this.commitLayout();
         } else {
-          // 推擠失敗：啟動「直接覆蓋置換」模式（把撞到的舊元件移回庫存，新元件直接入駐）
-          this.layout.items.pop(); // 先拿掉剛 push 的
+          this.layout.items.pop();
           const colliders = this.layout.items.filter(it => engine.checkOverlap(targetRect, it));
           if (colliders.length > 0) {
             const colliderIds = new Set(colliders.map(c => c.id));
@@ -512,9 +731,8 @@
           { id: 'btn-stop', type: 'button', col: 3, row: 2, w: 2, h: 2, action: 'stop', label: '⏹ 停止', style: 'btn-stop' },
           { id: 'btn-bwd', type: 'button', col: 1, row: 4, w: 2, h: 1, action: 'seek_bwd', label: '⏪ 5s 倒退', style: 'btn-secondary' },
           { id: 'btn-fwd', type: 'button', col: 3, row: 4, w: 2, h: 1, action: 'seek_fwd', label: '5s ⏩ 快進', style: 'btn-secondary' },
-          { id: 'btn-quote', type: 'button', col: 1, row: 5, w: 2, h: 1, action: 'toggle_quote', label: '# 引文開關', style: 'btn-info' },
-          { id: 'btn-theme', type: 'button', col: 3, row: 5, w: 2, h: 1, action: 'toggle_theme', label: '🌓 亮暗色', style: 'btn-dark' },
-          { id: 'widget-teleprompter', type: 'widget', col: 1, row: 6, w: 4, h: 3, label: '師父開示逐字提詞機' }
+          { id: 'widget-interval', type: 'widget', col: 1, row: 5, w: 4, h: 2, label: '⏱️ 起訖區間控制艙' },
+          { id: 'widget-teleprompter', type: 'widget', col: 1, row: 7, w: 4, h: 2, label: '師父開示逐字提詞機' }
         ]
       };
       await this.commitLayout();

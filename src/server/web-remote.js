@@ -298,6 +298,74 @@ export class WebRemoteServer {
     }
     .prompter-content::-webkit-scrollbar { width: 3px; }
     .prompter-content::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+    /* ⏱️ 手機端起訖段落控制艙 Widget */
+    .widget-interval-box {
+      background: #050a15;
+      border: 1px solid #1e293b;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 5px;
+    }
+    .interval-select-row {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+    .interval-field {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 2px 4px;
+      overflow: hidden;
+    }
+    .field-tag {
+      font-size: 11px;
+      font-weight: 900;
+      color: #38bdf8;
+      margin-right: 4px;
+    }
+    .mobile-select {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 700;
+      outline: none;
+      width: 100%;
+    }
+    .mobile-select option {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    .interval-btn-row {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+    .int-action-btn {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 6px;
+      border: none;
+      font-size: 12px;
+      font-weight: 900;
+      color: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .int-action-btn:active {
+      transform: scale(0.95);
+    }
+    .btn-int-play { background: linear-gradient(135deg, #d97706, #b45309); }
+    .btn-int-loop { background: linear-gradient(135deg, #ea580c, #c2410c); }
+    .btn-int-stop { background: linear-gradient(135deg, #475569, #334155); }
   </style>
 </head>
 <body>
@@ -372,6 +440,24 @@ export class WebRemoteServer {
             el.className += ' widget-teleprompter';
             el.innerHTML = '<div class="prompter-header"><span>師父開示逐字提詞</span><span id="prompterStatus">即時</span></div>' +
                            '<div class="prompter-content" id="prompterBox">手抄稿即時提詞就緒...</div>';
+          } else if (item.id === 'widget-interval') {
+            el.className += ' widget-interval-box';
+            el.innerHTML = '<div class="interval-select-row">' +
+                             '<div class="interval-field">' +
+                               '<span class="field-tag">起</span>' +
+                               '<select class="mobile-select" id="mobileSelectStart"><option value="0">00:00 起點</option></select>' +
+                             '</div>' +
+                             '<div class="interval-field">' +
+                               '<span class="field-tag">迄</span>' +
+                               '<select class="mobile-select" id="mobileSelectEnd"><option value="0">00:00 訖點</option></select>' +
+                             '</div>' +
+                           '</div>' +
+                           '<div class="interval-btn-row">' +
+                             '<button class="int-action-btn btn-int-play" id="btnMobilePlayInterval">▶ 區間</button>' +
+                             '<button class="int-action-btn btn-int-loop" id="btnMobileLoopInterval">🔁 循環</button>' +
+                             '<button class="int-action-btn btn-int-stop" id="btnMobileStopInterval">⏹ 急煞</button>' +
+                           '</div>';
+            setTimeout(() => setupMobileIntervalEvents(), 20);
           }
         } else {
           // 一般按鈕
@@ -436,6 +522,86 @@ export class WebRemoteServer {
       }
     }
 
+    function setupMobileIntervalEvents() {
+      const btnPlay = document.getElementById('btnMobilePlayInterval');
+      const btnLoop = document.getElementById('btnMobileLoopInterval');
+      const btnStop = document.getElementById('btnMobileStopInterval');
+      const selStart = document.getElementById('mobileSelectStart');
+      const selEnd = document.getElementById('mobileSelectEnd');
+
+      if (btnPlay && !btnPlay.dataset.bound) {
+        btnPlay.dataset.bound = 'true';
+        btnPlay.onclick = () => {
+          const start = parseFloat(selStart?.value) || 0;
+          const end = parseFloat(selEnd?.value) || 0;
+          if (end > start) {
+            sendCommand('play_interval', { start, end, loop: false });
+          } else {
+            alert('訖點必須大於起點！');
+          }
+        };
+      }
+      if (btnLoop && !btnLoop.dataset.bound) {
+        btnLoop.dataset.bound = 'true';
+        btnLoop.onclick = () => {
+          const start = parseFloat(selStart?.value) || 0;
+          const end = parseFloat(selEnd?.value) || 0;
+          if (end > start) {
+            sendCommand('play_interval', { start, end, loop: true });
+          } else {
+            alert('訖點必須大於起點！');
+          }
+        };
+      }
+      if (btnStop && !btnStop.dataset.bound) {
+        btnStop.dataset.bound = 'true';
+        btnStop.onclick = () => {
+          sendCommand('stop_interval');
+          sendCommand('pause');
+        };
+      }
+
+      if (currentState && currentState.markers) {
+        populateMobileIntervalOptions(currentState.markers);
+      }
+    }
+
+    let lastRenderedMarkerCount = 0;
+    function populateMobileIntervalOptions(markers) {
+      if (!Array.isArray(markers) || markers.length === 0) return;
+      if (markers.length === lastRenderedMarkerCount) return;
+      lastRenderedMarkerCount = markers.length;
+
+      const selStart = document.getElementById('mobileSelectStart');
+      const selEnd = document.getElementById('mobileSelectEnd');
+      if (!selStart || !selEnd) return;
+
+      const curStartVal = selStart.value;
+      const curEndVal = selEnd.value;
+
+      selStart.innerHTML = '';
+      selEnd.innerHTML = '';
+
+      markers.forEach((m, idx) => {
+        const timeVal = parseFloat(m.seconds || m.time || 0);
+        const labelText = m.label || m.title || ('第 ' + (idx + 1) + ' 段');
+
+        const optS = document.createElement('option');
+        optS.value = timeVal;
+        optS.textContent = ((m.timeStr || '') + ' ' + labelText).trim();
+        selStart.appendChild(optS);
+
+        const optE = document.createElement('option');
+        optE.value = timeVal;
+        optE.textContent = ((m.timeStr || '') + ' ' + labelText).trim();
+        selEnd.appendChild(optE);
+      });
+
+      if (curStartVal) selStart.value = curStartVal;
+      if (curEndVal) selEnd.value = curEndVal;
+      else if (markers.length > 1) selEnd.selectedIndex = 1;
+    }
+
     function updateStateDisplay() {
       if (!currentState) return;
       const ledTime = document.getElementById('ledTime');
@@ -453,6 +619,10 @@ export class WebRemoteServer {
       const subtitleText = currentState.activeText || currentState.currentSubtitle;
       if (prompterBox && subtitleText) {
         prompterBox.textContent = subtitleText;
+      }
+
+      if (currentState.markers) {
+        populateMobileIntervalOptions(currentState.markers);
       }
 
       // 同步播放鈕狀態高亮

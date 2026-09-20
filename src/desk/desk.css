@@ -1326,3 +1326,71 @@ body.mode-custom-editing .cell-handle-resize {
   font-weight: 700;
 }
 
+.studio-btn.btn-mode-toggle {
+  background: #1e293b;
+  border-color: #38bdf8;
+  color: #38bdf8;
+  font-weight: 800;
+}
+.studio-btn.btn-mode-toggle:hover {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+/* 模擬框內起訖模組樣式 */
+.mock-item.widget-interval-box {
+  background: #050a15;
+  border-color: #f59e0b;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.mock-item.widget-interval-box .interval-select-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+.mock-item.widget-interval-box .interval-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  padding: 1px 3px;
+}
+.mock-item.widget-interval-box .field-tag {
+  font-size: 10px;
+  font-weight: 900;
+  color: #38bdf8;
+  margin-right: 2px;
+}
+.mock-item.widget-interval-box .mobile-select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  font-size: 10px;
+  outline: none;
+  width: 100%;
+}
+.mock-item.widget-interval-box .interval-btn-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+.mock-item.widget-interval-box .int-action-btn {
+  flex: 1;
+  padding: 4px 0;
+  border-radius: 4px;
+  border: none;
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffffff;
+  cursor: pointer;
+}
+.mock-item.widget-interval-box .btn-int-play { background: #d97706; }
+.mock-item.widget-interval-box .btn-int-loop { background: #ea580c; }
+.mock-item.widget-interval-box .btn-int-stop { background: #475569; }
+

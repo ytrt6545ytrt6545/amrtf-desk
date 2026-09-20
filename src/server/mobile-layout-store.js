@@ -43,7 +43,11 @@ export const ARSENAL_CATALOG = [
   { id: 'btn-video-migtsema', type: 'button', defaultW: 2, defaultH: 1, action: 'modal_migtsema', label: '🎬 密集嘛', style: 'btn-video', category: 'video', icon: '🎬' },
   { id: 'btn-video-prep', type: 'button', defaultW: 2, defaultH: 1, action: 'modal_prep_video', label: '🎬 前行片', style: 'btn-video', category: 'video', icon: '🎬' },
   { id: 'btn-video-dedication', type: 'button', defaultW: 2, defaultH: 1, action: 'modal_dedication_video', label: '🎬 迴向片', style: 'btn-video', category: 'video', icon: '🎬' },
-  { id: 'btn-close-video', type: 'button', defaultW: 2, defaultH: 1, action: 'close_video', label: '✕ 關閉影片', style: 'btn-close-video', category: 'video', icon: '✕' }
+  { id: 'btn-close-video', type: 'button', defaultW: 2, defaultH: 1, action: 'close_video', label: '✕ 關閉影片', style: 'btn-close-video', category: 'video', icon: '✕' },
+  // ⏱️ 現場手抄稿起訖區間模組 (完整 4x2 雙選單+三鍵控制，或單獨快捷鍵)
+  { id: 'widget-interval', type: 'widget', defaultW: 4, defaultH: 2, label: '⏱️ 起訖區間控制艙', category: 'playback', icon: '⏱️' },
+  { id: 'btn-play-interval', type: 'button', defaultW: 2, defaultH: 1, action: 'play_interval_default', label: '▶ 區間播放', style: 'btn-warning', category: 'playback', icon: '▶' },
+  { id: 'btn-stop-interval', type: 'button', defaultW: 2, defaultH: 1, action: 'stop_interval', label: '⏹ 區間急煞', style: 'btn-stop', category: 'playback', icon: '⏹' }
 ];
 
 export class MobileLayoutStore {

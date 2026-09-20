@@ -88,6 +88,9 @@
         } else if (msg.type === 'STATE_UPDATE' && msg.data) {
           if (msg.data.lanIp) currentLanIp = msg.data.lanIp;
           handleStateUpdate(msg.data);
+          if (window.MobileStudio && window.MobileStudio.syncLiveState) {
+            window.MobileStudio.syncLiveState(msg.data);
+          }
         }
       } catch (err) {}
     };
@@ -103,6 +106,7 @@
       ws.send(JSON.stringify({ type: 'COMMAND', command: cmd, params }));
     }
   }
+  window.sendDeskCommand = sendCmd;
 
   // 1. 播控行
   btnPlayPause.addEventListener('click', () => sendCmd('toggle_play'));
