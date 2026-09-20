@@ -1236,6 +1236,20 @@ body.mode-custom-editing .cell-handle-resize {
   margin-top: 1px;
 }
 
+/* 模擬器寬扁按鈕 (h = 1 且 w >= 2): 橫向精緻排版 */
+.mock-item.span-wide .mock-body {
+  flex-direction: row;
+  gap: 6px;
+  padding: 0 4px;
+}
+.mock-item.span-wide .mock-icon {
+  font-size: 16px;
+}
+.mock-item.span-wide .mock-label {
+  font-size: 10px;
+  margin-top: 0;
+}
+
 /* 懸浮磁吸拉伸把手 */
 .mock-resize-handle {
   position: absolute;

@@ -236,6 +236,13 @@
           }
         } else {
           // 一般按鈕 (Stream Deck 3D 水晶透光鍵帽)
+          if (item.w >= 2 && item.h >= 2) card.className += ' span-2x2';
+          else if (item.h === 1 && item.w >= 2) card.className += ' span-wide';
+
+          let labelText = item.label || item.id;
+          labelText = labelText.replace(/^[▶⏸⏹⏪⏩#🌓📜🗣️🔁⏮⏭⛶🎬✕⏱️⚡\s]+/, '')
+                               .replace(/[\s▶⏸⏹⏪⏩#🌓📜🗣️🔁⏮⏭⛶🎬✕⏱️⚡]+$/, '').trim() || labelText;
+
           const sizeBadge = `${item.w}×${item.h}`;
           card.innerHTML = `
             <div class="mock-item-crystal">
@@ -246,7 +253,7 @@
               </div>` : ''}
               <div class="mock-body">
                 <span class="mock-icon">${this.getItemIcon(item)}</span>
-                <span class="mock-label">${item.label || item.id}</span>
+                <span class="mock-label">${labelText}</span>
               </div>
               ${isEdit ? '<div class="mock-resize-handle" title="拖拉改變跨欄與跨列">⤡</div>' : ''}
             </div>

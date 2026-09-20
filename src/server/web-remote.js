@@ -271,9 +271,20 @@ export class WebRemoteServer {
       max-width: 92%;
       text-align: center;
     }
-    /* 巨大按鈕時加大圖文比例 */
-    .deck-btn.span-2x2 .btn-glyph { font-size: 42px; margin-bottom: 4px; }
-    .deck-btn.span-2x2 .btn-label { font-size: 14px; }
+    /* 寬扁按鈕 (h = 1 且 w >= 2): Stream Deck 經典精緻橫向排版 */
+    .deck-btn.span-wide .deck-btn-crystal {
+      flex-direction: row;
+      gap: 6px;
+      padding: 0 6px;
+    }
+    .deck-btn.span-wide .btn-glyph {
+      font-size: 18px;
+      margin-bottom: 0;
+    }
+    .deck-btn.span-wide .btn-label {
+      font-size: 11px;
+      margin-top: 0;
+    }
 
     /* 按鈕樣式調色盤 (高彩度 LCD 背光色相) */
     .btn-play .deck-btn-crystal { background: radial-gradient(circle at 50% 28%, #00a2ff, #005ce6 60%, #003899); }
@@ -530,6 +541,7 @@ export class WebRemoteServer {
           // 一般按鈕 (Stream Deck 3D 水晶透光鍵帽)
           el.className += ' deck-btn ' + (item.style || 'btn-secondary');
           if (item.w >= 2 && item.h >= 2) el.className += ' span-2x2';
+          else if (item.h === 1 && item.w >= 2) el.className += ' span-wide';
 
           let icon = '⚡';
           if (item.action === 'play') icon = isPlaying ? '⏸' : '▶';
@@ -547,9 +559,14 @@ export class WebRemoteServer {
           else if (item.action === 'modal_migtsema' || item.action === 'modal_prep_video' || item.action === 'modal_dedication_video') icon = '🎬';
           else if (item.action === 'close_video') icon = '✕';
 
+          // 清理多餘 emoji 前後贅字，避免圖文重複
+          let labelText = item.label || item.id;
+          labelText = labelText.replace(/^[▶⏸⏹⏪⏩#🌓📜🗣️🔁⏮⏭⛶🎬✕⏱️⚡\s]+/, '')
+                               .replace(/[\s▶⏸⏹⏪⏩#🌓📜🗣️🔁⏮⏭⛶🎬✕⏱️⚡]+$/, '').trim() || labelText;
+
           el.innerHTML = '<div class="deck-btn-crystal">' +
                            '<div class="btn-glyph">' + icon + '</div>' +
-                           '<div class="btn-label">' + (item.label || item.id) + '</div>' +
+                           '<div class="btn-label">' + labelText + '</div>' +
                          '</div>';
 
           el.onclick = () => handleButtonClick(item);
