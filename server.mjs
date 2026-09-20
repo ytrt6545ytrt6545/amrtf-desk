@@ -339,7 +339,17 @@ function broadcastToDesk(state) {
 
 // 4. 跨端信令調度中樞
 function dispatchCommand(cmd, params = {}) {
-  console.log(`[Dispatch] 執行指令: ${cmd}`, params);
+  const timestamp = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+  const paramStr = Object.keys(params).length > 0 ? JSON.stringify(params) : '(無參數)';
+  console.log(`📡 [${timestamp} 實機信令哨兵] 收到指令: 【${cmd}】`, paramStr);
+
+  // ✈️ 黑匣子日誌記錄器：同步寫入 logs/live-telemetry.log 供即時監聽分析
+  try {
+    const logDir = path.join(__dirname, 'logs');
+    if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+    const line = `[${timestamp}] 收到信令: 【${cmd}】 參數: ${paramStr}\n`;
+    fs.appendFileSync(path.join(logDir, 'live-telemetry.log'), line, 'utf8');
+  } catch (e) {}
 
   // 專門處理講次跳轉指令
   if (cmd === 'goto_lesson') {

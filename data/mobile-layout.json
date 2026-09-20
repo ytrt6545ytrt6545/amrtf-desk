@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": 1789910323202,
+  "updatedAt": 1789913834269,
   "grid": {
     "cols": 4,
     "rows": 8
@@ -38,20 +38,9 @@
       "style": "btn-stop"
     },
     {
-      "id": "btn-theme",
-      "type": "button",
-      "col": 3,
-      "row": 5,
-      "w": 2,
-      "h": 1,
-      "action": "toggle_theme",
-      "label": "🌓 亮暗色",
-      "style": "btn-dark"
-    },
-    {
       "id": "btn-speech-lead",
       "type": "button",
-      "col": 3,
+      "col": 1,
       "row": 4,
       "w": 2,
       "h": 1,
@@ -63,7 +52,7 @@
     {
       "id": "btn-scroll-mode",
       "type": "button",
-      "col": 1,
+      "col": 3,
       "row": 4,
       "w": 2,
       "h": 1,
@@ -73,9 +62,21 @@
       "category": "display"
     },
     {
-      "id": "btn-fullscreen",
+      "id": "btn-theme",
       "type": "button",
       "col": 1,
+      "row": 5,
+      "w": 2,
+      "h": 1,
+      "action": "toggle_theme",
+      "label": "🌓 亮暗色",
+      "style": "btn-dark",
+      "category": "display"
+    },
+    {
+      "id": "btn-fullscreen",
+      "type": "button",
+      "col": 3,
       "row": 5,
       "w": 2,
       "h": 1,
@@ -85,22 +86,20 @@
       "category": "display"
     },
     {
-      "id": "btn-video-migtsema",
-      "type": "button",
+      "id": "widget-interval",
+      "type": "widget",
       "col": 1,
       "row": 6,
-      "w": 2,
-      "h": 1,
-      "action": "modal_migtsema",
-      "label": "🎬 密集嘛",
-      "style": "btn-video",
-      "category": "video"
+      "w": 4,
+      "h": 2,
+      "label": "⏱️ 起訖區間控制艙",
+      "category": "playback"
     },
     {
       "id": "btn-video-prep",
       "type": "button",
-      "col": 3,
-      "row": 6,
+      "col": 1,
+      "row": 8,
       "w": 2,
       "h": 1,
       "action": "modal_prep_video",
@@ -111,25 +110,13 @@
     {
       "id": "btn-video-dedication",
       "type": "button",
-      "col": 1,
-      "row": 7,
+      "col": 3,
+      "row": 8,
       "w": 2,
       "h": 1,
       "action": "modal_dedication_video",
       "label": "🎬 迴向片",
       "style": "btn-video",
-      "category": "video"
-    },
-    {
-      "id": "btn-close-video",
-      "type": "button",
-      "col": 3,
-      "row": 7,
-      "w": 2,
-      "h": 1,
-      "action": "close_video",
-      "label": "✕ 關閉影片",
-      "style": "btn-close-video",
       "category": "video"
     }
   ]

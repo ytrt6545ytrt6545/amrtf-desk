@@ -945,47 +945,195 @@
     }
   });
 
-  // 指令分發中心 (100% 完整對標 Companion Actions)
-  window.__AMRTF_EXECUTE_COMMAND__ = function (cmd, params = {}) {
+  // ============================================================================
+  // 🛰️ 微型 HUD 視覺反饋膠囊 (Visual Action HUD - 供長官即時反饋與視覺快照取證)
+  // ============================================================================
+  function showActionHud(text, type = 'info') {
+    let hud = document.getElementById('amrtf-action-hud');
+    if (!hud) {
+      hud = document.createElement('div');
+      hud.id = 'amrtf-action-hud';
+      hud.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999999;
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.3);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+      `;
+      document.body.appendChild(hud);
+    }
+
+    if (type === 'error') {
+      hud.style.backgroundColor = 'rgba(220, 38, 38, 0.9)';
+      hud.style.color = '#ffffff';
+      hud.style.border = '1px solid rgba(255, 100, 100, 0.6)';
+    } else {
+      hud.style.backgroundColor = 'rgba(15, 23, 42, 0.88)';
+      hud.style.color = '#38bdf8';
+      hud.style.border = '1px solid rgba(56, 189, 248, 0.4)';
+    }
+
+    hud.textContent = text;
+    hud.style.opacity = '1';
+    hud.style.transform = 'translateY(0) scale(1)';
+
+    if (window._hudFadeTimer) clearTimeout(window._hudFadeTimer);
+    window._hudFadeTimer = setTimeout(() => {
+      hud.style.opacity = '0';
+      hud.style.transform = 'translateY(-10px) scale(0.95)';
+    }, 1300);
+  }
+
+  // 指令正規化轉譯表 (消滅大小寫與發送端歷史命名脫節)
+  const COMMAND_NORMALIZE_MAP = {
+    // 亮暗主題
+    'toggle_theme': 'set_theme',
+    'TOGGLE_THEME': 'set_theme',
+    'theme': 'set_theme',
+    'set_theme': 'set_theme',
+    // 播稿提詞
+    'toggle_speech_lead': 'toggle_speech_mode',
+    'TOGGLE_SPEECH_LEAD': 'toggle_speech_mode',
+    'toggle_speech_mode': 'toggle_speech_mode',
+    'TOGGLE_SPEECH_MODE': 'toggle_speech_mode',
+    'speech_mode': 'toggle_speech_mode',
+    'set_speech_mode': 'set_speech_mode',
+    'SET_SPEECH_MODE': 'set_speech_mode',
+    // 滾動模式
+    'toggle_scroll_mode': 'cycle_scroll_mode',
+    'TOGGLE_SCROLL_MODE': 'cycle_scroll_mode',
+    'toggle_scroll': 'cycle_scroll_mode',
+    'cycle_scroll': 'cycle_scroll_mode',
+    'cycle_scroll_mode': 'cycle_scroll_mode',
+    'CYCLE_SCROLL_MODE': 'cycle_scroll_mode',
+    'set_scroll_mode': 'set_scroll_mode',
+    'SET_SCROLL_MODE': 'set_scroll_mode',
+    // 引文導航
+    'seek_quote': 'jump_to_master_start',
+    'toggle_quote': 'jump_to_master_start',
+    'SEEK_QUOTE': 'jump_to_master_start',
+    'TOGGLE_QUOTE': 'jump_to_master_start',
+    'jump_to_master_start': 'jump_to_master_start',
+    // 前後講切換
+    'prev_lecture': 'prev_lesson',
+    'PREV_LECTURE': 'prev_lesson',
+    'prev_lesson': 'prev_lesson',
+    'PREV_LESSON': 'prev_lesson',
+    'next_lecture': 'next_lesson',
+    'NEXT_LECTURE': 'next_lesson',
+    'next_lesson': 'next_lesson',
+    'NEXT_LESSON': 'next_lesson',
+    // 全螢幕
+    'fullscreen': 'toggle_fullscreen',
+    'FULLSCREEN': 'toggle_fullscreen',
+    'toggle_fullscreen': 'toggle_fullscreen',
+    'TOGGLE_FULLSCREEN': 'toggle_fullscreen',
+    // 基礎播放
+    'play': 'play',
+    'PLAY': 'play',
+    'pause': 'pause',
+    'PAUSE': 'pause',
+    'toggle_play': 'toggle_play',
+    'TOGGLE_PLAY': 'toggle_play',
+    'stop': 'restart',
+    'restart': 'restart',
+    'STOP': 'restart',
+    'seek_bwd': 'rewind_10s',
+    'seek_fwd': 'forward_10s',
+    'SEEK_BACKWARD': 'rewind_5s',
+    'SEEK_FORWARD': 'forward_5s',
+    'rewind_5s': 'rewind_5s',
+    'forward_5s': 'forward_5s',
+    'rewind_10s': 'rewind_10s',
+    'forward_10s': 'forward_10s',
+    // 循環與區間
+    'loop_interval': 'toggle_loop_segment',
+    'LOOP_INTERVAL': 'toggle_loop_segment',
+    'toggle_loop_segment': 'toggle_loop_segment',
+    'SET_LOOP_MODE': 'toggle_loop_segment',
+    'loop_current_paragraph': 'loop_current_paragraph',
+    'play_interval': 'play_interval',
+    'play_interval_default': 'play_interval',
+    'stop_interval': 'stop_interval',
+    // 速度與字級
+    'set_playback_rate': 'set_playback_rate',
+    'SET_SPEED': 'set_playback_rate',
+    'adjust_font_size': 'adjust_font_size',
+    'ADJUST_FONT_SIZE': 'adjust_font_size',
+    // 劇院影片
+    'modal_migtsema': 'modal_migtsema',
+    'TRIGGER_MIGSEMA': 'modal_migtsema',
+    'modal_prep_video': 'modal_prep_video',
+    'TRIGGER_PREP': 'modal_prep_video',
+    'modal_dedication_video': 'modal_dedication_video',
+    'TRIGGER_DEDICATION': 'modal_dedication_video',
+    'modal_close': 'modal_close',
+    'close_video': 'modal_close',
+    'CLOSE_VIDEO': 'modal_close'
+  };
+
+  // 指令分發中心 (100% 完整對標 Companion 與手機端 Actions)
+  window.__AMRTF_EXECUTE_COMMAND__ = function (rawCmd, params = {}) {
     const audio = getAudio();
+    const cmd = COMMAND_NORMALIZE_MAP[rawCmd] || rawCmd;
 
     switch (cmd) {
       case 'toggle_play':
-      case 'TOGGLE_PLAY':
-        if (audio && !audio.paused && !audio.ended) doPause();
-        else doPlay();
+        if (audio && !audio.paused && !audio.ended) {
+          doPause();
+          showActionHud('⏸️ 已暫停播放');
+        } else {
+          doPlay();
+          showActionHud('▶️ 開始播放');
+        }
         break;
 
       case 'play':
-      case 'PLAY':
         doPlay();
+        showActionHud('▶️ 開始播放');
         break;
 
       case 'pause':
-      case 'PAUSE':
         doPause();
+        showActionHud('⏸️ 已暫停播放');
         break;
 
       case 'restart':
-      case 'STOP':
         seekAudio(0, false);
         doPause();
+        showActionHud('⏹️ 重新回到起點');
         break;
 
       case 'rewind_5s':
         if (audio) seekAudio(audio.currentTime - 5);
+        showActionHud('⏪ 快退 5 秒');
         break;
 
       case 'forward_5s':
         if (audio) seekAudio(audio.currentTime + 5);
+        showActionHud('⏩ 快進 5 秒');
         break;
 
       case 'rewind_10s':
         if (audio) seekAudio(audio.currentTime - 10);
+        showActionHud('⏪ 快退 10 秒');
         break;
 
       case 'forward_10s':
         if (audio) seekAudio(audio.currentTime + 10);
+        showActionHud('⏩ 快進 10 秒');
         break;
 
       case 'seek_relative':
@@ -999,20 +1147,23 @@
         break;
 
       case 'jump_to_master_start':
-      case 'SEEK_QUOTE':
         const curTime = audio ? audio.currentTime : 0;
         const range = parseMasterAudioRange(curTime);
-        if (range.start >= 0) seekAudio(range.start, true);
+        if (range.start >= 0) {
+          seekAudio(range.start, true);
+          showActionHud(`🎯 引文起點: ${formatClock(range.start)}`);
+        } else {
+          showActionHud('ℹ️ 當前無引文區間');
+        }
         break;
 
       case 'toggle_loop_segment':
-      case 'SET_LOOP_MODE':
         if (loopConfig.enabled && loopConfig.type === 'quote') {
           loopConfig = { enabled: false, start: 0, end: 0, type: 'none' };
+          showActionHud('🔁 引文循環：關閉');
         } else {
           const curT = audio ? audio.currentTime : 0;
           const allRanges = getAllMasterAudioRanges();
-          // 若當前正處於某個引文內，直接鎖定該段；否則鎖定下一個或第 1 段
           let r = allRanges.find(item => curT >= item.start - 1 && curT <= item.end + 1);
           if (!r) r = parseMasterAudioRange(curT);
 
@@ -1021,6 +1172,9 @@
             if (curT < r.start || curT > r.end) {
               seekAudio(r.start, true);
             }
+            showActionHud(`🔁 引文循環：${formatClock(r.start)}~${formatClock(r.end)}`);
+          } else {
+            showActionHud('⚠️ 未偵測到有效引文區間');
           }
         }
         scheduleStateUpdate();
@@ -1029,31 +1183,33 @@
       case 'loop_current_paragraph':
         if (loopConfig.enabled && loopConfig.type === 'paragraph') {
           loopConfig = { enabled: false, start: 0, end: 0, type: 'none' };
+          showActionHud('🔂 段落循環：關閉');
         } else if (audio) {
           const cur = audio.currentTime;
           const r = getSurroundingSentenceRange(cur, 3, 3);
           loopConfig = { enabled: true, start: r.start, end: r.end, type: 'paragraph' };
-          // 開啟段落微循環時，瞬間跳到「前三句」起點開始重播
           seekAudio(r.start, true);
+          showActionHud('🔂 段落循環：開啟');
         }
         scheduleStateUpdate();
         break;
 
-      case 'play_interval':
+      case 'play_interval': {
         const iStart = Math.max(0, parseFloat(params.start) || 0);
         const iEnd = Math.max(iStart + 0.5, parseFloat(params.end) || (audio ? audio.duration : iStart + 60));
         const iLoop = !!params.loop;
         intervalConfig = { enabled: true, start: iStart, end: iEnd, loop: iLoop };
-        loopConfig = { enabled: false, start: 0, end: 0, type: 'none' }; // 互斥
+        loopConfig = { enabled: false, start: 0, end: 0, type: 'none' };
         if (intervalPollTimer) {
           clearInterval(intervalPollTimer);
           intervalPollTimer = null;
         }
-        // 啟動 20ms 微秒急煞哨兵，防範 timeupdate 250ms 滯後
         intervalPollTimer = setInterval(checkIntervalTick, 20);
         seekAudio(iStart, true);
+        showActionHud(`⏱️ 區間播放: ${formatClock(iStart)} ~ ${formatClock(iEnd)}`);
         scheduleStateUpdate();
         break;
+      }
 
       case 'stop_interval':
         intervalConfig = { enabled: false, start: 0, end: 0, loop: false };
@@ -1070,52 +1226,63 @@
         setTimeout(() => {
           isIntervalStoppedJustNow = false;
         }, 800);
+        showActionHud('⏹️ 區間播放已停止');
         scheduleStateUpdate();
         break;
 
       case 'set_playback_rate':
-      case 'SET_SPEED':
         const rate = parseFloat(params.rate || params.speed || 1.0);
         if (audio) audio.playbackRate = rate;
+        showActionHud(`⚡ 語速切換至: ${rate}x`);
         break;
 
-      case 'prev_lesson':
-      case 'PREV_LESSON':
+      case 'prev_lesson': {
         const prevLink = document.querySelector('.nav-previous a, a[rel="prev"]');
-        if (prevLink) prevLink.click();
+        if (prevLink) {
+          showActionHud('⏮️ 跳轉前一講');
+          prevLink.click();
+        } else {
+          showActionHud('ℹ️ 已是第一講');
+        }
         break;
+      }
 
-      case 'next_lesson':
-      case 'NEXT_LESSON':
+      case 'next_lesson': {
         const nextLink = document.querySelector('.nav-next a, a[rel="next"]');
-        if (nextLink) nextLink.click();
+        if (nextLink) {
+          showActionHud('⏭️ 跳轉下一講');
+          nextLink.click();
+        } else {
+          showActionHud('ℹ️ 已是最後一講');
+        }
         break;
+      }
 
-      case 'set_theme':
-      case 'TOGGLE_THEME':
+      case 'set_theme': {
         applyTheme(params.theme);
+        const isDarkNow = !document.body.classList.contains('amec_theme');
+        showActionHud(isDarkNow ? '🌙 已切換為深色模式' : '☀️ 已切換為淺色模式');
         break;
+      }
 
       case 'toggle_speech_mode':
-      case 'TOGGLE_SPEECH_MODE':
-      case 'set_speech_mode':
-      case 'SET_SPEECH_MODE': {
+      case 'set_speech_mode': {
         const input = document.getElementById('bottom_toolbar_speechmode');
         if (input) {
           if (params && params.enabled !== undefined) {
-            if (input.checked !== !!params.enabled) {
-              input.click();
-            }
+            if (input.checked !== !!params.enabled) input.click();
           } else {
             input.click();
           }
+          showActionHud(input.checked ? '🎙️ 播稿提詞已開啟' : '📖 提詞模式已關閉');
+        } else {
+          showActionHud('⚠️ 未找到提詞開關元素', 'error');
         }
         scheduleStateUpdate();
         break;
       }
 
-      case 'cycle_scroll_mode':
-      case 'CYCLE_SCROLL_MODE':
+      case 'cycle_scroll_mode': {
         const curChecked = document.querySelector('input[name="bottom_toolbar_autoscroll"]:checked');
         const curVal = curChecked ? parseInt(curChecked.value, 10) : 0;
         const nextVal = (curVal + 1) % 3;
@@ -1123,56 +1290,66 @@
         const nextLabel = document.querySelector(`label[for="bottom_toolbar_autoscroll-${nextVal}"]`);
         if (nextLabel) nextLabel.click();
         else if (nextRadio) nextRadio.click();
+        const scrollNames = ['即時滾動', '單句高亮', '關閉滾動'];
+        showActionHud(`📜 滾動模式: ${scrollNames[nextVal] || nextVal}`);
         break;
+      }
 
-      case 'set_scroll_mode':
-      case 'SET_SCROLL_MODE': {
+      case 'set_scroll_mode': {
         const mode = params.mode !== undefined ? String(params.mode) : '1';
         const targetRadio = document.getElementById(`bottom_toolbar_autoscroll-${mode}`);
         const targetLabel = document.querySelector(`label[for="bottom_toolbar_autoscroll-${mode}"]`);
         if (targetLabel) targetLabel.click();
         else if (targetRadio) targetRadio.click();
+        showActionHud(`📜 滾動模式已設定: ${mode}`);
         break;
       }
 
-      case 'adjust_font_size':
-      case 'ADJUST_FONT_SIZE':
+      case 'adjust_font_size': {
         const delta = params.delta || 2;
         const fontSlider = document.getElementById('setFontSlider');
         if (fontSlider) {
           fontSlider.value = Math.max(10, Math.min(22, parseFloat(fontSlider.value) + delta));
           fontSlider.dispatchEvent(new Event('input', { bubbles: true }));
           fontSlider.dispatchEvent(new Event('change', { bubbles: true }));
+          showActionHud(`🔤 字級大小: ${fontSlider.value}px`);
         }
         break;
+      }
 
       case 'toggle_fullscreen':
-      case 'TOGGLE_FULLSCREEN':
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(() => {});
+          showActionHud('⛶ 進入全螢幕放映');
         } else {
           document.exitFullscreen().catch(() => {});
+          showActionHud('⛶ 退出全螢幕');
         }
         break;
 
       case 'modal_migtsema':
-      case 'TRIGGER_MIGSEMA':
+        showActionHud('🎬 啟動密集嘛全螢幕劇院');
         playTheaterVideo('migtsema');
         break;
 
       case 'modal_prep_video':
-      case 'TRIGGER_PREP':
+        showActionHud('🎬 啟動前行全螢幕劇院');
         playTheaterVideo('prep');
         break;
 
       case 'modal_dedication_video':
-      case 'TRIGGER_DEDICATION':
+        showActionHud('🎬 啟動迴向全螢幕劇院');
         playTheaterVideo('dedication');
         break;
 
       case 'modal_close':
-      case 'CLOSE_VIDEO':
+        showActionHud('✖️ 關閉劇院放映');
         closeTheaterVideo();
+        break;
+
+      default:
+        console.error(`[AMRTF_EXECUTE_COMMAND_REJECT] 🚨 未知或未支援指令: "${rawCmd}" (正規化: "${cmd}")`, params);
+        showActionHud(`🚨 未知指令: ${rawCmd}`, 'error');
         break;
     }
 

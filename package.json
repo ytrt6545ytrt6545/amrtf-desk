@@ -7,6 +7,8 @@
   "bin": "server.mjs",
   "scripts": {
     "start": "node server.mjs",
+    "test": "node scripts/audit-signals.mjs && node --test test/command-runtime.test.mjs",
+    "audit": "node scripts/audit-signals.mjs",
     "build": "npx @yao-pkg/pkg server.mjs --targets node20-win-x64 --output dist/AMRTF-Desk.exe"
   },
   "pkg": {
