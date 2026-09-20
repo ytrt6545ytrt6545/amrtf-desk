@@ -309,6 +309,17 @@
       const selStart = container.querySelector('#mockIntervalStart');
       const selEnd = container.querySelector('#mockIntervalEnd');
 
+      // 起訖變更自動防呆推擠
+      if (selStart && selEnd) {
+        selStart.onchange = () => {
+          const s = parseFloat(selStart.value) || 0;
+          const e = parseFloat(selEnd.value) || 0;
+          if (s >= e && selStart.selectedIndex < selEnd.options.length - 1) {
+            selEnd.selectedIndex = selStart.selectedIndex + 1;
+          }
+        };
+      }
+
       if (btnPlay) {
         btnPlay.onclick = (e) => {
           e.stopPropagation();
@@ -317,7 +328,7 @@
           if (end > start) {
             this.sendLiveCmd('play_interval', { start, end, loop: false });
           } else {
-            alert('訖點必須大於起點！');
+            alert(`訖點 (${end}s) 必須大於起點 (${start}s)！請選擇後續段落。`);
           }
         };
       }
@@ -329,7 +340,7 @@
           if (end > start) {
             this.sendLiveCmd('play_interval', { start, end, loop: true });
           } else {
-            alert('訖點必須大於起點！');
+            alert(`訖點 (${end}s) 必須大於起點 (${start}s)！請選擇後續段落。`);
           }
         };
       }
@@ -359,23 +370,34 @@
       selEnd.innerHTML = '';
 
       markers.forEach((m, idx) => {
-        const timeVal = parseFloat(m.seconds || m.time || 0);
+        // 核心修復：廣播端 markers 秒數欄位為 m.sec
+        const timeVal = parseFloat(m.sec ?? m.seconds ?? m.time ?? 0);
         const labelText = m.label || m.title || `第 ${idx + 1} 段`;
+        const timeDisplay = m.timeStr || (m.sec !== undefined ? `${Math.floor(m.sec / 60).toString().padStart(2, '0')}:${Math.floor(m.sec % 60).toString().padStart(2, '0')}` : '');
 
         const optS = document.createElement('option');
         optS.value = timeVal;
-        optS.textContent = `${m.timeStr || ''} ${labelText}`.trim();
+        optS.textContent = `${timeDisplay} ${labelText}`.trim();
+        optS.style.backgroundColor = '#111827';
+        optS.style.color = '#f8fafc';
         selStart.appendChild(optS);
 
         const optE = document.createElement('option');
         optE.value = timeVal;
-        optE.textContent = `${m.timeStr || ''} ${labelText}`.trim();
+        optE.textContent = `${timeDisplay} ${labelText}`.trim();
+        optE.style.backgroundColor = '#111827';
+        optE.style.color = '#f8fafc';
         selEnd.appendChild(optE);
       });
 
-      if (curStart) selStart.value = curStart;
-      if (curEnd) selEnd.value = curEnd;
-      else if (markers.length > 1) selEnd.selectedIndex = 1;
+      if (curStart && Array.from(selStart.options).some(o => o.value === curStart)) {
+        selStart.value = curStart;
+      }
+      if (curEnd && Array.from(selEnd.options).some(o => o.value === curEnd)) {
+        selEnd.value = curEnd;
+      } else if (markers.length > 1) {
+        selEnd.selectedIndex = Math.min(1, markers.length - 1);
+      }
     }
 
     /**

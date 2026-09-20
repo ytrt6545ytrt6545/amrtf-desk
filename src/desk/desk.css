@@ -1476,12 +1476,18 @@ body.mode-custom-editing .cell-handle-resize {
 }
 .mock-item.widget-interval-box .mobile-select {
   flex: 1;
-  background: transparent;
+  background: #0f1420;
   border: none;
   color: #f8fafc;
   font-size: 10px;
   outline: none;
   width: 100%;
+  color-scheme: dark;
+}
+.mock-item.widget-interval-box .mobile-select option {
+  background-color: #111827 !important;
+  color: #f8fafc !important;
+  padding: 4px 6px;
 }
 .mock-item.widget-interval-box .interval-btn-row {
   display: flex;

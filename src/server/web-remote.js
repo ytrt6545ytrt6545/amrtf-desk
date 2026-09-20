@@ -398,17 +398,19 @@ export class WebRemoteServer {
     }
     .mobile-select {
       flex: 1;
-      background: transparent;
+      background: #0f1420;
       border: none;
       color: #f8fafc;
       font-size: 11px;
       font-weight: 700;
       outline: none;
       width: 100%;
+      color-scheme: dark;
     }
     .mobile-select option {
-      background: #0f1420;
-      color: #f8fafc;
+      background-color: #111827 !important;
+      color: #f8fafc !important;
+      padding: 6px 8px;
     }
     .interval-btn-row {
       display: flex;
@@ -615,6 +617,17 @@ export class WebRemoteServer {
       const selStart = document.getElementById('mobileSelectStart');
       const selEnd = document.getElementById('mobileSelectEnd');
 
+      if (selStart && selEnd && !selStart.dataset.bound) {
+        selStart.dataset.bound = 'true';
+        selStart.onchange = () => {
+          const s = parseFloat(selStart.value) || 0;
+          const e = parseFloat(selEnd.value) || 0;
+          if (s >= e && selStart.selectedIndex < selEnd.options.length - 1) {
+            selEnd.selectedIndex = selStart.selectedIndex + 1;
+          }
+        };
+      }
+
       if (btnPlay && !btnPlay.dataset.bound) {
         btnPlay.dataset.bound = 'true';
         btnPlay.onclick = () => {
@@ -623,7 +636,7 @@ export class WebRemoteServer {
           if (end > start) {
             sendCommand('play_interval', { start, end, loop: false });
           } else {
-            alert('訖點必須大於起點！');
+            alert('訖點 (' + end + 's) 必須大於起點 (' + start + 's)！請選擇後續段落。');
           }
         };
       }
@@ -635,7 +648,7 @@ export class WebRemoteServer {
           if (end > start) {
             sendCommand('play_interval', { start, end, loop: true });
           } else {
-            alert('訖點必須大於起點！');
+            alert('訖點 (' + end + 's) 必須大於起點 (' + start + 's)！請選擇後續段落。');
           }
         };
       }
@@ -669,23 +682,36 @@ export class WebRemoteServer {
       selEnd.innerHTML = '';
 
       markers.forEach((m, idx) => {
-        const timeVal = parseFloat(m.seconds || m.time || 0);
+        // 核心修復：廣播端 markers 秒數欄位為 m.sec
+        const timeVal = parseFloat(m.sec ?? m.seconds ?? m.time ?? 0);
         const labelText = m.label || m.title || ('第 ' + (idx + 1) + ' 段');
+        const min = Math.floor(m.sec / 60).toString().padStart(2, '0');
+        const s = Math.floor(m.sec % 60).toString().padStart(2, '0');
+        const timeDisplay = m.timeStr || (m.sec !== undefined ? (min + ':' + s) : '');
 
         const optS = document.createElement('option');
         optS.value = timeVal;
-        optS.textContent = ((m.timeStr || '') + ' ' + labelText).trim();
+        optS.textContent = (timeDisplay + ' ' + labelText).trim();
+        optS.style.backgroundColor = '#111827';
+        optS.style.color = '#f8fafc';
         selStart.appendChild(optS);
 
         const optE = document.createElement('option');
         optE.value = timeVal;
-        optE.textContent = ((m.timeStr || '') + ' ' + labelText).trim();
+        optE.textContent = (timeDisplay + ' ' + labelText).trim();
+        optE.style.backgroundColor = '#111827';
+        optE.style.color = '#f8fafc';
         selEnd.appendChild(optE);
       });
 
-      if (curStartVal) selStart.value = curStartVal;
-      if (curEndVal) selEnd.value = curEndVal;
-      else if (markers.length > 1) selEnd.selectedIndex = 1;
+      if (curStartVal && Array.from(selStart.options).some(o => o.value === curStartVal)) {
+        selStart.value = curStartVal;
+      }
+      if (curEndVal && Array.from(selEnd.options).some(o => o.value === curEndVal)) {
+        selEnd.value = curEndVal;
+      } else if (markers.length > 1) {
+        selEnd.selectedIndex = Math.min(1, markers.length - 1);
+      }
     }
 
     function updateStateDisplay() {
