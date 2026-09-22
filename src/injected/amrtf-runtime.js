@@ -42,6 +42,8 @@
             freezeScroll();
             return;
           }
+
+          // 官方原生 startAutoScroll 自然推進
           if (typeof internalStartAutoScroll === 'function') {
             return internalStartAutoScroll.call(this, audio_time_start, play);
           }
@@ -491,6 +493,28 @@
     }
   }
 
+  // ==============================================================================
+  // 🎯 方案 A：動態視口中央鎖定哨兵 (Dynamic Center-Lock Sentinel)
+  // 解決字體過大時，當前播講反黑文字沉入視窗底部、被遮蔽或超出螢幕之排版幾何問題
+  // ==============================================================================
+  let lastCenterLockTime = 0;
+  let userManualScrollUntil = 0;
+
+  // 監聽操作員手動滾輪與觸控，若操作員正在翻閱，短暫讓位 3 秒避免搶奪控制權
+  if (typeof window !== 'undefined') {
+    window.addEventListener('wheel', () => {
+      userManualScrollUntil = Date.now() + 3000;
+    }, { passive: true });
+    window.addEventListener('touchmove', () => {
+      userManualScrollUntil = Date.now() + 3000;
+    }, { passive: true });
+  }
+
+  // 官方原生播稿自然滾動引導（拔除外來自創煞車與強制 scrollIntoView）
+  function syncActiveSpanCenterLock(curTime) {
+    // 100% 尊重大慈恩官方原生播稿引擎滾動，絕不外加任何截斷或置中干擾
+  }
+
   // 監聽 Audio 事件
   function bindAudio() {
     const audio = getAudio();
@@ -547,6 +571,19 @@
     let cachedMarkerCount = 0;
     let startupSpeechDone = false;
     const maxAttempts = 50; // 50 * 150ms ≈ 7.5 秒高頻守護，防範 DOM 與 Audio CDN 非同步延遲
+
+    // 🛡️ 校正 localStorage 舊版超標髒數據（防止官方 AJAX 成功時從 localStorage 重設為 40/60 導致異常）
+    try {
+      const rawStored = localStorage.getItem('amrtf_fontsize2');
+      if (rawStored) {
+        const parsed = parseFloat(rawStored.replace(/["']/g, ''));
+        if (parsed > 22 || parsed < 10) {
+          localStorage.setItem('amrtf_fontsize2', JSON.stringify("16"));
+          const slider = document.getElementById('setFontSlider');
+          if (slider) slider.value = 16;
+        }
+      }
+    } catch (e) {}
     const intervalId = setInterval(() => {
       attempts++;
       let speechDone = false;
@@ -559,16 +596,40 @@
         scheduleStateUpdate();
       }
 
-      // 1. 播稿模式開關 (Speech Mode -> 僅在開機首次鎖定為 ON，若本講次無 LRC 字幕則不強行觸發，之後尊重操作員指令)
+      // 0.1 預先注入頂底防撞安全帶，確保開機第一行永不鑽入頂部播放條
+      if (!document.getElementById('amrtf-safe-padding')) {
+        const tag = document.createElement('style');
+        tag.id = 'amrtf-safe-padding';
+        tag.textContent = `
+          body, #page, .entry-content, .reading-content {
+            padding-top: 90px !important;
+            padding-bottom: 160px !important;
+          }
+        `;
+        document.head.appendChild(tag);
+      }
+
+      // 1. 播稿模式開關 (Speech Mode -> 長官指示：載入成功後檢查播稿是否開啟，沒有開啟幫忙開啟，然後真實反映狀態)
       const speechInput = document.getElementById('bottom_toolbar_speechmode');
       if (speechInput) {
+        // 掛載雙向監聽器，一旦網頁端變動立即推播
+        if (!speechInput.__amrtf_speech_bound) {
+          speechInput.__amrtf_speech_bound = true;
+          speechInput.addEventListener('change', () => scheduleStateUpdate());
+          speechInput.addEventListener('input', () => scheduleStateUpdate());
+        }
+
         const hasLrc = (window.jQuery ? window.jQuery('span.lrc').length > 0 : false) || document.querySelectorAll('span.lrc').length > 0;
         if (!startupSpeechDone) {
           if (hasLrc && !speechInput.checked) {
             speechInput.click();
+            try {
+              speechInput.dispatchEvent(new Event('change', { bubbles: true }));
+            } catch (e) {}
           }
           if (speechInput.checked || !hasLrc) {
             startupSpeechDone = true;
+            scheduleStateUpdate();
           }
         }
         speechDone = true;
@@ -593,6 +654,14 @@
           const nowChecked = document.querySelector('input[name="bottom_toolbar_autoscroll"]:checked');
           scrollDone = !!(nowChecked && nowChecked.value === '1');
         }
+      }
+
+      // 3. 原生字級拉桿監聽：一旦在網頁拉動立即排程推播，忠實反映大慈恩官方原生狀態
+      const fontSlider = document.getElementById('setFontSlider');
+      if (fontSlider && !fontSlider.__amrtf_listening) {
+        fontSlider.__amrtf_listening = true;
+        fontSlider.addEventListener('input', () => scheduleStateUpdate());
+        fontSlider.addEventListener('change', () => scheduleStateUpdate());
       }
 
       // 未按播放時，確保頁面 100% 定格不偷跑
@@ -1040,6 +1109,7 @@
     'FULLSCREEN': 'toggle_fullscreen',
     'toggle_fullscreen': 'toggle_fullscreen',
     'TOGGLE_FULLSCREEN': 'toggle_fullscreen',
+    'sync_fullscreen_state': 'sync_fullscreen_state',
     // 基礎播放
     'play': 'play',
     'PLAY': 'play',
@@ -1270,13 +1340,17 @@
         const input = document.getElementById('bottom_toolbar_speechmode');
         if (input) {
           if (params && params.enabled !== undefined) {
-            if (input.checked !== !!params.enabled) input.click();
+            if (input.checked !== !!params.enabled) {
+              input.click();
+              try { input.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+            }
           } else {
             input.click();
+            try { input.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
           }
-          showActionHud(input.checked ? '🎙️ 播稿提詞已開啟' : '📖 提詞模式已關閉');
+          showActionHud(input.checked ? '🎙️ 播稿模式已開啟' : '📖 播稿模式已關閉');
         } else {
-          showActionHud('⚠️ 未找到提詞開關元素', 'error');
+          showActionHud('⚠️ 未找到官方播稿開關', 'error');
         }
         scheduleStateUpdate();
         break;
@@ -1306,24 +1380,64 @@
       }
 
       case 'adjust_font_size': {
-        const delta = params.delta || 2;
         const fontSlider = document.getElementById('setFontSlider');
+        let newSize = 16;
         if (fontSlider) {
-          fontSlider.value = Math.max(10, Math.min(22, parseFloat(fontSlider.value) + delta));
+          const min = parseFloat(fontSlider.min) || 10;
+          const max = parseFloat(fontSlider.max) || 22;
+          const step = parseFloat(fontSlider.step) || 1;
+          const currentSize = parseFloat(fontSlider.value) || 16;
+
+          if (typeof params.value === 'number') {
+            newSize = params.value;
+          } else {
+            const delta = params.delta || (step * 1.5);
+            newSize = currentSize + delta;
+          }
+
+          // 恪守長官指示：不竄改官方 DOM max/min，100% 配合大慈恩原生拉桿安全邊界 (10 ~ 22px)
+          newSize = Math.max(min, Math.min(max, Math.round(newSize * 10) / 10));
+          fontSlider.value = newSize;
           fontSlider.dispatchEvent(new Event('input', { bubbles: true }));
           fontSlider.dispatchEvent(new Event('change', { bubbles: true }));
-          showActionHud(`🔤 字級大小: ${fontSlider.value}px`);
+
+          // 保持與大慈恩官方 localStorage 儲存格式 100% 同步
+          try {
+            localStorage.setItem('amrtf_fontsize2', JSON.stringify(String(newSize)));
+          } catch (e) {}
+
+          showActionHud(`🔤 字級大小: ${newSize}px`);
         }
+
+        // 徹底拔除外來暴力 CSS 覆蓋，100% 尊重官方原生樣式與排版機制
+        const oldOverride = document.getElementById('amrtf-large-font-override');
+        if (oldOverride) {
+          oldOverride.remove();
+        }
+
+        scheduleStateUpdate();
+        break;
+      }
+
+      case 'sync_fullscreen_state': {
+        const isFs = !!params.isFullscreen;
+        document.body.classList.toggle('amrtf-fs-active', isFs);
+        showActionHud(isFs ? '⛶ 進入全螢幕放映' : '⛶ 退出全螢幕 (視窗化)');
+        scheduleStateUpdate();
         break;
       }
 
       case 'toggle_fullscreen':
         if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(() => {});
-          showActionHud('⛶ 進入全螢幕放映');
+          document.documentElement.requestFullscreen().then(() => {
+            showActionHud('⛶ 進入全螢幕放映');
+          }).catch(() => {
+            // 若 DOM 手勢受限，依賴外層 CDP 視窗控制
+          });
         } else {
-          document.exitFullscreen().catch(() => {});
-          showActionHud('⛶ 退出全螢幕');
+          document.exitFullscreen().then(() => {
+            showActionHud('⛶ 退出全螢幕');
+          }).catch(() => {});
         }
         break;
 

@@ -9,9 +9,10 @@ import { WebSocket } from 'ws';
 import http from 'http';
 
 export class CdpBridge {
-  constructor(debugPort = 9222, onStateUpdate = null) {
+  constructor(debugPort = 9222, onStateUpdate = null, onDisconnect = null) {
     this.debugPort = debugPort;
     this.onStateUpdate = onStateUpdate;
+    this.onDisconnect = onDisconnect;
     this.ws = null;
     this.isConnected = false;
     this.msgId = 1;
@@ -89,6 +90,9 @@ export class CdpBridge {
 
       this.ws.on('close', () => {
         this.isConnected = false;
+        if (typeof this.onDisconnect === 'function') {
+          this.onDisconnect();
+        }
       });
 
       this.ws.on('error', (err) => {
@@ -125,8 +129,54 @@ export class CdpBridge {
     this.send('Runtime.evaluate', { expression });
   }
 
-  // 透過特權 F11 按鍵模擬切換全螢幕 (100% 繞過瀏覽器 User Gesture 限制)
-  toggleFullscreen() {
+  // 通用 CDP 特權呼叫
+  call(method, params = {}) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        return reject(new Error('CDP 未連線'));
+      }
+      const callId = this.msgId++;
+      const onMessage = (raw) => {
+        try {
+          const resp = JSON.parse(raw.toString());
+          if (resp.id === callId) {
+            this.ws.off('message', onMessage);
+            if (resp.error) {
+              reject(new Error(resp.error.message));
+            } else {
+              resolve(resp.result);
+            }
+          }
+        } catch (e) {}
+      };
+      this.ws.on('message', onMessage);
+      this.ws.send(JSON.stringify({ id: callId, method, params }));
+    });
+  }
+
+  // 透過特權 CDP 原生視窗控制切換全螢幕 (100% 穩定，絕無 User Gesture 限制與退出失靈)
+  async toggleFullscreen() {
+    try {
+      const winInfo = await this.call('Browser.getWindowForTarget');
+      if (winInfo && winInfo.windowId) {
+        const isFs = winInfo.bounds && winInfo.bounds.windowState === 'fullscreen';
+        const nextState = isFs ? 'normal' : 'fullscreen';
+        await this.call('Browser.setWindowBounds', {
+          windowId: winInfo.windowId,
+          bounds: { windowState: nextState }
+        });
+        console.log(`[CDP-Bridge] 視窗全螢幕狀態切換: ${winInfo.bounds?.windowState} -> ${nextState}`);
+        this.sendCommand('sync_fullscreen_state', { isFullscreen: nextState === 'fullscreen' });
+        if (this.onStateUpdate) {
+          this.onStateUpdate({ fullscreen: nextState === 'fullscreen' });
+        }
+        return nextState === 'fullscreen';
+      }
+    } catch (err) {
+      console.warn('[CDP-Bridge] Browser.setWindowBounds 不支援或失敗，降級使用特權 F11 模擬:', err.message);
+    }
+
+    // 備援降級方案：向 Chromium 發送 F11 按鍵信號
     this.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', windowsVirtualKeyCode: 122, code: 'F11', key: 'F11' });
     this.send('Input.dispatchKeyEvent', { type: 'keyUp', windowsVirtualKeyCode: 122, code: 'F11', key: 'F11' });
   }
@@ -135,6 +185,31 @@ export class CdpBridge {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
     const id = this.msgId++;
     this.ws.send(JSON.stringify({ id, method, params }));
+  }
+
+  // 5.5 透過 CDP 執行 JS 表達式並以 Promise 返回真實結果 (供 E2E 測試真實驗證)
+  eval(expression) {
+    return new Promise((resolve, reject) => {
+      if (!this.isConnected || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        return reject(new Error('CDP 未連線'));
+      }
+      const callId = this.msgId++;
+      const onMessage = (raw) => {
+        try {
+          const resp = JSON.parse(raw.toString());
+          if (resp.id === callId) {
+            this.ws.off('message', onMessage);
+            if (resp.error) {
+              reject(new Error(resp.error.message));
+            } else {
+              resolve(resp.result && resp.result.result ? resp.result.result.value : resp.result);
+            }
+          }
+        } catch (e) {}
+      };
+      this.ws.on('message', onMessage);
+      this.ws.send(JSON.stringify({ id: callId, method: 'Runtime.evaluate', params: { expression, returnByValue: true } }));
+    });
   }
 
   // 6. 捕獲放映艙真實渲染畫面截圖 (真實物證探針)

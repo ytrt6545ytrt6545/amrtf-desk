@@ -14,6 +14,7 @@ import { CdpBridge } from './src/core/cdp-bridge.js';
 import { WebRemoteServer } from './src/server/web-remote.js';
 import { CompanionBridgeClient } from './src/server/companion-bridge.js';
 import { MobileLayoutStore } from './src/server/mobile-layout-store.js';
+import { VideoManager } from './src/server/video-manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -139,6 +140,8 @@ let activeState = null;
 let deskWsClients = new Set();
 let screenProcess = null;
 let deskProcess = null;
+const mobileLayoutStore = new MobileLayoutStore();
+const videoManager = new VideoManager();
 
 const server = http.createServer((req, res) => {
   const url = req.url.split('?')[0];
@@ -149,12 +152,39 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // 🎬 影片離線快取狀態與下載 API
+  const requestUrl = new URL(req.url, `http://${req.headers.host || '127.0.0.1'}`);
+  if (requestUrl.pathname === '/api/videos/status') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify(videoManager.getStatus()));
+    return;
+  }
+  if (requestUrl.pathname === '/api/videos/download' && req.method === 'POST') {
+    try {
+      videoManager.startDownloadAll((status) => {
+        const progressMsg = JSON.stringify({ type: 'VIDEO_DOWNLOAD_PROGRESS', data: status });
+        for (const client of deskWsClients) {
+          if (client.readyState === WebSocket.OPEN) {
+            try { client.send(progressMsg); } catch(e){}
+          }
+        }
+      });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ success: true, ok: true, status: videoManager.getStatus() }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ success: false, ok: false, error: err.message || '伺服器執行下載異常' }));
+    }
+    return;
+  }
+
   // 📱 行動端自訂 4x8 版面 API 路由
-  if (url === '/api/mobile-layout') {
+  if (requestUrl.pathname === '/api/mobile-layout') {
+    const profileParam = requestUrl.searchParams.get('profile') || 'full';
     if (req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
       res.end(JSON.stringify({
-        layout: mobileLayoutStore.getLayout(),
+        layout: mobileLayoutStore.getLayout(profileParam),
         catalog: mobileLayoutStore.getCatalog()
       }));
       return;
@@ -165,7 +195,8 @@ const server = http.createServer((req, res) => {
       req.on('end', () => {
         try {
           const parsed = JSON.parse(body);
-          const saved = mobileLayoutStore.saveLayout(parsed);
+          const targetProfile = parsed.profile || profileParam;
+          const saved = mobileLayoutStore.saveLayout(parsed, targetProfile);
           webRemote.broadcastMobileLayout(saved);
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
           res.end(JSON.stringify({ ok: true, layout: saved }));
@@ -178,8 +209,9 @@ const server = http.createServer((req, res) => {
     }
   }
 
-  if (url === '/api/mobile-layout/reset' && req.method === 'POST') {
-    const reset = mobileLayoutStore.resetLayout();
+  if (requestUrl.pathname === '/api/mobile-layout/reset' && req.method === 'POST') {
+    const profileParam = requestUrl.searchParams.get('profile') || 'full';
+    const reset = mobileLayoutStore.resetLayout(profileParam);
     webRemote.broadcastMobileLayout(reset);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({ ok: true, layout: reset }));
@@ -328,8 +360,9 @@ function broadcastToDesk(state) {
       merged.markers = activeState.markers;
     }
   }
+  merged.screenConnected = cdpBridge.isConnected;
   activeState = merged;
-  const msg = JSON.stringify({ type: 'STATE_UPDATE', data: { ...activeState, lanIp: getLanIPv4() } });
+  const msg = JSON.stringify({ type: 'STATE_UPDATE', data: { ...activeState, lanIp: getLanIPv4(), screenConnected: cdpBridge.isConnected } });
   for (const client of deskWsClients) {
     if (client.readyState === WebSocket.OPEN) {
       client.send(msg);
@@ -351,9 +384,23 @@ function dispatchCommand(cmd, params = {}) {
     fs.appendFileSync(path.join(logDir, 'live-telemetry.log'), line, 'utf8');
   } catch (e) {}
 
-  // 專門處理講次跳轉指令
-  if (cmd === 'goto_lesson') {
-    const raw = String(params.lessonNumber || params.lesson || '').trim();
+  // 手動強制重連放映艙 CDP
+  if (cmd === 'reconnect_screen') {
+    (async () => {
+      console.log('🔄 [CDP] 收到主控台手動重連請求，正在重新探測 Port 9222...');
+      const ok = await cdpBridge.connect(5);
+      if (ok) {
+        await cdpBridge.injectScript(getInjectedScript());
+        console.log('✅ [CDP] 手動重連成功，特權腳本已重新注入！');
+      }
+      broadcastToDesk({ screenConnected: cdpBridge.isConnected });
+    })();
+    return;
+  }
+
+  // 專門處理講次跳轉指令 (相容 goto_lesson 與 load_lecture，支援 lessonNumber / lesson / lectureId)
+  if (cmd === 'goto_lesson' || cmd === 'load_lecture') {
+    const raw = String(params.lessonNumber || params.lesson || params.lectureId || '').trim();
     const num = /^\d+$/.test(raw) ? raw.padStart(4, '0') : raw;
     saveLastLesson(num); // 記憶最新研討講次
     const url = `https://www.amrtf.org/zh-hant/clear-moonlight-great-ocean-${num}/`;
@@ -362,14 +409,9 @@ function dispatchCommand(cmd, params = {}) {
     return;
   }
 
-  // 專門處理放映艙網頁全螢幕切換
+  // 專門處理放映艙網頁全螢幕切換 (由 CDP 視窗特權控制，徹底消除雙重衝突與手勢阻礙)
   if (cmd === 'toggle_fullscreen') {
-    // 1. 優先觸發放映艙網頁內核原生全螢幕 API
-    cdpBridge.sendCommand('toggle_fullscreen');
-    // 2. 備援特權模擬：向 Chromium 放映艙發送 F11 信號
-    setTimeout(() => {
-      cdpBridge.toggleFullscreen();
-    }, 150);
+    cdpBridge.toggleFullscreen();
     return;
   }
 
@@ -381,15 +423,31 @@ const cdpBridge = new CdpBridge(9222, (state) => {
   broadcastToDesk(state);
   webRemote.broadcastState(state);
   companionClient.syncState(state);
+}, () => {
+  console.log('[System] 監測到放映艙視窗已由長官按 ✕ 關閉，連鎖觸發主控台關閉與全域資源釋放...');
+  shutdownApp();
 });
 
-const mobileLayoutStore = new MobileLayoutStore();
 const webRemote = new WebRemoteServer(9998, dispatchCommand, mobileLayoutStore);
 const companionClient = new CompanionBridgeClient(9999, dispatchCommand);
 
-// 6. 優雅退出與子進程清理 (長官按 ✕ 時順便關閉網頁並徹底釋放 SERVER)
+let isShuttingDown = false;
+
+// 6. 全域乾淨退出與子進程徹底清理 (100% 滅除兩個視窗、0 記憶體殘留)
 function shutdownApp() {
-  console.log('[System] 正在執行全域關閉三部曲（關閉放映艙、釋放端口、退出伺服器）...');
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log('[System] 正在執行全域乾淨關閉三部曲（特徵滅殺雙視窗、釋放所有端口、退出伺服器）...');
+
+  // (1) 特徵精準全滅：透過 PowerShell WMI 查詢所有命令列包含 amrtf-desk-profile 或 amrtf-screen-profile 的進程
+  // 不論是主視窗、GPU 進程、Renderer、Network 還是 Utility，瞬間連根拔起，0 記憶體殘留！
+  try {
+    const psKill = "$ProgressPreference = 'SilentlyContinue'; Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'amrtf-(desk|screen)-profile' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }";
+    const b64Kill = Buffer.from(psKill, 'utf16le').toString('base64');
+    execSync(`powershell -NoProfile -EncodedCommand ${b64Kill}`, { stdio: 'ignore' });
+  } catch (e) {}
+
+  // (2) 輔助 PID 滅殺 (若進程句柄仍存活)
   try {
     if (screenProcess && screenProcess.pid) {
       try { execSync(`taskkill /F /PID ${screenProcess.pid} /T`, { stdio: 'ignore' }); } catch (e) {}
@@ -397,21 +455,29 @@ function shutdownApp() {
     if (deskProcess && deskProcess.pid) {
       try { execSync(`taskkill /F /PID ${deskProcess.pid} /T`, { stdio: 'ignore' }); } catch (e) {}
     }
-    // 徹底釋放放映艙 9222 佔用進程
+  } catch (e) {}
+
+  // (3) 徹底釋放 9222, 9223, 9998 佔用進程
+  for (const port of [9222, 9223, 9998]) {
     try {
-      const netstat9222 = execSync('netstat -ano | findstr :9222', { encoding: 'utf8' });
-      netstat9222.split('\n').forEach(l => {
+      const netstat = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf8' });
+      netstat.split('\n').forEach(l => {
         const p = l.trim().split(/\s+/).pop();
         if (p && p !== '0' && p !== process.pid.toString()) {
           try { execSync(`taskkill /F /PID ${p} /T`, { stdio: 'ignore' }); } catch (err) {}
         }
       });
     } catch (e) {}
-  } catch (e) {}
+  }
 
+  // (4) 關閉附屬服務與 HTTP 伺服器
+  try { webRemote.stop(); } catch (e) {}
+  try { companionClient.stop(); } catch (e) {}
+  try { cdpBridge.close(); } catch (e) {}
   try { server.close(); } catch (e) {}
   try { wss.close(); } catch (e) {}
-  console.log('✅ 所有放映艙視窗與背景服務已徹底關閉，記憶體完全釋放。');
+
+  console.log('✅ 所有放映艙、主控台視窗與背景進程已 100% 徹底關閉，記憶體完全釋放。');
   process.exit(0);
 }
 
@@ -423,8 +489,9 @@ async function verifyWindowReality(timeoutMs = 6000) {
   const startTime = Date.now();
   while (Date.now() - startTime < timeoutMs) {
     try {
-      const psCmd = `Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and ($_.ProcessName -match 'msedge|chrome') } | Select-Object Id, ProcessName, MainWindowTitle, MainWindowHandle | ConvertTo-Json`;
-      const out = execSync(`powershell -NoProfile -Command "${psCmd}"`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      const psScript = "$ProgressPreference = 'SilentlyContinue'; Get-Process | Where-Object { ($_.MainWindowHandle -ne 0 -or $_.MainWindowTitle -ne '') -and ($_.ProcessName -match 'msedge|chrome') } | Select-Object Id, ProcessName, MainWindowTitle, MainWindowHandle | ConvertTo-Json";
+      const b64 = Buffer.from(psScript, 'utf16le').toString('base64');
+      const out = execSync(`powershell -NoProfile -EncodedCommand ${b64}`, { encoding: 'utf8' }).trim();
       if (out) {
         const parsed = JSON.parse(out);
         const windows = Array.isArray(parsed) ? parsed : [parsed];
@@ -453,8 +520,12 @@ server.listen(9998, '0.0.0.0', async () => {
   console.log(`📖 [Startup] 預設載入最新研討講次: 第 ${startupLesson} 講 (${targetUrl})`);
 
   // (0) 清理舊有的 Profile 鎖定 (防止 Edge SingletonLock 吞噬新視窗)
-  for (const prof of ['amrtf-desk-profile', 'amrtf-screen-profile']) {
-    const pDir = path.join('C:\\temp', prof);
+  const systemTempDir = os.tmpdir();
+  const deskProfileDir = path.join(systemTempDir, 'amrtf-desk-profile');
+  const screenProfileDir = path.join(systemTempDir, 'amrtf-screen-profile');
+  
+  for (const pDir of [deskProfileDir, screenProfileDir]) {
+    try { if (!fs.existsSync(pDir)) fs.mkdirSync(pDir, { recursive: true }); } catch (e) {}
     for (const f of ['SingletonLock', 'SingletonCookie', 'SingletonSocket']) {
       try { fs.unlinkSync(path.join(pDir, f)); } catch (e) {}
     }
@@ -465,14 +536,21 @@ server.listen(9998, '0.0.0.0', async () => {
   deskProcess = spawn(browserBin, [
     `--app=http://127.0.0.1:9998/desk`,
     '--remote-debugging-port=9223',
+    '--remote-debugging-address=127.0.0.1',
     '--disable-cache',
     '--window-position=30,40',
     '--window-size=580,720',
-    '--user-data-dir=C:\\temp\\amrtf-desk-profile',
+    `--user-data-dir=${deskProfileDir}`,
     '--new-window',
+    '--no-default-browser-check',
+    '--disable-background-mode',
+    '--disable-features=msStartupBoost',
     '--no-first-run'
   ], { detached: true, stdio: 'ignore' });
   deskProcess.unref();
+
+  // 稍微間隔 350ms，防止 Edge 雙開進程競爭搶佔 Singleton
+  await new Promise(r => setTimeout(r, 350));
 
   deskProcess.on('exit', (code) => {
     // Edge 啟動器派生視窗後父進程會正常返回 0，不應當作視窗關閉
@@ -484,12 +562,15 @@ server.listen(9998, '0.0.0.0', async () => {
   screenProcess = spawn(browserBin, [
     `--app=${targetUrl}`,
     '--remote-debugging-port=9222',
+    '--remote-debugging-address=127.0.0.1',
     '--window-position=630,40',
     '--window-size=1000,800',
-    '--user-data-dir=C:\\temp\\amrtf-screen-profile',
+    `--user-data-dir=${screenProfileDir}`,
     '--new-window',
     '--autoplay-policy=no-user-gesture-required',
-    '--disable-features=PreloadMediaEngagementData,AutoplayIgnoreWebAudio',
+    '--disable-features=PreloadMediaEngagementData,AutoplayIgnoreWebAudio,msStartupBoost',
+    '--disable-background-mode',
+    '--no-default-browser-check',
     '--disable-extensions',
     '--no-first-run'
   ], { detached: true, stdio: 'ignore' });
@@ -518,8 +599,23 @@ server.listen(9998, '0.0.0.0', async () => {
       console.log(`⚠️ [Visual-Truth] 快照捕獲跳過: ${err.message}`);
     }
   } else {
-    console.log('⚠️ [CDP] 延遲掛載，將在背景自動重試...');
+    console.log('⚠️ [CDP] 首次掛載逾時，將由背景常駐自癒 Watchdog 持續探測...');
   }
+
+  // (D) 啟動常駐 CDP 自癒守衛（每 2.5 秒檢查一次連線，若斷開自動重連並補注入）
+  setInterval(async () => {
+    if (isShuttingDown) return;
+    if (!cdpBridge.isConnected) {
+      const ok = await cdpBridge.connect(2);
+      if (ok) {
+        await cdpBridge.injectScript(getInjectedScript());
+        console.log('🔄 [CDP-Watchdog] 放映艙已自動重新連線並注入特權腳本！');
+        broadcastToDesk({ screenConnected: true });
+      } else {
+        broadcastToDesk({ screenConnected: false });
+      }
+    }
+  }, 2500);
 
   // (D) 物理驗證：檢驗 Windows 桌面真實視窗 HWND
   console.log('🔍 [Window-Verify] 正在向 Windows DWM 檢驗可見視窗 Handle...');

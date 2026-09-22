@@ -412,6 +412,11 @@ export class WebRemoteServer {
       color: #f8fafc !important;
       padding: 6px 8px;
     }
+    .mobile-select option:disabled {
+      color: #64748b !important;
+      background-color: #0b0f19 !important;
+      text-decoration: line-through;
+    }
     .interval-btn-row {
       display: flex;
       gap: 6px;
@@ -440,9 +445,252 @@ export class WebRemoteServer {
     .btn-int-play { background: radial-gradient(circle at 50% 30%, #ffaa00, #d97706 60%, #8c4a00); }
     .btn-int-loop { background: radial-gradient(circle at 50% 30%, #a855f7, #7e22ce 60%, #4c1182); }
     .btn-int-stop { background: radial-gradient(circle at 50% 30%, #64748b, #475569 60%, #334155); }
+
+    /* ⏱️ 手機端起訖獨立字級切換鈕 */
+    .int-scale-btn {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: #00e5ff;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .int-scale-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* ⏱️ 起訖獨立字級檔位 (可單獨調控) */
+    .widget-interval-box.int-font-sm .field-tag,
+    .widget-interval-box.int-font-sm .mobile-select { font-size: 12px !important; }
+    .widget-interval-box.int-font-md .field-tag,
+    .widget-interval-box.int-font-md .mobile-select { font-size: 15px !important; font-weight: 800 !important; }
+    .widget-interval-box.int-font-lg .field-tag,
+    .widget-interval-box.int-font-lg .mobile-select { font-size: 18px !important; font-weight: 900 !important; }
+    .widget-interval-box.int-font-xl .field-tag,
+    .widget-interval-box.int-font-xl .mobile-select { font-size: 22px !important; font-weight: 900 !important; }
+
+    /* 🔤 手機字體全域放縮支援 (100% ➔ 125% ➔ 150% ➔ 175% ➔ 200%) */
+    /* 125% / 120% */
+    body.mobile-font-125 .btn-label, body.mobile-font-120 .btn-label { font-size: 15px !important; font-weight: 900 !important; max-width: 96% !important; }
+    body.mobile-font-125 .btn-glyph, body.mobile-font-120 .btn-glyph { font-size: 28px !important; }
+    body.mobile-font-125 .deck-btn.span-wide .btn-label, body.mobile-font-120 .deck-btn.span-wide .btn-label { font-size: 15px !important; font-weight: 900 !important; }
+    body.mobile-font-125 .int-action-btn, body.mobile-font-120 .int-action-btn { font-size: 14.5px !important; font-weight: 900 !important; }
+    body.mobile-font-125 .field-tag, body.mobile-font-120 .field-tag { font-size: 13.5px !important; }
+    body.mobile-font-125 .mobile-select, body.mobile-font-120 .mobile-select { font-size: 13.5px !important; }
+
+    /* 150% / 140% */
+    body.mobile-font-150 .btn-label, body.mobile-font-140 .btn-label { font-size: 17.5px !important; font-weight: 900 !important; max-width: 98% !important; }
+    body.mobile-font-150 .btn-glyph, body.mobile-font-140 .btn-glyph { font-size: 33px !important; }
+    body.mobile-font-150 .deck-btn.span-wide .btn-label, body.mobile-font-140 .deck-btn.span-wide .btn-label { font-size: 17.5px !important; font-weight: 900 !important; }
+    body.mobile-font-150 .int-action-btn, body.mobile-font-140 .int-action-btn { font-size: 16.5px !important; font-weight: 900 !important; }
+    body.mobile-font-150 .field-tag, body.mobile-font-140 .field-tag { font-size: 15.5px !important; font-weight: 900 !important; }
+    body.mobile-font-150 .mobile-select, body.mobile-font-140 .mobile-select { font-size: 15.5px !important; font-weight: 800 !important; }
+
+    /* 175% */
+    body.mobile-font-175 .btn-label { font-size: 20px !important; font-weight: 900 !important; max-width: 98% !important; }
+    body.mobile-font-175 .btn-glyph { font-size: 37px !important; }
+    body.mobile-font-175 .deck-btn.span-wide .btn-label { font-size: 20px !important; font-weight: 900 !important; }
+    body.mobile-font-175 .int-action-btn { font-size: 18.5px !important; font-weight: 900 !important; }
+    body.mobile-font-175 .field-tag { font-size: 17.5px !important; font-weight: 900 !important; }
+    body.mobile-font-175 .mobile-select { font-size: 17.5px !important; font-weight: 900 !important; }
+
+    /* 200% (極限大字震撼體驗) */
+    body.mobile-font-200 .btn-label { font-size: 22.5px !important; font-weight: 900 !important; max-width: 98% !important; }
+    body.mobile-font-200 .btn-glyph { font-size: 42px !important; }
+    body.mobile-font-200 .deck-btn.span-wide .btn-label { font-size: 22px !important; font-weight: 900 !important; }
+    body.mobile-font-200 .int-action-btn { font-size: 20px !important; font-weight: 900 !important; }
+    body.mobile-font-200 .field-tag { font-size: 20px !important; font-weight: 900 !important; }
+    body.mobile-font-200 .mobile-select { font-size: 20px !important; font-weight: 900 !important; }
+
+    /* 📖 講次與時鐘卡片可點擊提示光暈 */
+    .clickable-header-lcd {
+      cursor: pointer !important;
+      transition: all 0.15s ease !important;
+    }
+    .clickable-header-lcd:hover {
+      box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.3), 0 0 12px rgba(0, 229, 255, 0.45) !important;
+      border-color: #00e5ff !important;
+    }
+    .clickable-header-lcd:active {
+      transform: scale(0.97);
+      filter: brightness(1.15);
+    }
+
+    /* 📖 廣播級暗黑水晶講次直通艙 Modal */
+    .lecture-modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .lecture-modal-backdrop.show {
+      display: flex;
+    }
+    .lecture-modal-card {
+      background: linear-gradient(160deg, #111827, #0b0f19);
+      border: 1.5px solid #00e5ff;
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 229, 255, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+      width: 100%;
+      max-width: 330px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: modal-pop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modal-pop {
+      from { transform: scale(0.9) translateY(10px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .lecture-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      padding-bottom: 6px;
+    }
+    .lecture-modal-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: #00e5ff;
+      letter-spacing: 0.5px;
+    }
+    .lecture-modal-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+    .lecture-modal-close:hover { color: #f8fafc; }
+    .lecture-modal-display {
+      background: #030712;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .lecture-display-raw {
+      font-family: monospace;
+      font-size: 32px;
+      font-weight: 900;
+      color: #38bdf8;
+      letter-spacing: 2px;
+      line-height: 1.1;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+    }
+    .lecture-display-preview {
+      font-size: 12px;
+      font-weight: 700;
+      color: #10b981;
+      margin-top: 2px;
+    }
+    .lecture-pad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .pad-btn {
+      padding: 12px 0;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      color: #f8fafc;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.5);
+      transition: all 0.08s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pad-btn:active {
+      transform: scale(0.94);
+      filter: brightness(1.2);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .pad-clear {
+      background: linear-gradient(145deg, #334155, #1e293b);
+      color: #f87171;
+      font-size: 13px;
+    }
+    .pad-go {
+      background: radial-gradient(circle at 50% 30%, #00e5ff, #0284c7 70%, #034f78);
+      color: #ffffff;
+      font-size: 14px;
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+    }
+
+    .mobile-scale-pill {
+      position: fixed;
+      bottom: 8px;
+      right: 8px;
+      z-index: 9999;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <!-- 📖 講次直通艙 Modal (支援 3/03/003/0003 智慧補零跳轉) -->
+  <div class="lecture-modal-backdrop" id="lectureModalBackdrop">
+    <div class="lecture-modal-card">
+      <div class="lecture-modal-header">
+        <span class="lecture-modal-title">📖 講次快速直通艙</span>
+        <button class="lecture-modal-close" id="btnLectureModalClose">✕</button>
+      </div>
+      <div class="lecture-modal-display">
+        <div class="lecture-display-raw" id="lectureDisplayRaw">0000</div>
+        <div class="lecture-display-preview" id="lectureDisplayPreview">預覽: 請點按輸入講次</div>
+      </div>
+      <div class="lecture-pad-grid">
+        <button class="pad-btn pad-num" data-num="1">1</button>
+        <button class="pad-btn pad-num" data-num="2">2</button>
+        <button class="pad-btn pad-num" data-num="3">3</button>
+        <button class="pad-btn pad-num" data-num="4">4</button>
+        <button class="pad-btn pad-num" data-num="5">5</button>
+        <button class="pad-btn pad-num" data-num="6">6</button>
+        <button class="pad-btn pad-num" data-num="7">7</button>
+        <button class="pad-btn pad-num" data-num="8">8</button>
+        <button class="pad-btn pad-num" data-num="9">9</button>
+        <button class="pad-btn pad-clear" id="btnPadClear">⌫ 清除</button>
+        <button class="pad-btn pad-num" data-num="0">0</button>
+        <button class="pad-btn pad-go" id="btnPadGo">🚀 前往</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="mobile-scale-pill" id="btnMobileScale" title="一鍵放大手機按鈕文字">🔤 100%</button>
   <div id="mobileDeckGrid">
     <div style="grid-column: 1 / span 4; grid-row: 4 / span 1; display:flex; align-items:center; justify-content:center; color:#64748b; font-size:14px;">
       📡 正在連線 AMRTF 4×8 播控艙...
@@ -453,6 +701,30 @@ export class WebRemoteServer {
     let isPlaying = false;
     let currentLayout = null;
     let currentState = null;
+
+    // 🔤 手機字體放縮控制 (100% ➔ 125% ➔ 150% ➔ 175% ➔ 200%)
+    const btnScale = document.getElementById('btnMobileScale');
+    const scales = ['100', '125', '150', '175', '200'];
+    let currentScale = localStorage.getItem('amrtf_mobile_font_scale') || '100';
+    if (currentScale === '120') currentScale = '125';
+    if (currentScale === '140') currentScale = '150';
+    function applyScale(s) {
+      scales.forEach(sc => document.body.classList.remove('mobile-font-' + sc));
+      document.body.classList.remove('mobile-font-120', 'mobile-font-140');
+      if (s !== '100') document.body.classList.add('mobile-font-' + s);
+      if (btnScale) btnScale.textContent = '🔤 ' + s + '%';
+    }
+    applyScale(currentScale);
+    if (btnScale) {
+      btnScale.addEventListener('click', (e) => {
+        e.stopPropagation();
+        let idx = scales.indexOf(currentScale);
+        idx = (idx + 1) % scales.length;
+        currentScale = scales[idx];
+        localStorage.setItem('amrtf_mobile_font_scale', currentScale);
+        applyScale(currentScale);
+      });
+    }
 
     const wsUrl = 'ws://' + window.location.host + '/ws';
     let ws = null;
@@ -508,10 +780,11 @@ export class WebRemoteServer {
         if (item.type === 'widget') {
           if (item.id === 'header-info') {
             el.className += ' widget-header-info';
-            el.innerHTML = '<div class="lcd-monitor-screen">' +
+            el.innerHTML = '<div class="lcd-monitor-screen clickable-header-lcd" id="btnHeaderInfoJump" title="點擊輸入講次跳轉 (例: 3/03/0003)">' +
                              '<div class="led-time" id="ledTime">00:00 / 00:00</div>' +
                              '<div class="lesson-title" id="lessonTitle">AMRTF 4×8 就緒</div>' +
                            '</div>';
+            el.onclick = () => openLectureJumpModal();
           } else if (item.id === 'widget-teleprompter') {
             el.className += ' widget-teleprompter';
             el.innerHTML = '<div class="lcd-monitor-screen">' +
@@ -527,9 +800,10 @@ export class WebRemoteServer {
                                  '<select class="mobile-select" id="mobileSelectStart"><option value="0">00:00 起點</option></select>' +
                                '</div>' +
                                '<div class="interval-field">' +
-                                 '<span class="field-tag">迄</span>' +
+                                 '<span class="field-tag">訖</span>' +
                                  '<select class="mobile-select" id="mobileSelectEnd"><option value="0">00:00 訖點</option></select>' +
                                '</div>' +
+                               '<button class="int-scale-btn" id="btnMobileIntScale" title="單獨切換起訖字級 (小/中/大/特大)">🔤</button>' +
                              '</div>' +
                              '<div class="interval-btn-row">' +
                                '<button class="int-action-btn btn-int-play" id="btnMobilePlayInterval">▶ 區間</button>' +
@@ -610,6 +884,60 @@ export class WebRemoteServer {
       }
     }
 
+    function updateMobileIntervalConstraints(changedTarget = 'init') {
+      const selStart = document.getElementById('mobileSelectStart');
+      const selEnd = document.getElementById('mobileSelectEnd');
+      if (!selStart || !selEnd || selStart.options.length === 0 || selEnd.options.length === 0) return;
+
+      let s = parseFloat(selStart.value) || 0;
+      let e = parseFloat(selEnd.value) || 0;
+
+      if (changedTarget === 'start' || changedTarget === 'init') {
+        // 依據「起」約束「訖」
+        let validEndFound = false;
+        Array.from(selEnd.options).forEach((opt) => {
+          const val = parseFloat(opt.value) || 0;
+          const shouldDisable = val <= s;
+          opt.disabled = shouldDisable;
+          if (!shouldDisable && val === e) {
+            validEndFound = true;
+          }
+        });
+        // 若當前「訖」落在不合法區間 (<= 起)，自動順推至大於起點的下一個合法選項
+        if (!validEndFound) {
+          const nextValidOpt = Array.from(selEnd.options).find(opt => !opt.disabled);
+          if (nextValidOpt) {
+            selEnd.value = nextValidOpt.value;
+            e = parseFloat(nextValidOpt.value) || 0;
+          }
+        }
+        // 確保「起」選單最後一段不能當起點（除僅有 1 個選項外）
+        const totalStarts = selStart.options.length;
+        Array.from(selStart.options).forEach((opt, idx) => {
+          opt.disabled = idx === totalStarts - 1 && totalStarts > 1;
+        });
+      } else if (changedTarget === 'end') {
+        // 依據「訖」約束「起」
+        let validStartFound = false;
+        Array.from(selStart.options).forEach((opt) => {
+          const val = parseFloat(opt.value) || 0;
+          const shouldDisable = val >= e;
+          opt.disabled = shouldDisable;
+          if (!shouldDisable && val === s) {
+            validStartFound = true;
+          }
+        });
+        // 若當前「起」落在不合法區間 (>= 訖)，自動逆推至小於訖點的前一個合法選項
+        if (!validStartFound) {
+          const validStarts = Array.from(selStart.options).filter(opt => !opt.disabled);
+          if (validStarts.length > 0) {
+            selStart.value = validStarts[validStarts.length - 1].value;
+            s = parseFloat(selStart.value) || 0;
+          }
+        }
+      }
+    }
+
     function setupMobileIntervalEvents() {
       const btnPlay = document.getElementById('btnMobilePlayInterval');
       const btnLoop = document.getElementById('btnMobileLoopInterval');
@@ -617,15 +945,13 @@ export class WebRemoteServer {
       const selStart = document.getElementById('mobileSelectStart');
       const selEnd = document.getElementById('mobileSelectEnd');
 
-      if (selStart && selEnd && !selStart.dataset.bound) {
+      if (selStart && !selStart.dataset.bound) {
         selStart.dataset.bound = 'true';
-        selStart.onchange = () => {
-          const s = parseFloat(selStart.value) || 0;
-          const e = parseFloat(selEnd.value) || 0;
-          if (s >= e && selStart.selectedIndex < selEnd.options.length - 1) {
-            selEnd.selectedIndex = selStart.selectedIndex + 1;
-          }
-        };
+        selStart.onchange = () => updateMobileIntervalConstraints('start');
+      }
+      if (selEnd && !selEnd.dataset.bound) {
+        selEnd.dataset.bound = 'true';
+        selEnd.onchange = () => updateMobileIntervalConstraints('end');
       }
 
       if (btnPlay && !btnPlay.dataset.bound) {
@@ -660,6 +986,35 @@ export class WebRemoteServer {
         };
       }
 
+      // 🔤 起訖獨立字級切換 (小 ➔ 中 ➔ 大 ➔ 特大)
+      const btnIntScale = document.getElementById('btnMobileIntScale');
+      const box = btnPlay ? btnPlay.closest('.widget-interval-box') : document.querySelector('.widget-interval-box');
+      const INT_FONTS = ['int-font-sm', 'int-font-md', 'int-font-lg', 'int-font-xl'];
+      const INT_LABELS = ['小', '中', '大', '特大'];
+      let curIntFont = localStorage.getItem('amrtf_mobile_interval_font') || 'int-font-md';
+
+      function applyIntFont(f) {
+        if (!box) return;
+        INT_FONTS.forEach(cls => box.classList.remove(cls));
+        box.classList.add(f);
+        const idx = INT_FONTS.indexOf(f);
+        if (btnIntScale) btnIntScale.textContent = '🔤' + INT_LABELS[idx >= 0 ? idx : 1];
+      }
+      applyIntFont(curIntFont);
+
+      if (btnIntScale && !btnIntScale.dataset.bound) {
+        btnIntScale.dataset.bound = 'true';
+        btnIntScale.onclick = (e) => {
+          e.stopPropagation();
+          let idx = INT_FONTS.indexOf(curIntFont);
+          idx = (idx + 1) % INT_FONTS.length;
+          curIntFont = INT_FONTS[idx];
+          localStorage.setItem('amrtf_mobile_interval_font', curIntFont);
+          applyIntFont(curIntFont);
+          triggerHaptic();
+        };
+      }
+
       if (currentState && currentState.markers) {
         populateMobileIntervalOptions(currentState.markers);
       }
@@ -684,21 +1039,26 @@ export class WebRemoteServer {
       markers.forEach((m, idx) => {
         // 核心修復：廣播端 markers 秒數欄位為 m.sec
         const timeVal = parseFloat(m.sec ?? m.seconds ?? m.time ?? 0);
-        const labelText = m.label || m.title || ('第 ' + (idx + 1) + ' 段');
-        const min = Math.floor(m.sec / 60).toString().padStart(2, '0');
-        const s = Math.floor(m.sec % 60).toString().padStart(2, '0');
-        const timeDisplay = m.timeStr || (m.sec !== undefined ? (min + ':' + s) : '');
+        const rawLabel = m.label || m.title || ('第 ' + (idx + 1) + ' 段');
+        const min = Math.floor(timeVal / 60).toString().padStart(2, '0');
+        const s = Math.floor(timeVal % 60).toString().padStart(2, '0');
+        const timeDisplay = m.timeStr || (min + ':' + s);
+
+        // 智慧去重：去除 rawLabel 前綴若已帶有 timeDisplay (例如 "00:00 (起點)" -> "(起點)")，消滅疊字！
+        const escapedTime = timeDisplay.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+        const cleanLabel = (rawLabel || '').replace(new RegExp('^' + escapedTime + '\\s*'), '').trim();
+        const displayLabel = cleanLabel ? (timeDisplay + ' ' + cleanLabel) : timeDisplay;
 
         const optS = document.createElement('option');
         optS.value = timeVal;
-        optS.textContent = (timeDisplay + ' ' + labelText).trim();
+        optS.textContent = displayLabel;
         optS.style.backgroundColor = '#111827';
         optS.style.color = '#f8fafc';
         selStart.appendChild(optS);
 
         const optE = document.createElement('option');
         optE.value = timeVal;
-        optE.textContent = (timeDisplay + ' ' + labelText).trim();
+        optE.textContent = displayLabel;
         optE.style.backgroundColor = '#111827';
         optE.style.color = '#f8fafc';
         selEnd.appendChild(optE);
@@ -712,6 +1072,9 @@ export class WebRemoteServer {
       } else if (markers.length > 1) {
         selEnd.selectedIndex = Math.min(1, markers.length - 1);
       }
+
+      // 初始化雙向防呆約束與變色
+      updateMobileIntervalConstraints('init');
     }
 
     function updateStateDisplay() {
@@ -756,6 +1119,122 @@ export class WebRemoteServer {
         }
       }
     }
+
+    // 📖 講次快速直通艙 Modal 核心控制器 (支援 3/03/003/0003 補零防呆)
+    let currentLectureInput = '';
+
+    function formatLectureNumber(raw) {
+      const trimmed = String(raw || '').trim();
+      if (!trimmed) return null;
+      const num = parseInt(trimmed, 10);
+      if (isNaN(num) || num <= 0 || num > 2000) return null;
+      return num.toString().padStart(4, '0');
+    }
+
+    function openLectureJumpModal() {
+      currentLectureInput = '';
+      updateLectureDisplay();
+      const modal = document.getElementById('lectureModalBackdrop');
+      if (modal) {
+        modal.classList.add('show');
+        triggerHaptic();
+      }
+    }
+
+    function closeLectureJumpModal() {
+      const modal = document.getElementById('lectureModalBackdrop');
+      if (modal) {
+        modal.classList.remove('show');
+        currentLectureInput = '';
+        triggerHaptic();
+      }
+    }
+
+    function updateLectureDisplay() {
+      const rawEl = document.getElementById('lectureDisplayRaw');
+      const prevEl = document.getElementById('lectureDisplayPreview');
+      if (!rawEl || !prevEl) return;
+
+      if (!currentLectureInput) {
+        rawEl.textContent = '----';
+        rawEl.style.color = '#64748b';
+        prevEl.textContent = '預覽: 請點按輸入講次 (例: 3, 03, 566)';
+        prevEl.style.color = '#94a3b8';
+      } else {
+        rawEl.textContent = currentLectureInput;
+        rawEl.style.color = '#38bdf8';
+        const formatted = formatLectureNumber(currentLectureInput);
+        if (formatted) {
+          prevEl.textContent = '預覽: 第 ' + formatted + ' 講 (符合 0003 格式)';
+          prevEl.style.color = '#10b981';
+        } else {
+          prevEl.textContent = '⚠️ 請輸入 1 ~ 2000 之間的講次';
+          prevEl.style.color = '#f87171';
+        }
+      }
+    }
+
+    function setupLectureModalEvents() {
+      const closeBtn = document.getElementById('btnLectureModalClose');
+      const backdrop = document.getElementById('lectureModalBackdrop');
+      const clearBtn = document.getElementById('btnPadClear');
+      const goBtn = document.getElementById('btnPadGo');
+
+      if (closeBtn && !closeBtn.dataset.bound) {
+        closeBtn.dataset.bound = 'true';
+        closeBtn.onclick = (e) => { e.stopPropagation(); closeLectureJumpModal(); };
+      }
+      if (backdrop && !backdrop.dataset.bound) {
+        backdrop.dataset.bound = 'true';
+        backdrop.onclick = (e) => {
+          if (e.target === backdrop) closeLectureJumpModal();
+        };
+      }
+      if (clearBtn && !clearBtn.dataset.bound) {
+        clearBtn.dataset.bound = 'true';
+        clearBtn.onclick = (e) => {
+          e.stopPropagation();
+          triggerHaptic();
+          if (currentLectureInput.length > 0) {
+            currentLectureInput = currentLectureInput.slice(0, -1);
+          }
+          updateLectureDisplay();
+        };
+      }
+      if (goBtn && !goBtn.dataset.bound) {
+        goBtn.dataset.bound = 'true';
+        goBtn.onclick = (e) => {
+          e.stopPropagation();
+          const formatted = formatLectureNumber(currentLectureInput);
+          if (formatted) {
+            triggerHaptic();
+            sendCommand('goto_lesson', { lessonNumber: formatted, lectureId: formatted });
+            closeLectureJumpModal();
+          } else {
+            alert('講次編號不正確，請輸入 1 到 2000 之間的數字！');
+          }
+        };
+      }
+
+      const numBtns = document.querySelectorAll('.pad-num');
+      numBtns.forEach(btn => {
+        if (!btn.dataset.bound) {
+          btn.dataset.bound = 'true';
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            triggerHaptic();
+            const num = btn.getAttribute('data-num');
+            if (currentLectureInput.length < 4) {
+              currentLectureInput += num;
+              updateLectureDisplay();
+            }
+          };
+        }
+      });
+    }
+
+    // 初始化彈窗監聽
+    setTimeout(() => setupLectureModalEvents(), 50);
 
     connectWs();
   </script>

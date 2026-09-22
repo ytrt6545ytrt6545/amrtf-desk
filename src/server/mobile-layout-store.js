@@ -63,10 +63,33 @@ export class MobileLayoutStore {
     }
   }
 
-  getLayout() {
+  getFilePath(profile = 'full') {
+    if (profile === 'minimal') {
+      return path.join(path.dirname(this.filePath), 'mobile-layout-minimal.json');
+    }
+    return this.filePath;
+  }
+
+  getMinimalDefaultLayout() {
+    return {
+      version: '1.0.0',
+      grid: { cols: 4, rows: 8 },
+      items: [
+        { id: 'header-info', type: 'widget', col: 1, row: 1, w: 4, h: 1, label: '時鐘與講次', category: 'info' },
+        { id: 'btn-play', type: 'button', col: 1, row: 2, w: 2, h: 2, action: 'play', label: '▶ 播放', style: 'btn-play', category: 'playback' },
+        { id: 'btn-stop', type: 'button', col: 3, row: 2, w: 2, h: 2, action: 'stop', label: '⏹ 停止', style: 'btn-stop', category: 'playback' },
+        { id: 'btn-bwd', type: 'button', col: 1, row: 4, w: 2, h: 1, action: 'seek_bwd', label: '⏪ 5s 倒退', style: 'btn-secondary', category: 'playback' },
+        { id: 'btn-fwd', type: 'button', col: 3, row: 4, w: 2, h: 1, action: 'seek_fwd', label: '5s ⏩ 快進', style: 'btn-secondary', category: 'playback' },
+        { id: 'widget-teleprompter', type: 'widget', col: 1, row: 5, w: 4, h: 4, label: '師父開示逐字提詞機', category: 'display' }
+      ]
+    };
+  }
+
+  getLayout(profile = 'full') {
+    const targetFile = this.getFilePath(profile);
     try {
-      if (fs.existsSync(this.filePath)) {
-        const raw = fs.readFileSync(this.filePath, 'utf8');
+      if (fs.existsSync(targetFile)) {
+        const raw = fs.readFileSync(targetFile, 'utf8');
         const parsed = JSON.parse(raw);
         if (this.validate(parsed)) {
           return parsed;
@@ -75,16 +98,17 @@ export class MobileLayoutStore {
     } catch (e) {
       console.error('[MobileLayoutStore] 讀取配置失敗，回退至預設佈局:', e.message);
     }
-    return JSON.parse(JSON.stringify(DEFAULT_MOBILE_LAYOUT));
+    return profile === 'minimal' ? this.getMinimalDefaultLayout() : JSON.parse(JSON.stringify(DEFAULT_MOBILE_LAYOUT));
   }
 
-  saveLayout(layoutData) {
+  saveLayout(layoutData, profile = 'full') {
     if (!this.validate(layoutData)) {
       throw new Error('佈局資料結構不合法或超出 4x8 邊界');
     }
     const cleanData = {
       version: layoutData.version || '1.0.0',
       updatedAt: Date.now(),
+      profile: profile === 'minimal' ? 'minimal' : 'full',
       grid: { cols: 4, rows: 8 },
       items: layoutData.items.map(item => ({
         id: String(item.id),
@@ -99,14 +123,16 @@ export class MobileLayoutStore {
         category: item.category ? String(item.category) : undefined
       }))
     };
-    fs.writeFileSync(this.filePath, JSON.stringify(cleanData, null, 2), 'utf8');
+    const targetFile = this.getFilePath(profile);
+    fs.writeFileSync(targetFile, JSON.stringify(cleanData, null, 2), 'utf8');
     return cleanData;
   }
 
-  resetLayout() {
-    const defaultData = JSON.parse(JSON.stringify(DEFAULT_MOBILE_LAYOUT));
+  resetLayout(profile = 'full') {
+    const defaultData = profile === 'minimal' ? this.getMinimalDefaultLayout() : JSON.parse(JSON.stringify(DEFAULT_MOBILE_LAYOUT));
     defaultData.updatedAt = Date.now();
-    fs.writeFileSync(this.filePath, JSON.stringify(defaultData, null, 2), 'utf8');
+    const targetFile = this.getFilePath(profile);
+    fs.writeFileSync(targetFile, JSON.stringify(defaultData, null, 2), 'utf8');
     return defaultData;
   }
 

@@ -14,11 +14,13 @@
       <span class="lesson-badge" id="lessonBadge">--</span>
     </div>
     <div class="header-right">
-      <button class="btn-edit-toggle" id="btnEditLayoutToggle" title="切換自訂佈局模式 (Ctrl+E)">🛠️ 編輯佈局</button>
-      <button class="header-btn" id="btnMobileStudioToggle" title="1:1 手機佈局模擬編排艙" style="background:#0284c7; color:#fff; font-weight:bold; border-color:#38bdf8;">📱 手機編排</button>
-      <button class="header-btn" id="btnQrCode" title="QR">📱</button>
-      <button class="header-btn" id="btnMiniToggle" title="MINI">🗕</button>
-      <button class="header-btn btn-exit" id="btnExit" title="EXIT">🚪</button>
+      <button class="header-btn" id="btnScaleToggle" title="點擊切換全域按鈕字體比例 (100%/125%/150%/175%/200%)">🔤 100%</button>
+      <button class="btn-edit-toggle" id="btnEditLayoutToggle" title="切換自訂佈局模式 (Ctrl+E)">🛠️ 佈局</button>
+      <button class="header-btn btn-mobile-nav" id="btnMobileStudioToggle" title="1:1 手機佈局模擬編排艙">📱 手機</button>
+      <button class="header-btn btn-settings-nav" id="btnSettingsToggle" title="打開系統設定艙 (離線影音管理)">⚙️ 設定</button>
+      <button class="header-btn" id="btnQrCode" title="手機掃碼無線遙控">QR</button>
+      <button class="header-btn" id="btnMiniToggle" title="MINI 懸浮模式">🗕</button>
+      <button class="header-btn btn-exit" id="btnExit" title="EXIT 全域退出">🚪</button>
     </div>
   </header>
 
@@ -27,9 +29,12 @@
     <div class="drawer-header">
       <span class="drawer-title">📦 未上陣按鈕倉庫 (點擊標籤召回網格)</span>
       <div class="drawer-actions">
-        <button class="drawer-action-btn" id="btnTemplateFull" title="切換為官方全功能排版">全功能模板</button>
-        <button class="drawer-action-btn" id="btnTemplateMinimal" title="僅保留 4 顆主控大鍵">研討極簡模板</button>
-        <button class="drawer-action-btn" id="btnResetLayout" title="重置為初始配置">↺ 恢復預設</button>
+        <select class="drawer-action-btn" id="selectDeckTemplate" style="background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 4px 8px; border-radius: 4px; outline: none; cursor: pointer;" title="切換自訂或官方模板">
+          <option value="full">全功能導播模板</option>
+          <option value="minimal">研討極簡模板</option>
+        </select>
+        <button class="drawer-action-btn" id="btnSaveDeckTemplate" title="另存為自訂名稱模板或覆寫當前模板" style="color: #38bdf8; font-weight: bold;">💾 儲存模板</button>
+        <button class="drawer-action-btn" id="btnResetLayout" title="重置為官方出廠配置">↺ 恢復預設</button>
         <button class="drawer-action-btn" id="btnExportLayout" title="匯出佈局為 JSON">📤 匯出</button>
         <label class="drawer-action-btn file-label" for="fileImportLayout" title="從 JSON 匯入佈局">📥 匯入</label>
         <input type="file" id="fileImportLayout" accept=".json" style="display: none;">
@@ -77,7 +82,7 @@
     <button class="keycap-btn active-deep" id="btnScrollMode">📜 持續</button>
 
     <!-- 行 3.5: 講師精準區段選單模組 Widget -->
-    <div class="interval-row" id="intervalRowWidget">
+    <div class="interval-row int-theme-gold int-font-md" id="intervalRowWidget">
       <div class="interval-field">
         <span class="interval-tag">起</span>
         <select class="interval-select" id="selectIntervalStart" title="播放起點秒數">
@@ -94,6 +99,8 @@
       <button class="keycap-btn btn-interval" id="btnPlayInterval">▶ 區間</button>
       <button class="keycap-btn btn-interval" id="btnLoopInterval">🔁 區間</button>
       <button class="keycap-btn btn-interval-stop" id="btnStopInterval" style="display: none;">⏹ 停</button>
+      <button class="int-ctrl-btn" id="btnIntervalColor" title="切換起訖淡雅半透明高亮色">🎨 色彩</button>
+      <button class="int-ctrl-btn" id="btnIntervalFontSize" title="單獨調整起訖顯示文字大小">🔤 尺寸</button>
     </div>
 
     <!-- 行 4: 前行影片彈窗與畫面視覺控制 -->
@@ -103,6 +110,7 @@
     <button class="keycap-btn btn-close-video" id="btnCloseVideo">✕ 關片</button>
     <button class="keycap-btn" id="btnThemeToggle">🌓</button>
     <button class="keycap-btn" id="btnFontLarger">🔤+</button>
+    <button class="keycap-btn" id="btnFontCycle" title="一鍵循環放映字級 (20px➔40px➔60px➔80px➔100px)">🔤 20px</button>
     <button class="keycap-btn" id="btnFontSmaller">🔤-</button>
   </footer>
 
@@ -113,6 +121,38 @@
       <img id="qrImage" class="qr-img" alt="QR Code" />
       <div class="qr-url" id="qrUrlText">http://...</div>
       <button class="keycap-btn qr-close-btn" id="btnCloseQr">關閉</button>
+    </div>
+  </div>
+
+  <!-- ⚙️ 右側滑出半透明系統設定控制艙 -->
+  <div class="settings-backdrop" id="settingsBackdrop"></div>
+  <div class="settings-drawer" id="settingsDrawer">
+    <div class="settings-header">
+      <div class="settings-title-group">
+        <span class="settings-title">⚙️ 系統設定艙</span>
+        <span class="settings-subtitle">研討專用離線影音管理</span>
+      </div>
+      <button class="settings-close-btn" id="btnSettingsClose" title="關閉設定艙 (Esc)">✕</button>
+    </div>
+    <div class="settings-body">
+      <!-- 區塊 1: 🎬 影片播放說明與離線快取 -->
+      <section class="settings-section">
+        <div class="section-title">🎬 研討專用影片離線快取 (1080p 零延遲秒播)</div>
+        <div class="section-notice">
+          💡 <strong>影片播放說明</strong>：若直接從 YouTube 雲端串流，影片啟動時會有一瞬間出現 YouTube 官方紅色進度條與標題，影響現場莊嚴感。
+          建議點擊下方<strong>「一鍵自動下載」</strong>或將 3 支 MP4 檔案放入本機 <code>assets/videos/</code> 資料夾內，系統一偵測到本機檔案即會自動啟用 1080p 原生秒播（0 延遲、0 控制列、0 破綻）。
+        </div>
+        <div class="video-status-list" id="videoStatusList">
+          <div class="video-status-loading">正在檢查本地影片狀態...</div>
+        </div>
+        <div class="download-action-row">
+          <button class="settings-action-btn btn-primary" id="btnDownloadVideos">⬇️ 一鍵自動下載全部影片到本機</button>
+        </div>
+        <div class="download-progress-bar-container" id="downloadProgressContainer" style="display: none;">
+          <div class="progress-track"><div class="progress-fill" id="downloadProgressFill"></div></div>
+          <div class="progress-status-text" id="downloadStatusText">準備下載中...</div>
+        </div>
+      </section>
     </div>
   </div>
 

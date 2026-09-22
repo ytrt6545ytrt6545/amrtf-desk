@@ -1,6 +1,7 @@
 {
   "version": "1.0.0",
-  "updatedAt": 1789913834269,
+  "updatedAt": 1790000161409,
+  "profile": "full",
   "grid": {
     "cols": 4,
     "rows": 8
@@ -13,7 +14,8 @@
       "row": 1,
       "w": 4,
       "h": 1,
-      "label": "時鐘與講次"
+      "label": "時鐘與講次",
+      "category": "info"
     },
     {
       "id": "btn-play",
@@ -24,7 +26,8 @@
       "h": 2,
       "action": "play",
       "label": "▶ 播放",
-      "style": "btn-play"
+      "style": "btn-play",
+      "category": "playback"
     },
     {
       "id": "btn-stop",
@@ -35,36 +38,49 @@
       "h": 2,
       "action": "stop",
       "label": "⏹ 停止",
-      "style": "btn-stop"
+      "style": "btn-stop",
+      "category": "playback"
     },
     {
-      "id": "btn-speech-lead",
+      "id": "btn-bwd",
       "type": "button",
       "col": 1,
       "row": 4,
       "w": 2,
       "h": 1,
-      "action": "toggle_speech_lead",
-      "label": "🗣️ 播稿模式",
-      "style": "btn-primary",
-      "category": "display"
+      "action": "seek_bwd",
+      "label": "⏪ 5s 倒退",
+      "style": "btn-secondary",
+      "category": "playback"
     },
     {
-      "id": "btn-scroll-mode",
+      "id": "btn-fwd",
       "type": "button",
       "col": 3,
       "row": 4,
       "w": 2,
       "h": 1,
-      "action": "toggle_scroll",
-      "label": "📜 持續捲動",
-      "style": "btn-primary",
+      "action": "seek_fwd",
+      "label": "5s ⏩ 快進",
+      "style": "btn-secondary",
+      "category": "playback"
+    },
+    {
+      "id": "btn-quote",
+      "type": "button",
+      "col": 1,
+      "row": 5,
+      "w": 2,
+      "h": 1,
+      "action": "toggle_quote",
+      "label": "# 引文開關",
+      "style": "btn-info",
       "category": "display"
     },
     {
       "id": "btn-theme",
       "type": "button",
-      "col": 1,
+      "col": 3,
       "row": 5,
       "w": 2,
       "h": 1,
@@ -74,38 +90,14 @@
       "category": "display"
     },
     {
-      "id": "btn-fullscreen",
-      "type": "button",
-      "col": 3,
-      "row": 5,
-      "w": 2,
-      "h": 1,
-      "action": "fullscreen",
-      "label": "⛶ 全螢幕",
-      "style": "btn-dark",
-      "category": "display"
-    },
-    {
-      "id": "widget-interval",
+      "id": "widget-teleprompter",
       "type": "widget",
       "col": 1,
       "row": 6,
       "w": 4,
       "h": 2,
-      "label": "⏱️ 起訖區間控制艙",
-      "category": "playback"
-    },
-    {
-      "id": "btn-video-prep",
-      "type": "button",
-      "col": 1,
-      "row": 8,
-      "w": 2,
-      "h": 1,
-      "action": "modal_prep_video",
-      "label": "🎬 前行片",
-      "style": "btn-video",
-      "category": "video"
+      "label": "師父開示逐字提詞機",
+      "category": "display"
     },
     {
       "id": "btn-video-dedication",
@@ -116,6 +108,18 @@
       "h": 1,
       "action": "modal_dedication_video",
       "label": "🎬 迴向片",
+      "style": "btn-video",
+      "category": "video"
+    },
+    {
+      "id": "btn-video-prep",
+      "type": "button",
+      "col": 1,
+      "row": 8,
+      "w": 2,
+      "h": 1,
+      "action": "modal_prep_video",
+      "label": "🎬 前行片",
       "style": "btn-video",
       "category": "video"
     }

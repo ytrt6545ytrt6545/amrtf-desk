@@ -7,9 +7,10 @@
   "bin": "server.mjs",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node scripts/audit-signals.mjs && node --test test/command-runtime.test.mjs",
+    "test": "node scripts/audit-signals.mjs && node --test --test-concurrency=1 test/*.test.mjs",
     "audit": "node scripts/audit-signals.mjs",
-    "build": "npx @yao-pkg/pkg server.mjs --targets node20-win-x64 --output dist/AMRTF-Desk.exe"
+    "build": "npx @yao-pkg/pkg server.mjs --targets node20-win-x64 --output dist/AMRTF-Desk.exe",
+    "package:portable": "node scripts/build-portable.mjs"
   },
   "pkg": {
     "assets": [

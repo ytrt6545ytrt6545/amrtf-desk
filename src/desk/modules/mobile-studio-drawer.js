@@ -8,6 +8,8 @@
     constructor() {
       this.isOpen = false;
       this.mode = 'edit'; // 'edit' | 'preview'
+      this.currentProfile = 'full'; // 'full' | 'minimal'
+      this.fontScale = localStorage.getItem('amrtf_mobile_font_scale') || '100';
       this.layout = null;
       this.catalog = [];
       this.liveState = null;
@@ -32,11 +34,13 @@
               <span class="studio-subtitle" id="studioSubTitle">1:1 真實比例 · 磁吸拖曳 · 50ms 即時雙端熱同步</span>
             </div>
             <div class="studio-actions">
+              <!-- 🔤 手機按鈕字體比例切換 -->
+              <button class="studio-btn" id="btnStudioFontScale" title="一鍵切換手機按鈕字體比例 (100%/120%/140%)" style="min-width: 68px;">🔤 ${this.fontScale}%</button>
               <!-- 🎮 模式切換鈕 -->
               <button class="studio-btn btn-mode-toggle" id="btnStudioModeToggle">🎮 切換真機預覽操作</button>
               <button class="studio-btn" id="btnTplMinimal">📋 精簡6鍵模板</button>
-              <button class="studio-btn" id="btnTplFull">🚀 導播全功能模板</button>
-              <button class="studio-btn btn-warn" id="btnStudioReset">🔄 重設預設</button>
+              <button class="studio-btn active" id="btnTplFull" style="border-color:#38bdf8;">🚀 導播全功能模板</button>
+              <button class="studio-btn btn-warn" id="btnStudioReset">🔄 重設當前</button>
               <button class="studio-close-btn" id="btnStudioClose" title="關閉編排艙">✕</button>
             </div>
           </div>
@@ -76,6 +80,20 @@
       if (closeBtn) closeBtn.addEventListener('click', () => this.close());
       if (backdrop) backdrop.addEventListener('click', () => this.close());
 
+      // 🔤 手機字體放縮切換 (100% ➔ 125% ➔ 150% ➔ 175% ➔ 200%)
+      const btnFontScale = document.getElementById('btnStudioFontScale');
+      if (btnFontScale) {
+        btnFontScale.addEventListener('click', () => {
+          const scales = ['100', '125', '150', '175', '200'];
+          let curIdx = scales.indexOf(this.fontScale);
+          curIdx = (curIdx + 1) % scales.length;
+          this.fontScale = scales[curIdx];
+          btnFontScale.textContent = `🔤 ${this.fontScale}%`;
+          localStorage.setItem('amrtf_mobile_font_scale', this.fontScale);
+          this.renderCanvas();
+        });
+      }
+
       // 模式切換按鈕
       const modeBtn = document.getElementById('btnStudioModeToggle');
       if (modeBtn) modeBtn.addEventListener('click', () => this.toggleMode());
@@ -85,8 +103,8 @@
       const btnFull = document.getElementById('btnTplFull');
       const btnReset = document.getElementById('btnStudioReset');
 
-      if (btnMinimal) btnMinimal.addEventListener('click', () => this.applyMinimalTemplate());
-      if (btnFull) btnFull.addEventListener('click', () => this.applyFullTemplate());
+      if (btnMinimal) btnMinimal.addEventListener('click', () => this.switchProfile('minimal'));
+      if (btnFull) btnFull.addEventListener('click', () => this.switchProfile('full'));
       if (btnReset) btnReset.addEventListener('click', () => this.resetLayout());
 
       // 畫布放下 (Drop) 監聽
@@ -98,6 +116,21 @@
       });
 
       canvas.addEventListener('drop', (e) => this.handleCanvasDrop(e));
+    }
+
+    async switchProfile(profile) {
+      this.currentProfile = profile;
+      const btnMinimal = document.getElementById('btnTplMinimal');
+      const btnFull = document.getElementById('btnTplFull');
+      if (btnMinimal && btnFull) {
+        btnMinimal.classList.toggle('active', profile === 'minimal');
+        btnFull.classList.toggle('active', profile === 'full');
+        btnMinimal.style.borderColor = profile === 'minimal' ? '#38bdf8' : '';
+        btnFull.style.borderColor = profile === 'full' ? '#38bdf8' : '';
+      }
+      await this.fetchLayoutAndCatalog();
+      this.renderCanvas();
+      this.renderArsenal();
     }
 
     toggleMode() {
@@ -148,7 +181,7 @@
 
     async fetchLayoutAndCatalog() {
       try {
-        const res = await fetch('/api/mobile-layout');
+        const res = await fetch(`/api/mobile-layout?profile=${this.currentProfile}`);
         const data = await res.json();
         this.layout = data.layout;
         this.catalog = data.catalog || [];
@@ -164,6 +197,7 @@
     renderCanvas() {
       const grid = document.getElementById('phoneCanvasGrid');
       grid.innerHTML = '';
+      grid.className = `phone-canvas-grid mobile-font-${this.fontScale}`;
       if (!this.layout || !this.layout.items) return;
 
       const isEdit = (this.mode === 'edit');
@@ -180,7 +214,7 @@
           if (item.id === 'header-info') {
             card.className += ' widget-header-info';
             card.innerHTML = `
-              <div class="lcd-monitor-screen">
+              <div class="lcd-monitor-screen ${!isEdit ? 'clickable-header-lcd' : ''}" title="${!isEdit ? '點擊輸入講次跳轉 (例: 3/03/0003)' : ''}">
                 ${isEdit ? `
                 <div class="mock-header">
                   <span class="mock-size-badge" title="切換尺寸">${item.w}×${item.h}</span>
@@ -191,6 +225,9 @@
                 ${isEdit ? '<div class="mock-resize-handle" title="拖拉尺寸">⤡</div>' : ''}
               </div>
             `;
+            if (!isEdit) {
+              card.onclick = () => this.openMockLectureJumpModal();
+            }
           } else if (item.id === 'widget-teleprompter') {
             card.className += ' widget-teleprompter';
             card.innerHTML = `
@@ -206,7 +243,8 @@
               </div>
             `;
           } else if (item.id === 'widget-interval') {
-            card.className += ' widget-interval-box';
+            const savedIntFont = localStorage.getItem('amrtf_mobile_interval_font') || 'int-font-md';
+            card.className += ` widget-interval-box ${savedIntFont}`;
             card.innerHTML = `
               <div class="lcd-monitor-screen">
                 ${isEdit ? `
@@ -220,9 +258,10 @@
                     <select class="mobile-select" id="mockIntervalStart"><option value="0">00:00 起點</option></select>
                   </div>
                   <div class="interval-field">
-                    <span class="field-tag">迄</span>
+                    <span class="field-tag">訖</span>
                     <select class="mobile-select" id="mockIntervalEnd"><option value="0">00:00 訖點</option></select>
                   </div>
+                  <button class="int-scale-btn" id="btnMockIntScale" title="單獨切換起訖字級 (小/中/大/特大)">🔤</button>
                 </div>
                 <div class="interval-btn-row">
                   <button class="int-action-btn btn-int-play" id="btnMockPlayInterval">▶ 區間</button>
@@ -302,6 +341,60 @@
       this.updateMockLiveState();
     }
 
+    updateMockIntervalConstraints(changedTarget = 'init') {
+      const selStart = document.getElementById('mockIntervalStart');
+      const selEnd = document.getElementById('mockIntervalEnd');
+      if (!selStart || !selEnd || selStart.options.length === 0 || selEnd.options.length === 0) return;
+
+      let s = parseFloat(selStart.value) || 0;
+      let e = parseFloat(selEnd.value) || 0;
+
+      if (changedTarget === 'start' || changedTarget === 'init') {
+        // 依據「起」約束「訖」
+        let validEndFound = false;
+        Array.from(selEnd.options).forEach((opt) => {
+          const val = parseFloat(opt.value) || 0;
+          const shouldDisable = val <= s;
+          opt.disabled = shouldDisable;
+          if (!shouldDisable && val === e) {
+            validEndFound = true;
+          }
+        });
+        // 若當前「訖」落在不合法區間 (<= 起)，自動順推至大於起點的下一個合法選項
+        if (!validEndFound) {
+          const nextValidOpt = Array.from(selEnd.options).find(opt => !opt.disabled);
+          if (nextValidOpt) {
+            selEnd.value = nextValidOpt.value;
+            e = parseFloat(nextValidOpt.value) || 0;
+          }
+        }
+        // 確保「起」選單最後一段不能當起點（除僅有 1 個選項外）
+        const totalStarts = selStart.options.length;
+        Array.from(selStart.options).forEach((opt, idx) => {
+          opt.disabled = idx === totalStarts - 1 && totalStarts > 1;
+        });
+      } else if (changedTarget === 'end') {
+        // 依據「訖」約束「起」
+        let validStartFound = false;
+        Array.from(selStart.options).forEach((opt) => {
+          const val = parseFloat(opt.value) || 0;
+          const shouldDisable = val >= e;
+          opt.disabled = shouldDisable;
+          if (!shouldDisable && val === s) {
+            validStartFound = true;
+          }
+        });
+        // 若當前「起」落在不合法區間 (>= 訖)，自動逆推至小於訖點的前一個合法選項
+        if (!validStartFound) {
+          const validStarts = Array.from(selStart.options).filter(opt => !opt.disabled);
+          if (validStarts.length > 0) {
+            selStart.value = validStarts[validStarts.length - 1].value;
+            s = parseFloat(selStart.value) || 0;
+          }
+        }
+      }
+    }
+
     bindMockIntervalEvents(container) {
       const btnPlay = container.querySelector('#btnMockPlayInterval');
       const btnLoop = container.querySelector('#btnMockLoopInterval');
@@ -309,15 +402,14 @@
       const selStart = container.querySelector('#mockIntervalStart');
       const selEnd = container.querySelector('#mockIntervalEnd');
 
-      // 起訖變更自動防呆推擠
-      if (selStart && selEnd) {
-        selStart.onchange = () => {
-          const s = parseFloat(selStart.value) || 0;
-          const e = parseFloat(selEnd.value) || 0;
-          if (s >= e && selStart.selectedIndex < selEnd.options.length - 1) {
-            selEnd.selectedIndex = selStart.selectedIndex + 1;
-          }
-        };
+      // 起訖雙向防呆約束與變色聯動
+      if (selStart && !selStart.dataset.bound) {
+        selStart.dataset.bound = 'true';
+        selStart.onchange = () => this.updateMockIntervalConstraints('start');
+      }
+      if (selEnd && !selEnd.dataset.bound) {
+        selEnd.dataset.bound = 'true';
+        selEnd.onchange = () => this.updateMockIntervalConstraints('end');
       }
 
       if (btnPlay) {
@@ -352,6 +444,31 @@
         };
       }
 
+      // 🔤 起訖獨立字級切換
+      const btnIntScale = container.querySelector('#btnMockIntScale');
+      const INT_FONTS = ['int-font-sm', 'int-font-md', 'int-font-lg', 'int-font-xl'];
+      const INT_LABELS = ['小', '中', '大', '特大'];
+      let curIntFont = localStorage.getItem('amrtf_mobile_interval_font') || 'int-font-md';
+
+      const applyMockIntFont = (f) => {
+        INT_FONTS.forEach(cls => container.classList.remove(cls));
+        container.classList.add(f);
+        const idx = INT_FONTS.indexOf(f);
+        if (btnIntScale) btnIntScale.textContent = '🔤' + INT_LABELS[idx >= 0 ? idx : 1];
+      };
+      applyMockIntFont(curIntFont);
+
+      if (btnIntScale) {
+        btnIntScale.onclick = (e) => {
+          e.stopPropagation();
+          let idx = INT_FONTS.indexOf(curIntFont);
+          idx = (idx + 1) % INT_FONTS.length;
+          curIntFont = INT_FONTS[idx];
+          localStorage.setItem('amrtf_mobile_interval_font', curIntFont);
+          applyMockIntFont(curIntFont);
+        };
+      }
+
       if (this.liveState && this.liveState.markers) {
         this.populateMockIntervalOptions(this.liveState.markers);
       }
@@ -372,19 +489,26 @@
       markers.forEach((m, idx) => {
         // 核心修復：廣播端 markers 秒數欄位為 m.sec
         const timeVal = parseFloat(m.sec ?? m.seconds ?? m.time ?? 0);
-        const labelText = m.label || m.title || `第 ${idx + 1} 段`;
-        const timeDisplay = m.timeStr || (m.sec !== undefined ? `${Math.floor(m.sec / 60).toString().padStart(2, '0')}:${Math.floor(m.sec % 60).toString().padStart(2, '0')}` : '');
+        const rawLabel = m.label || m.title || `第 ${idx + 1} 段`;
+        const min = Math.floor(timeVal / 60).toString().padStart(2, '0');
+        const s = Math.floor(timeVal % 60).toString().padStart(2, '0');
+        const timeDisplay = m.timeStr || (min + ':' + s);
+
+        // 智慧去重：去除 rawLabel 前綴若已帶有 timeDisplay (例如 "00:00 (起點)" -> "(起點)")，消滅疊字！
+        const escapedTime = timeDisplay.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+        const cleanLabel = (rawLabel || '').replace(new RegExp(`^${escapedTime}\\s*`), '').trim();
+        const displayLabel = cleanLabel ? `${timeDisplay} ${cleanLabel}` : timeDisplay;
 
         const optS = document.createElement('option');
         optS.value = timeVal;
-        optS.textContent = `${timeDisplay} ${labelText}`.trim();
+        optS.textContent = displayLabel;
         optS.style.backgroundColor = '#111827';
         optS.style.color = '#f8fafc';
         selStart.appendChild(optS);
 
         const optE = document.createElement('option');
         optE.value = timeVal;
-        optE.textContent = `${timeDisplay} ${labelText}`.trim();
+        optE.textContent = displayLabel;
         optE.style.backgroundColor = '#111827';
         optE.style.color = '#f8fafc';
         selEnd.appendChild(optE);
@@ -398,6 +522,9 @@
       } else if (markers.length > 1) {
         selEnd.selectedIndex = Math.min(1, markers.length - 1);
       }
+
+      // 初始化雙向防呆約束與變色
+      this.updateMockIntervalConstraints('init');
     }
 
     /**
@@ -735,55 +862,149 @@
         await fetch('/api/mobile-layout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(this.layout)
+          body: JSON.stringify({ ...this.layout, profile: this.currentProfile })
         });
       } catch (e) {
         console.error('[MobileStudio] 儲存佈局失敗:', e);
       }
     }
 
-    async applyMinimalTemplate() {
-      this.layout = {
-        version: '1.0.0',
-        grid: { cols: 4, rows: 8 },
-        items: [
-          { id: 'header-info', type: 'widget', col: 1, row: 1, w: 4, h: 1, label: '時鐘與講次' },
-          { id: 'btn-play', type: 'button', col: 1, row: 2, w: 2, h: 2, action: 'play', label: '▶ 播放', style: 'btn-play' },
-          { id: 'btn-stop', type: 'button', col: 3, row: 2, w: 2, h: 2, action: 'stop', label: '⏹ 停止', style: 'btn-stop' },
-          { id: 'btn-bwd', type: 'button', col: 1, row: 4, w: 2, h: 1, action: 'seek_bwd', label: '⏪ 5s 倒退', style: 'btn-secondary' },
-          { id: 'btn-fwd', type: 'button', col: 3, row: 4, w: 2, h: 1, action: 'seek_fwd', label: '5s ⏩ 快進', style: 'btn-secondary' },
-          { id: 'widget-teleprompter', type: 'widget', col: 1, row: 5, w: 4, h: 4, label: '師父開示逐字提詞機' }
-        ]
-      };
-      await this.commitLayout();
-    }
-
-    async applyFullTemplate() {
-      this.layout = {
-        version: '1.0.0',
-        grid: { cols: 4, rows: 8 },
-        items: [
-          { id: 'header-info', type: 'widget', col: 1, row: 1, w: 4, h: 1, label: '時鐘與講次' },
-          { id: 'btn-play', type: 'button', col: 1, row: 2, w: 2, h: 2, action: 'play', label: '▶ 播放', style: 'btn-play' },
-          { id: 'btn-stop', type: 'button', col: 3, row: 2, w: 2, h: 2, action: 'stop', label: '⏹ 停止', style: 'btn-stop' },
-          { id: 'btn-bwd', type: 'button', col: 1, row: 4, w: 2, h: 1, action: 'seek_bwd', label: '⏪ 5s 倒退', style: 'btn-secondary' },
-          { id: 'btn-fwd', type: 'button', col: 3, row: 4, w: 2, h: 1, action: 'seek_fwd', label: '5s ⏩ 快進', style: 'btn-secondary' },
-          { id: 'widget-interval', type: 'widget', col: 1, row: 5, w: 4, h: 2, label: '⏱️ 起訖區間控制艙' },
-          { id: 'widget-teleprompter', type: 'widget', col: 1, row: 7, w: 4, h: 2, label: '師父開示逐字提詞機' }
-        ]
-      };
-      await this.commitLayout();
-    }
-
     async resetLayout() {
       try {
-        const res = await fetch('/api/mobile-layout/reset', { method: 'POST' });
+        const res = await fetch(`/api/mobile-layout/reset?profile=${this.currentProfile}`, { method: 'POST' });
         const data = await res.json();
         this.layout = data.layout;
         this.renderCanvas();
         this.renderArsenal();
       } catch (e) {
         console.error('[MobileStudio] 重設失敗:', e);
+      }
+    }
+
+    // 📖 模擬器講次快速直通艙 Modal 核心控制器 (支援 3/03/003/0003 補零防呆)
+    initMockLectureModal() {
+      let modal = document.getElementById('mockLectureModalBackdrop');
+      if (modal) return modal;
+
+      const screen = document.querySelector('.phone-screen') || document.body;
+      modal = document.createElement('div');
+      modal.id = 'mockLectureModalBackdrop';
+      modal.className = 'lecture-modal-backdrop';
+      modal.innerHTML = `
+        <div class="lecture-modal-card">
+          <div class="lecture-modal-header">
+            <span class="lecture-modal-title">📖 講次快速直通艙</span>
+            <button class="lecture-modal-close" id="btnMockLectureModalClose">✕</button>
+          </div>
+          <div class="lecture-modal-display">
+            <div class="lecture-display-raw" id="mockLectureDisplayRaw">----</div>
+            <div class="lecture-display-preview" id="mockLectureDisplayPreview">預覽: 請點按輸入講次</div>
+          </div>
+          <div class="lecture-pad-grid">
+            <button class="pad-btn mock-pad-num" data-num="1">1</button>
+            <button class="pad-btn mock-pad-num" data-num="2">2</button>
+            <button class="pad-btn mock-pad-num" data-num="3">3</button>
+            <button class="pad-btn mock-pad-num" data-num="4">4</button>
+            <button class="pad-btn mock-pad-num" data-num="5">5</button>
+            <button class="pad-btn mock-pad-num" data-num="6">6</button>
+            <button class="pad-btn mock-pad-num" data-num="7">7</button>
+            <button class="pad-btn mock-pad-num" data-num="8">8</button>
+            <button class="pad-btn mock-pad-num" data-num="9">9</button>
+            <button class="pad-btn pad-clear" id="btnMockPadClear">⌫ 清除</button>
+            <button class="pad-btn mock-pad-num" data-num="0">0</button>
+            <button class="pad-btn pad-go" id="btnMockPadGo">🚀 前往</button>
+          </div>
+        </div>
+      `;
+      screen.appendChild(modal);
+
+      this.mockLectureInput = '';
+
+      const closeBtn = modal.querySelector('#btnMockLectureModalClose');
+      const clearBtn = modal.querySelector('#btnMockPadClear');
+      const goBtn = modal.querySelector('#btnMockPadGo');
+
+      closeBtn.onclick = (e) => { e.stopPropagation(); this.closeMockLectureJumpModal(); };
+      modal.onclick = (e) => {
+        if (e.target === modal) this.closeMockLectureJumpModal();
+      };
+      clearBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (this.mockLectureInput.length > 0) {
+          this.mockLectureInput = this.mockLectureInput.slice(0, -1);
+        }
+        this.updateMockLectureDisplay();
+      };
+      goBtn.onclick = (e) => {
+        e.stopPropagation();
+        const formatted = this.formatLectureNumber(this.mockLectureInput);
+        if (formatted) {
+          this.sendLiveCmd('goto_lesson', { lessonNumber: formatted, lectureId: formatted });
+          this.closeMockLectureJumpModal();
+        } else {
+          alert('講次編號不正確，請輸入 1 到 2000 之間的數字！');
+        }
+      };
+
+      const numBtns = modal.querySelectorAll('.mock-pad-num');
+      numBtns.forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const num = btn.getAttribute('data-num');
+          if (this.mockLectureInput.length < 4) {
+            this.mockLectureInput += num;
+            this.updateMockLectureDisplay();
+          }
+        };
+      });
+
+      return modal;
+    }
+
+    formatLectureNumber(raw) {
+      const trimmed = String(raw || '').trim();
+      if (!trimmed) return null;
+      const num = parseInt(trimmed, 10);
+      if (isNaN(num) || num <= 0 || num > 2000) return null;
+      return num.toString().padStart(4, '0');
+    }
+
+    openMockLectureJumpModal() {
+      const modal = this.initMockLectureModal();
+      this.mockLectureInput = '';
+      this.updateMockLectureDisplay();
+      modal.classList.add('show');
+    }
+
+    closeMockLectureJumpModal() {
+      const modal = document.getElementById('mockLectureModalBackdrop');
+      if (modal) {
+        modal.classList.remove('show');
+        this.mockLectureInput = '';
+      }
+    }
+
+    updateMockLectureDisplay() {
+      const rawEl = document.getElementById('mockLectureDisplayRaw');
+      const prevEl = document.getElementById('mockLectureDisplayPreview');
+      if (!rawEl || !prevEl) return;
+
+      if (!this.mockLectureInput) {
+        rawEl.textContent = '----';
+        rawEl.style.color = '#64748b';
+        prevEl.textContent = '預覽: 請點按輸入講次 (例: 3, 03, 566)';
+        prevEl.style.color = '#94a3b8';
+      } else {
+        rawEl.textContent = this.mockLectureInput;
+        rawEl.style.color = '#38bdf8';
+        const formatted = this.formatLectureNumber(this.mockLectureInput);
+        if (formatted) {
+          prevEl.textContent = `預覽: 第 ${formatted} 講 (符合 0003 格式)`;
+          prevEl.style.color = '#10b981';
+        } else {
+          prevEl.textContent = '⚠️ 請輸入 1 ~ 2000 之間的講次';
+          prevEl.style.color = '#f87171';
+        }
       }
     }
 

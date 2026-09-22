@@ -91,6 +91,8 @@
           if (window.MobileStudio && window.MobileStudio.syncLiveState) {
             window.MobileStudio.syncLiveState(msg.data);
           }
+        } else if (msg.type === 'VIDEO_DOWNLOAD_PROGRESS' && msg.data) {
+          handleVideoProgress(msg.data);
         }
       } catch (err) {}
     };
@@ -107,6 +109,14 @@
     }
   }
   window.sendDeskCommand = sendCmd;
+
+  // 狀態燈點擊支援手動強制重連放映艙 CDP
+  if (statusBadge) {
+    statusBadge.addEventListener('click', () => {
+      statusBadge.textContent = '● 正在重連...';
+      sendCmd('reconnect_screen');
+    });
+  }
 
   // 1. 播控行
   btnPlayPause.addEventListener('click', () => sendCmd('toggle_play'));
@@ -224,8 +234,154 @@
   btnVideoDedication.addEventListener('click', () => sendCmd('modal_dedication_video'));
   btnCloseVideo.addEventListener('click', () => sendCmd('modal_close'));
   btnThemeToggle.addEventListener('click', () => sendCmd('set_theme'));
-  btnFontLarger.addEventListener('click', () => sendCmd('adjust_font_size', { delta: 2 }));
-  btnFontSmaller.addEventListener('click', () => sendCmd('adjust_font_size', { delta: -2 }));
+  btnFontLarger.addEventListener('click', () => sendCmd('adjust_font_size', { delta: 1.5 }));
+  btnFontSmaller.addEventListener('click', () => sendCmd('adjust_font_size', { delta: -1.5 }));
+
+  // 字級循環按鈕：100% 配合大慈恩官方原生安全範圍與 1.5px 步進整數刻度 (13px ➔ 16px ➔ 19px ➔ 22px ➔ 13px)
+  let currentFontSize = 16;
+  const btnFontCycle = document.getElementById('btnFontCycle');
+  if (btnFontCycle) {
+    btnFontCycle.addEventListener('click', () => {
+      const presets = [13, 16, 19, 22];
+      let next = presets[0];
+      for (const p of presets) {
+        if (p > currentFontSize) {
+          next = p;
+          break;
+        }
+      }
+      currentFontSize = next;
+      btnFontCycle.textContent = `🔤 ${next}px`;
+      sendCmd('adjust_font_size', { value: next });
+    });
+  }
+
+  // 起訖單元淡雅透明色彩切換
+  const btnIntervalColor = document.getElementById('btnIntervalColor');
+  const intervalRowWidget = document.getElementById('intervalRowWidget');
+  const INTERVAL_THEMES = ['int-theme-gold', 'int-theme-emerald', 'int-theme-cyan', 'int-theme-purple'];
+  let currentThemeIdx = 0;
+  const savedTheme = localStorage.getItem('amrtf_interval_theme') || 'int-theme-gold';
+  if (intervalRowWidget) {
+    INTERVAL_THEMES.forEach(t => intervalRowWidget.classList.remove(t));
+    intervalRowWidget.classList.add(savedTheme);
+    currentThemeIdx = Math.max(0, INTERVAL_THEMES.indexOf(savedTheme));
+  }
+  if (btnIntervalColor && intervalRowWidget) {
+    btnIntervalColor.addEventListener('click', (e) => {
+      e.stopPropagation();
+      INTERVAL_THEMES.forEach(t => intervalRowWidget.classList.remove(t));
+      currentThemeIdx = (currentThemeIdx + 1) % INTERVAL_THEMES.length;
+      const nextTheme = INTERVAL_THEMES[currentThemeIdx];
+      intervalRowWidget.classList.add(nextTheme);
+      localStorage.setItem('amrtf_interval_theme', nextTheme);
+    });
+  }
+
+  // 起訖單元文字大小切換
+  const btnIntervalFontSize = document.getElementById('btnIntervalFontSize');
+  const INTERVAL_FONTS = ['int-font-sm', 'int-font-md', 'int-font-lg', 'int-font-xl'];
+  let currentFontIdx = 1; // 預設 md
+  const savedFont = localStorage.getItem('amrtf_interval_font') || 'int-font-md';
+  if (intervalRowWidget) {
+    INTERVAL_FONTS.forEach(f => intervalRowWidget.classList.remove(f));
+    intervalRowWidget.classList.add(savedFont);
+    currentFontIdx = Math.max(0, INTERVAL_FONTS.indexOf(savedFont));
+  }
+  if (btnIntervalFontSize && intervalRowWidget) {
+    btnIntervalFontSize.addEventListener('click', (e) => {
+      e.stopPropagation();
+      INTERVAL_FONTS.forEach(f => intervalRowWidget.classList.remove(f));
+      currentFontIdx = (currentFontIdx + 1) % INTERVAL_FONTS.length;
+      const nextFont = INTERVAL_FONTS[currentFontIdx];
+      intervalRowWidget.classList.add(nextFont);
+      localStorage.setItem('amrtf_interval_font', nextFont);
+    });
+  }
+
+  // 全域按鈕字體比例放大 (100% / 125% / 150% / 175% / 200%)
+  const btnScaleToggle = document.getElementById('btnScaleToggle');
+  const SCALE_CLASSES = ['', 'btn-scale-125', 'btn-scale-150', 'btn-scale-175', 'btn-scale-200'];
+  const SCALE_LABELS = ['🔤 100%', '🔤 125%', '🔤 150%', '🔤 175%', '🔤 200%'];
+  let currentScaleIdx = 0;
+  const savedScale = localStorage.getItem('amrtf_btn_scale') || '';
+  if (savedScale) {
+    currentScaleIdx = Math.max(0, SCALE_CLASSES.indexOf(savedScale));
+    if (currentScaleIdx === 0 && (savedScale === 'btn-scale-120' || savedScale === 'btn-scale-140')) {
+      currentScaleIdx = savedScale === 'btn-scale-120' ? 1 : 2;
+    }
+    const activeCls = SCALE_CLASSES[currentScaleIdx];
+    if (activeCls) document.body.classList.add(activeCls);
+    if (btnScaleToggle) btnScaleToggle.textContent = SCALE_LABELS[currentScaleIdx];
+  }
+  if (btnScaleToggle) {
+    btnScaleToggle.addEventListener('click', () => {
+      // 根據當前 DOM 上已有的 class 決定當前 index，防止閉包狀態與 DOM 脫鉤
+      const curCls = SCALE_CLASSES.find(cls => cls && document.body.classList.contains(cls)) || '';
+      let curIdx = SCALE_CLASSES.indexOf(curCls);
+      if (curIdx < 0) curIdx = 0;
+
+      // 清除所有可能的全域比例 class
+      SCALE_CLASSES.forEach(cls => { if (cls) document.body.classList.remove(cls); });
+      document.body.classList.remove('btn-scale-120', 'btn-scale-140');
+
+      currentScaleIdx = (curIdx + 1) % SCALE_CLASSES.length;
+      const nextCls = SCALE_CLASSES[currentScaleIdx];
+      if (nextCls) document.body.classList.add(nextCls);
+      btnScaleToggle.textContent = SCALE_LABELS[currentScaleIdx];
+      localStorage.setItem('amrtf_btn_scale', nextCls);
+    });
+  }
+
+  // 自訂名稱模板選單與儲存
+  const selectDeckTemplate = document.getElementById('selectDeckTemplate');
+  const btnSaveDeckTemplate = document.getElementById('btnSaveDeckTemplate');
+
+  function refreshTemplateOptions() {
+    if (!selectDeckTemplate || !window.DeckStorage) return;
+    const customs = window.DeckStorage.getCustomTemplates();
+    selectDeckTemplate.innerHTML = '';
+    for (const [id, tpl] of Object.entries(customs)) {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = tpl.name || id;
+      selectDeckTemplate.appendChild(opt);
+    }
+  }
+
+  refreshTemplateOptions();
+
+  if (selectDeckTemplate) {
+    selectDeckTemplate.addEventListener('change', () => {
+      const targetId = selectDeckTemplate.value;
+      if (window.DeckStorage && window.DeckCanvas) {
+        const layout = window.DeckStorage.loadTemplateById(targetId);
+        window.DeckCanvas.render(layout);
+      }
+    });
+  }
+
+  if (btnSaveDeckTemplate) {
+    btnSaveDeckTemplate.addEventListener('click', () => {
+      if (!window.DeckStorage || !window.DeckCanvas) return;
+      const currentLayout = window.DeckCanvas.exportCurrentLayout();
+      const currentId = selectDeckTemplate.value;
+      const customs = window.DeckStorage.getCustomTemplates();
+      const defaultName = customs[currentId]?.name || '自訂排版';
+      const newName = prompt('請輸入要儲存的模板名稱：', defaultName);
+      if (!newName || !newName.trim()) return;
+
+      const targetId = (currentId === 'full' || currentId === 'minimal')
+        ? 'custom_' + Date.now()
+        : currentId;
+
+      window.DeckStorage.saveCustomTemplate(targetId, newName.trim(), currentLayout);
+      refreshTemplateOptions();
+      selectDeckTemplate.value = targetId;
+      alert(`✅ 模板「${newName.trim()}」已成功儲存！隨時可在選單中一鍵切換。`);
+    });
+  }
+
   btnFullscreen.addEventListener('click', () => {
     // 專注控制第二螢幕大慈恩放映艙網頁全螢幕，不干擾主控台本身視窗
     sendCmd('toggle_fullscreen');
@@ -265,15 +421,195 @@
     qrModal.classList.remove('active');
   });
 
+  // ==============================================================================
+  // ⚙️ 右側滑出半透明系統設定控制艙 (Settings Drawer & Video Manager UI)
+  // ==============================================================================
+  const btnSettingsToggle = document.getElementById('btnSettingsToggle');
+  const btnSettingsClose = document.getElementById('btnSettingsClose');
+  const settingsBackdrop = document.getElementById('settingsBackdrop');
+  const settingsDrawer = document.getElementById('settingsDrawer');
+  const videoStatusList = document.getElementById('videoStatusList');
+  const btnDownloadVideos = document.getElementById('btnDownloadVideos');
+  const downloadProgressContainer = document.getElementById('downloadProgressContainer');
+  const downloadProgressFill = document.getElementById('downloadProgressFill');
+  const downloadStatusText = document.getElementById('downloadStatusText');
+  const settingsLanIp = document.getElementById('settingsLanIp');
+  const settingsFsStatus = document.getElementById('settingsFsStatus');
+  const btnToggleFsSettings = document.getElementById('btnToggleFsSettings');
+
+  function openSettings() {
+    if (settingsDrawer) settingsDrawer.classList.add('open');
+    if (settingsBackdrop) settingsBackdrop.classList.add('active');
+    if (settingsLanIp) settingsLanIp.textContent = `${currentLanIp}:9998`;
+    refreshVideoStatus();
+  }
+
+  function closeSettings() {
+    if (settingsDrawer) settingsDrawer.classList.remove('open');
+    if (settingsBackdrop) settingsBackdrop.classList.remove('active');
+  }
+
+  if (btnSettingsToggle) {
+    btnSettingsToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openSettings();
+    });
+  }
+
+  if (btnSettingsClose) {
+    btnSettingsClose.addEventListener('click', closeSettings);
+  }
+
+  if (settingsBackdrop) {
+    settingsBackdrop.addEventListener('click', closeSettings);
+  }
+
+  if (btnToggleFsSettings) {
+    btnToggleFsSettings.addEventListener('click', () => {
+      sendCmd('toggle_fullscreen');
+    });
+  }
+
+  // 全域鍵盤快捷鍵：Esc 關閉設定艙 / 彈窗
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSettings();
+      if (qrModal) qrModal.classList.remove('active');
+    }
+  });
+
+  // 刷新 3 支研討影片本地檔案快取狀態
+  async function refreshVideoStatus() {
+    if (!videoStatusList) return;
+    try {
+      const res = await fetch('/api/videos/status');
+      const data = await res.json();
+      if (!data || !data.videos) return;
+
+      videoStatusList.innerHTML = '';
+      let allReady = true;
+      for (const [key, v] of Object.entries(data.videos)) {
+        if (!v.exists) allReady = false;
+        const card = document.createElement('div');
+        card.className = 'video-status-card';
+        card.innerHTML = `
+          <div class="video-card-left">
+            <span class="video-card-title">${v.title || key}</span>
+            <span class="video-card-meta">${v.filename}</span>
+          </div>
+          <div>
+            ${v.exists 
+              ? `<span class="video-badge ready">✅ 已就緒 (${v.sizeMb} MB)</span>` 
+              : `<span class="video-badge missing">⚠️ 尚未下載</span>`}
+          </div>
+        `;
+        videoStatusList.appendChild(card);
+      }
+
+      if (btnDownloadVideos) {
+        if (allReady) {
+          btnDownloadVideos.textContent = '✅ 本機 3 支影片皆已就緒 (可點擊重新下載)';
+          btnDownloadVideos.classList.remove('btn-primary');
+        } else {
+          btnDownloadVideos.textContent = '⬇️ 一鍵自動下載全部影片到本機';
+          btnDownloadVideos.classList.add('btn-primary');
+        }
+      }
+    } catch (err) {
+      videoStatusList.innerHTML = `<div class="video-status-loading" style="color: #f87171;">無法取得影片狀態：${err.message}</div>`;
+    }
+  }
+
+  // 一鍵自動觸發後台下載 3 支影片
+  async function triggerVideoDownload() {
+    if (btnDownloadVideos) {
+      btnDownloadVideos.disabled = true;
+      btnDownloadVideos.textContent = '⏳ 正在向伺服器請求下載...';
+    }
+    if (downloadProgressContainer) {
+      downloadProgressContainer.style.display = 'block';
+    }
+    if (downloadProgressFill) {
+      downloadProgressFill.style.width = '5%';
+    }
+    if (downloadStatusText) {
+      downloadStatusText.textContent = '正在準備下載工具 (yt-dlp)...';
+    }
+
+    try {
+      const res = await fetch('/api/videos/download', { method: 'POST' });
+      const result = await res.json();
+      const isSuccess = result && (result.success === true || result.ok === true);
+      if (!isSuccess) {
+        const errMsg = result.error || result.message || '伺服器未回傳成功信號';
+        alert(`下載啟動失敗: ${errMsg}`);
+        if (btnDownloadVideos) {
+          btnDownloadVideos.disabled = false;
+          btnDownloadVideos.textContent = '⬇️ 一鍵自動下載全部影片到本機';
+        }
+      }
+    } catch (err) {
+      alert(`請求失敗: ${err.message}`);
+      if (btnDownloadVideos) {
+        btnDownloadVideos.disabled = false;
+        btnDownloadVideos.textContent = '⬇️ 一鍵自動下載全部影片到本機';
+      }
+    }
+  }
+
+  if (btnDownloadVideos) {
+    btnDownloadVideos.addEventListener('click', triggerVideoDownload);
+  }
+
+  // 接收後台 WebSocket 廣播的即時下載進度
+  function handleVideoProgress(data) {
+    if (!downloadProgressContainer) return;
+    downloadProgressContainer.style.display = 'block';
+
+    const pct = Math.max(0, Math.min(100, Math.round(data.percent !== undefined ? data.percent : (data.progress || 0))));
+    if (downloadProgressFill) {
+      downloadProgressFill.style.width = `${pct}%`;
+    }
+    if (downloadStatusText) {
+      const title = data.title || data.key || '影片';
+      const isCompleted = data.status === 'completed' || (!data.isDownloading && pct >= 100);
+      const isError = data.status === 'error' || (data.error && !data.isDownloading);
+
+      if (isCompleted) {
+        downloadStatusText.textContent = `🎉 全部影片已成功下載並放置於 assets/videos/！`;
+        if (btnDownloadVideos) {
+          btnDownloadVideos.disabled = false;
+          btnDownloadVideos.textContent = '✅ 本機 3 支影片皆已就緒 (可點擊重新下載)';
+          btnDownloadVideos.classList.remove('btn-primary');
+        }
+        refreshVideoStatus();
+      } else if (isError) {
+        downloadStatusText.textContent = `❌ 下載中斷: ${data.error || '未知錯誤'}`;
+        if (btnDownloadVideos) {
+          btnDownloadVideos.disabled = false;
+          btnDownloadVideos.textContent = '⬇️ 重新嘗試下載全部影片';
+        }
+      } else if (data.status === 'downloading') {
+        const stepDesc = data.currentStep || data.step || `正在下載 ${title}`;
+        downloadStatusText.textContent = `${stepDesc} (${pct}%)`;
+      } else {
+        downloadStatusText.textContent = data.currentStep || data.message || `下載中 (${pct}%)...`;
+      }
+    }
+  }
+
   // 退出按鈕 (全域優雅關閉)
   const btnExit = document.getElementById('btnExit');
   if (btnExit) {
     btnExit.addEventListener('click', () => {
       if (confirm('確定要關閉大慈恩研討播控艙嗎？')) {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'SHUTDOWN' }));
-        }
-        setTimeout(() => window.close(), 300);
+        try {
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'SHUTDOWN' }));
+          }
+          navigator.sendBeacon('/api/shutdown');
+        } catch (e) {}
+        setTimeout(() => window.close(), 150);
       }
     });
   }
@@ -293,18 +629,28 @@
   function handleStateUpdate(state) {
     if (!state) return;
 
-    // 播放狀態 (綠 / 琥珀)
+    // 播放狀態 (綠 / 琥珀 / 斷線紅)
     isPlaying = !!state.isPlaying;
-    if (isPlaying) {
+    const isScreenConnected = state.screenConnected !== false;
+
+    if (!isScreenConnected) {
+      statusBadge.textContent = '● 放映艙未連線 (點擊重連)';
+      statusBadge.className = 'status-badge disconnected';
+      statusBadge.title = '放映艙 CDP 尚未連通，點擊嘗試手動重新連線';
+      btnPlayPause.textContent = '▶';
+      btnPlayPause.classList.remove('playing');
+    } else if (isPlaying) {
       btnPlayPause.textContent = '⏸';
       btnPlayPause.classList.add('playing');
       statusBadge.textContent = '● LIVE';
-      statusBadge.classList.add('live');
+      statusBadge.className = 'status-badge live';
+      statusBadge.title = '放映艙播映中，連線同步正常';
     } else {
       btnPlayPause.textContent = '▶';
       btnPlayPause.classList.remove('playing');
-      statusBadge.textContent = '● READY';
-      statusBadge.classList.remove('live');
+      statusBadge.textContent = '● 已同步';
+      statusBadge.className = 'status-badge ready';
+      statusBadge.title = '放映艙連線正常已同步';
     }
 
     // 碼表與倍速
@@ -314,6 +660,20 @@
       btnRate10.classList.toggle('active', state.playbackRate === 1.0);
       btnRate125.classList.toggle('active', state.playbackRate === 1.25);
       btnRate15.classList.toggle('active', state.playbackRate === 1.5);
+    }
+
+    // 全螢幕狀態同步至設定艙
+    if (settingsFsStatus && state.fullscreen !== undefined) {
+      settingsFsStatus.textContent = state.fullscreen ? '🖥️ 全螢幕播放中' : '獨立視窗 (視窗化)';
+      settingsFsStatus.style.color = state.fullscreen ? '#38bdf8' : '#f1f5f9';
+    }
+
+    // 字體大小同步
+    if (state.fontSize !== undefined) {
+      currentFontSize = Math.round(state.fontSize);
+      if (btnFontCycle) {
+        btnFontCycle.textContent = `🔤 ${currentFontSize}px`;
+      }
     }
 
     // 講次標題
@@ -403,6 +763,15 @@
 
         // 初始化雙向互斥約束
         updateIntervalOptionsConstraints();
+      }
+    }
+
+    // 同步放映艙當前字級至按鈕
+    if (state.fontSize) {
+      currentFontSize = state.fontSize;
+      const btnFontCycle = document.getElementById('btnFontCycle');
+      if (btnFontCycle) {
+        btnFontCycle.textContent = `🔤 ${currentFontSize}px`;
       }
     }
   }

@@ -61,6 +61,15 @@ graph LR
   - **三重急煞定格引擎 (`freezeScroll`)**：全面清空 jQuery 動畫隊列（`jQuery('*').stop(true, false)`）並銷毀 `stepScrollTimer`、`lrcTimer`、`lrcNextTimer`；配合 `isIntervalStoppedJustNow` 狀態閘門，劫持截斷官方 `startAutoScroll` 遞迴；
   - **連續多波次煞車補強**：在到達訖點時連續觸發 50ms、150ms、300ms 煞車波次，達到「音訊一停、畫面瞬間紋絲不動」；
   - **起訖單向智慧約束 (`updateIntervalOptionsConstraints`)**：解開雙向夾擊互鎖死結，選定「起」時僅約束「訖」（早於起點者 disabled），選定「訖」時僅約束「起」（晚於訖點者 disabled），起點選單所有段落完全開放自由可見。
+- [x] **官方原生字級拉桿 (10~22px) 與雙向真實反映閉環 (亮點 113)**：
+  - **長官最高原則「不要改官方、我們配合他，只要真實反映狀態」**：徹底拔除 `#amrtf-large-font-override` 暴力 CSS 樣式與 `fontSlider.max = '100'` 篡改，100% 尊重大慈恩官方原生排版與縮放；
+  - **原生刻度與循環對齊**：對標官方 `min="10" max="22" step="1.5"` 原生規格，快速按鈕循環 `13px ➔ 16px ➔ 19px ➔ 22px ➔ 13px`，微調步進 ±1.5px；
+  - **雙向真實同步**：網頁端拉動拉桿即時推播主控台，主控台精準反映官方當前狀態；同步修正 `localStorage.amrtf_fontsize2` 髒數據過濾與非同步寫入。
+- [x] **官方原生播稿模式還原與載入檢查開啟閉環 (亮點 114)**：
+  - **徹底拔除外來滾動干擾**：拔除對官方 `window.startAutoScroll` 滾動引擎的截斷阻斷，清空自創的 `syncActiveSpanCenterLock` 與 `timeupdate` 強行干擾，100% 歸還大慈恩原廠平滑播稿與高亮節奏；
+  - **載入成功檢查開啟（長官指定）**：在巡檢機制中檢查 `#bottom_toolbar_speechmode.checked`，未開啟則幫長官開啟並派發 `change` 事件；
+  - **雙向即時反映**：為官方播稿開關掛載雙向監聽器，主控台與手機端按鈕深淺色 100% 如實呈現官方現場狀態。
+
 
 ---
 

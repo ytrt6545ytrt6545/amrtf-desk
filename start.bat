@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-start "" wscript.exe run-silent.vbs
+call "%~dp0AMRTF-Desk.bat"
 exit /b 0

@@ -53,8 +53,9 @@
       // 行 6: 次要輔助鍵
       { id: 'btnPrevLesson', cols: 2, rows: 1, hidden: false, label: '◀ 上講' },
       { id: 'btnNextLesson', cols: 2, rows: 1, hidden: false, label: '下講 ▶' },
-      { id: 'btnThemeToggle', cols: 2, rows: 1, hidden: false, label: '🌓 主題' },
+      { id: 'btnThemeToggle', cols: 1, rows: 1, hidden: false, label: '🌓 主題' },
       { id: 'btnFontLarger', cols: 1, rows: 1, hidden: false, label: '🔤+' },
+      { id: 'btnFontCycle', cols: 1, rows: 1, hidden: false, label: '🔤 16px' },
       { id: 'btnFontSmaller', cols: 1, rows: 1, hidden: false, label: '🔤-' }
     ]
   };
@@ -94,6 +95,7 @@
       { id: 'btnNextLesson', cols: 2, rows: 1, hidden: true, label: '下講 ▶' },
       { id: 'btnThemeToggle', cols: 2, rows: 1, hidden: true, label: '🌓 主題' },
       { id: 'btnFontLarger', cols: 1, rows: 1, hidden: true, label: '🔤+' },
+      { id: 'btnFontCycle', cols: 1, rows: 1, hidden: true, label: '🔤 16px' },
       { id: 'btnFontSmaller', cols: 1, rows: 1, hidden: true, label: '🔤-' }
     ]
   };
@@ -200,12 +202,66 @@
     return layout;
   }
 
+  const STORAGE_KEY_TEMPLATES = 'amrtf_deck_custom_templates_v2';
+
+  /**
+   * 取得所有自訂模板字典
+   */
+  function getCustomTemplates() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_TEMPLATES);
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch (e) {}
+    // 預設含全功能與研討極簡兩個初始槽位
+    return {
+      'full': { id: 'full', name: '全功能導播模板', layout: clone(FULL_DIRECTOR_TEMPLATE) },
+      'minimal': { id: 'minimal', name: '研討極簡模板', layout: clone(MINIMAL_STUDY_TEMPLATE) }
+    };
+  }
+
+  /**
+   * 保存或覆寫自訂模板
+   */
+  function saveCustomTemplate(id, name, layout) {
+    const list = getCustomTemplates();
+    list[id] = {
+      id,
+      name: name || id,
+      updatedAt: Date.now(),
+      layout: clone(layout)
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(list));
+    } catch (e) {
+      console.warn('[DeckStorage] 儲存自訂模板失敗', e);
+    }
+    return list;
+  }
+
+  /**
+   * 載入指定模板排版
+   */
+  function loadTemplateById(id) {
+    const list = getCustomTemplates();
+    if (list[id] && list[id].layout) {
+      const merged = mergeWithDefaults(list[id].layout);
+      saveLayout(merged);
+      return merged;
+    }
+    return resetToDefault(id === 'minimal' ? 'minimal' : 'full');
+  }
+
   return {
     loadLayout,
     saveLayout,
     exportToJson,
     importFromJson,
     resetToDefault,
+    getCustomTemplates,
+    saveCustomTemplate,
+    loadTemplateById,
     validate,
     TEMPLATES: {
       FULL: FULL_DIRECTOR_TEMPLATE,

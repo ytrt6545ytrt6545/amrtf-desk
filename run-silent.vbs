@@ -11,4 +11,4 @@ Else
 End If
 
 ' 以完全隱藏視窗 (0) 靜默執行，防毒 100% 白名單放行
-WshShell.Run nodeExe & " server.mjs", 0, False
+WshShell.Run nodeExe & " """ & appDir & "\server.mjs""", 0, False
