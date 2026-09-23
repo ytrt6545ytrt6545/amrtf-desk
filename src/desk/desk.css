@@ -2,22 +2,200 @@
  * 🎛️ AMRTF 廣播級操作主控台樣式 (全量 Companion 預設按鈕矩陣版)
  * ============================================================================== */
 
-:root {
-  --bg-base: #090d16;
-  --bg-surface: #0f172a;
-  --bg-card: #131d33;
-  --border-color: rgba(255, 255, 255, 0.08);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-dim: #64748b;
+/* ==============================================================================
+ * 🎛️ 大慈恩典雅雙風格視覺設計系統 (AMRTF Classical Theme Tokens)
+ * 宣紙明亮 (Light Parchment · 預設) / 玄木禪境 (Dark Zen)
+ * ============================================================================== */
+
+:root,
+body.theme-light,
+[data-theme="light"] {
+  --theme-mode: light;
   
-  --btn-default-bg: #1e293b;
-  --btn-default-border: #334155;
-  --btn-default-text: #f1f5f9;
+  /* 基礎背景與操作面板 (溫潤宣紙／羊皮米色，不刺眼書卷質感) */
+  --bg-base: #F8F6F0;
+  --bg-surface: #EDE8DF;
+  --bg-card: #FFFFFF;
+  --bg-card-secondary: #F4EFEB;
+  --border-color: rgba(139, 90, 43, 0.18);
+  --border-subtle: rgba(139, 90, 43, 0.10);
   
-  --btn-play-bg: #059669;
-  --btn-pause-bg: #d97706;
-  --btn-stop-bg: #475569;
+  /* 書法文字層次 (正統墨韻玄墨黑與檀灰) */
+  --text-primary: #2B2521;
+  --text-secondary: #6B5E54;
+  --text-dim: #9E9084;
+  
+  /* 實體按鈕 (Keycap Buttons · 象牙雅白基底與古銅微光) */
+  --btn-default-bg: #FFFFFF;
+  --btn-default-border: #D8D0C5;
+  --btn-default-border-bottom: #B8AEA1;
+  --btn-default-text: #2B2521;
+  --btn-default-shadow: 0 1px 3px rgba(139, 90, 43, 0.12);
+  --btn-hover-bg: #F6F1EA;
+  --btn-hover-border: #B8860B;
+  
+  /* 廣播級狀態反差：Active-Deep (深檀墨底 + 佛金文字 · 長官指定極致高對比) */
+  --btn-active-deep-bg: #2B2521;
+  --btn-active-deep-border: #9C6634;
+  --btn-active-deep-border-bottom: #1A1614;
+  --btn-active-deep-text: #E5A93C;
+  --btn-active-deep-shadow: 0 0 10px rgba(184, 134, 11, 0.4);
+  
+  /* 廣播級狀態反差：Idle-Light (淡雅檀木底) */
+  --btn-idle-light-bg: #E7E0D4;
+  --btn-idle-light-border: #D1C6B6;
+  --btn-idle-light-border-bottom: #BFB3A1;
+  --btn-idle-light-text: #7C6E61;
+  
+  /* 核心播控專用色 (典雅佛門青綠 / 琥珀檀金 / 沉木墨灰) */
+  --btn-play-bg: #2E7D32;
+  --btn-pause-bg: #B8860B;
+  --btn-stop-bg: #5D534A;
+  
+  /* LED 碼表區域 (溫潤琥珀鐘盤) */
+  --led-container-bg: #EAE3D7;
+  --led-container-border: #D8CEBE;
+  --led-clock-color: #8C531B;
+  --led-clock-glow: 0 0 10px rgba(140, 83, 27, 0.22);
+  --speed-badge-bg: #D8CEBE;
+  --speed-badge-text: #2B2521;
+  
+  /* 提詞機 Card */
+  --prompter-bg: #FFFFFF;
+  --prompter-text: #2B2521;
+  --prompter-label: #8C7E72;
+  
+  /* 佛金強調色 */
+  --gold-accent: #B8860B;
+  --gold-accent-hover: #996515;
+  --gold-accent-glow: rgba(184, 134, 11, 0.3);
+  
+  /* 起訖選單與模組 */
+  --interval-bg: #EDE8DF;
+  --interval-border: #D8D0C5;
+  --interval-select-bg: #FFFFFF;
+  --interval-select-text: #2B2521;
+  --interval-select-border: #C8BFB2;
+  --interval-tag-bg: #B8860B;
+  --interval-tag-text: #FFFFFF;
+  
+  /* 抽屜與彈窗 */
+  --drawer-bg: #EDE8DF;
+  --drawer-header-bg: #E2DBD0;
+  --modal-bg: #FAF8F5;
+  --modal-border: #D8D0C5;
+  
+  /* 狀態徽章 */
+  --badge-bg: #E2DBD0;
+  --badge-text: #5C5045;
+  --badge-border: #CDC3B3;
+}
+
+/* 大慈恩玄木禪境風格 (Dark Zen) */
+body.theme-dark,
+[data-theme="dark"] {
+  --theme-mode: dark;
+  
+  /* 基礎背景與操作面板 (深玄木炭黑，非生硬冷死黑，溫潤沉穩) */
+  --bg-base: #141210;
+  --bg-surface: #1E1B18;
+  --bg-card: #25221E;
+  --bg-card-secondary: #2C2824;
+  --border-color: rgba(212, 175, 55, 0.15);
+  --border-subtle: rgba(212, 175, 55, 0.08);
+  
+  /* 書法文字層次 (象牙暖白與古木灰) */
+  --text-primary: #EDE8DF;
+  --text-secondary: #A8A096;
+  --text-dim: #736B61;
+  
+  /* 實體按鈕 (Keycap Buttons · 深檀黑底與微金輪廓) */
+  --btn-default-bg: #25221E;
+  --btn-default-border: #3A352F;
+  --btn-default-border-bottom: #141210;
+  --btn-default-text: #EDE8DF;
+  --btn-default-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --btn-hover-bg: #302B26;
+  --btn-hover-border: #E5A93C;
+  
+  /* 廣播級狀態反差：Active-Deep (極深玄黑 + 琉璃佛金字) */
+  --btn-active-deep-bg: #0D0C0A;
+  --btn-active-deep-border: #E5A93C;
+  --btn-active-deep-border-bottom: #000000;
+  --btn-active-deep-text: #E5A93C;
+  --btn-active-deep-shadow: 0 0 12px rgba(229, 169, 60, 0.45);
+  
+  /* 廣播級狀態反差：Idle-Light (淡雅深木色) */
+  --btn-idle-light-bg: #2C2824;
+  --btn-idle-light-border: #3E3832;
+  --btn-idle-light-border-bottom: #1A1816;
+  --btn-idle-light-text: #8C8479;
+  
+  /* 核心播控專用色 */
+  --btn-play-bg: #1B5E20;
+  --btn-pause-bg: #B8860B;
+  --btn-stop-bg: #3E3832;
+  
+  /* LED 碼表區域 (琉璃佛金鐘) */
+  --led-container-bg: #0D0C0A;
+  --led-container-border: #2A2621;
+  --led-clock-color: #E5A93C;
+  --led-clock-glow: 0 0 12px rgba(229, 169, 60, 0.45);
+  --speed-badge-bg: #2A2621;
+  --speed-badge-text: #EDE8DF;
+  
+  /* 提詞機 Card */
+  --prompter-bg: #25221E;
+  --prompter-text: #EDE8DF;
+  --prompter-label: #8C8479;
+  
+  /* 佛金強調色 */
+  --gold-accent: #E5A93C;
+  --gold-accent-hover: #F5BC5E;
+  --gold-accent-glow: rgba(229, 169, 60, 0.35);
+  
+  /* 起訖選單與模組 */
+  --interval-bg: #1E1B18;
+  --interval-border: #3A352F;
+  --interval-select-bg: #25221E;
+  --interval-select-text: #EDE8DF;
+  --interval-select-border: #4A443C;
+  --interval-tag-bg: #B8860B;
+  --interval-tag-text: #FFFFFF;
+  
+  /* 抽屜與彈窗 */
+  --drawer-bg: #1A1715;
+  --drawer-header-bg: #141210;
+  --modal-bg: #221F1B;
+  --modal-border: #3A352F;
+  
+  /* 狀態徽章 */
+  --badge-bg: #25221E;
+  --badge-text: #A8A096;
+  --badge-border: #3A352F;
+}
+
+/* 全域雙風格 0.25s 絲滑柔和色彩轉場 */
+body.desk-body,
+.desk-header,
+.desk-main,
+.desk-footer,
+.time-display-container,
+.led-clock,
+.prompter-card,
+.prompter-text,
+.prompter-label,
+.keycap-btn,
+.header-btn,
+.status-badge,
+.lesson-badge,
+.interval-row,
+.interval-select,
+.deck-drawer-container,
+.drawer-header,
+.settings-drawer,
+.qr-modal-content {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
 }
 
 * {
@@ -96,9 +274,9 @@ body.desk-body {
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 4px;
-  background: #1e293b;
-  color: #38bdf8;
-  border: 1px solid #334155;
+  background: var(--badge-bg);
+  color: var(--gold-accent);
+  border: 1px solid var(--badge-border);
   max-width: 140px;
   white-space: nowrap;
   overflow: hidden;
@@ -137,9 +315,9 @@ body.desk-body {
 }
 
 .header-btn {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #f1f5f9;
+  background: var(--btn-default-bg);
+  border: 1px solid var(--btn-default-border);
+  color: var(--text-primary);
   border-radius: 4px;
   min-width: 28px;
   height: 26px;
@@ -151,13 +329,54 @@ body.desk-body {
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
-  transition: all 0.1s ease;
+  transition: all 0.15s ease;
+}
+
+.header-btn:hover {
+  background: var(--btn-hover-bg);
+  border-color: var(--btn-hover-border);
+}
+
+#btnDeskThemeToggle {
+  font-size: 14px;
+  padding: 0 4px;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  line-height: 1;
+}
+
+#btnDeskThemeToggle:hover {
+  transform: rotate(18deg) scale(1.12);
+  border-color: var(--gold-accent);
+}
+
+.header-btn.btn-settings-nav {
+  position: relative;
+}
+
+.update-badge-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+  animation: pulse-update-dot 1.5s infinite;
+}
+
+@keyframes pulse-update-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
 }
 
 .btn-edit-toggle {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #fbbf24;
+  background: var(--btn-default-bg);
+  border: 1px solid var(--btn-default-border);
+  color: var(--gold-accent);
   border-radius: 4px;
   height: 26px;
   padding: 0 7px;
@@ -171,18 +390,13 @@ body.desk-body {
   transition: all 0.15s ease;
 }
 .btn-edit-toggle:hover {
-  background: #334155;
-  border-color: #fbbf24;
+  background: var(--btn-hover-bg);
+  border-color: var(--gold-accent-hover);
 }
 .btn-edit-toggle.active {
-  background: #d97706;
+  background: var(--gold-accent);
   color: #ffffff;
-  border-color: #f59e0b;
-}
-
-.header-btn:hover {
-  background: #334155;
-  border-color: #64748b;
+  border-color: var(--gold-accent-hover);
 }
 
 .header-btn.btn-mobile-nav {
@@ -244,8 +458,8 @@ body.desk-body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #020617;
-  border: 1px solid #1e293b;
+  background: var(--led-container-bg);
+  border: 1px solid var(--led-container-border);
   border-radius: 6px;
   padding: 4px 10px;
 }
@@ -255,16 +469,16 @@ body.desk-body {
   font-size: 20px;
   font-weight: 900;
   letter-spacing: 1.5px;
-  color: #38bdf8;
-  text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  color: var(--led-clock-color);
+  text-shadow: var(--led-clock-glow);
 }
 
 .speed-indicator {
   font-family: monospace;
   font-size: 11px;
   font-weight: 800;
-  background: #1e293b;
-  color: #f8fafc;
+  background: var(--speed-badge-bg);
+  color: var(--speed-badge-text);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -284,7 +498,7 @@ body.desk-body {
   font-size: 9px;
   font-weight: 800;
   font-family: monospace;
-  color: var(--text-dim);
+  color: var(--prompter-label);
   letter-spacing: 1px;
   margin-bottom: 2px;
 }
@@ -293,7 +507,7 @@ body.desk-body {
   font-size: 14px;
   line-height: 1.5;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--prompter-text);
   overflow-y: auto;
   word-break: break-all;
   height: 100%;
@@ -336,7 +550,7 @@ body.desk-body {
   background: var(--btn-default-bg);
   color: var(--btn-default-text);
   border: 1px solid var(--btn-default-border);
-  border-bottom: 2.5px solid #0b1120;
+  border-bottom: 2.5px solid var(--btn-default-border-bottom);
   border-radius: 5px;
   font-size: 12px;
   font-weight: 700;
@@ -346,13 +560,13 @@ body.desk-body {
   justify-content: center;
   padding: 5px 2px;
   transition: all 0.08s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--btn-default-shadow);
   white-space: nowrap;
 }
 
 .keycap-btn:hover {
-  filter: brightness(1.2);
-  border-color: #64748b;
+  filter: brightness(1.08);
+  border-color: var(--btn-hover-border);
 }
 
 .keycap-btn:active {
@@ -421,18 +635,18 @@ body.desk-body {
 
 /* 播稿與捲動之深淺狀態 (OFF/手動為淡色，ON/持續/區段為深色) */
 .keycap-btn.idle-light {
-  background: #334155;
-  border-color: #475569;
-  border-bottom-color: #1e293b;
-  color: #cbd5e1;
+  background: var(--btn-idle-light-bg) !important;
+  border-color: var(--btn-idle-light-border) !important;
+  border-bottom-color: var(--btn-idle-light-border-bottom) !important;
+  color: var(--btn-idle-light-text) !important;
 }
 
 .keycap-btn.active-deep {
-  background: #1e1b4b;
-  border-color: #4f46e5;
-  border-bottom-color: #312e81;
-  color: #ffffff;
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+  background: var(--btn-active-deep-bg) !important;
+  border-color: var(--btn-active-deep-border) !important;
+  border-bottom-color: var(--btn-active-deep-border-bottom) !important;
+  color: var(--btn-active-deep-text) !important;
+  box-shadow: var(--btn-active-deep-shadow) !important;
 }
 
 /* 折疊 Mini 模式 */
@@ -511,8 +725,8 @@ body.mini-mode .giant-row {
   align-items: center;
   gap: 5px;
   width: 100%;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(51, 65, 85, 0.6);
+  background: var(--interval-bg);
+  border: 1px solid var(--interval-border);
   border-radius: 6px;
   padding: 3px 6px;
   box-sizing: border-box;
@@ -528,22 +742,22 @@ body.mini-mode .giant-row {
 .interval-tag {
   font-size: 11px;
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--gold-accent);
   padding: 0 2px;
 }
 
 .interval-arrow {
   font-size: 10px;
-  color: #64748b;
+  color: var(--gold-accent);
   user-select: none;
 }
 
 .interval-select {
   flex: 1;
   height: 28px;
-  background: #0f172a;
-  color: #f1f5f9;
-  border: 1px solid #334155;
+  background: var(--interval-select-bg);
+  color: var(--interval-select-text);
+  border: 1px solid var(--interval-select-border);
   border-radius: 5px;
   font-size: 12px;
   font-weight: 600;
@@ -554,7 +768,7 @@ body.mini-mode .giant-row {
 }
 
 .interval-select:focus {
-  border-color: #38bdf8;
+  border-color: var(--gold-accent);
 }
 
 .btn-interval {
@@ -562,9 +776,10 @@ body.mini-mode .giant-row {
   padding: 0 8px;
   font-size: 11px;
   font-weight: 700;
-  background: #1e293b;
-  color: #38bdf8;
-  border: 1px solid #0284c7;
+  background: var(--btn-default-bg);
+  color: var(--gold-accent);
+  border: 1px solid var(--gold-accent);
+}
   white-space: nowrap;
 }
 
@@ -637,8 +852,8 @@ body.mode-custom-editing .desk-header {
 /* 3. 頂部抽屜式未上陣倉庫 (Drawer Dock) */
 .deck-drawer-container {
   display: none;
-  background: #0b1120;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+  background: var(--drawer-bg);
+  border-bottom: 1px solid var(--border-color);
   padding: 8px 12px;
   max-height: 120px;
   overflow-y: auto;
@@ -664,7 +879,7 @@ body.mode-custom-editing .desk-header {
 .drawer-title {
   font-size: 11px;
   font-weight: 700;
-  color: #fbbf24;
+  color: var(--gold-accent);
   letter-spacing: 0.5px;
 }
 
@@ -675,9 +890,9 @@ body.mode-custom-editing .desk-header {
 }
 
 .drawer-action-btn {
-  background: #1e293b;
-  color: #cbd5e1;
-  border: 1px solid #334155;
+  background: var(--btn-default-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--btn-default-border);
   font-size: 10px;
   font-weight: 600;
   padding: 2px 7px;
@@ -2192,6 +2407,92 @@ body.btn-scale-200 .deck-grid-cell.sz-4x2 > .keycap-btn:not(#intervalRowWidget *
   font-family: monospace;
 }
 
+/* 📦 版本與更新管理樣式 */
+.version-info-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.version-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.version-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.version-value-badge {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--badge-bg);
+  color: var(--gold-accent);
+  border: 1px solid var(--badge-border);
+}
+
+.version-status-tag {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.version-status-tag.has-update {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.5);
+  animation: pulse-update-tag 2s infinite;
+}
+
+@keyframes pulse-update-tag {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.update-notes-container {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.update-notes-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-accent);
+  margin-bottom: 6px;
+}
+
+.update-notes-body {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.version-action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .settings-info-row {
   display: flex;
   justify-content: space-between;
@@ -2367,6 +2668,136 @@ select option:disabled {
   border-color: #38bdf8;
   box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
 }
+
+/* ==============================================================================
+   📱 QR Code 雙軌中繼彈窗 (Cloud Firebase Scan-Only vs Local LAN)
+   ============================================================================== */
+.qr-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.qr-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.qr-card {
+  background: var(--desk-card-bg, #1e293b);
+  border: 1px solid var(--desk-border, #334155);
+  border-radius: 20px;
+  padding: 24px;
+  width: 90%;
+  max-width: 380px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  animation: qrZoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes qrZoomIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.qr-header-tabs {
+  display: flex;
+  width: 100%;
+  background: var(--desk-bg-secondary, #0f172a);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.qr-tab-btn {
+  flex: 1;
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--desk-text-muted, #94a3b8);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qr-tab-btn.active {
+  background: var(--desk-gold, #c28b28);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(194, 139, 40, 0.4);
+}
+
+.qr-title {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--desk-text, #f8fafc);
+  margin-top: 4px;
+}
+
+.qr-room-badge {
+  background: var(--desk-bg-secondary, #0f172a);
+  border: 1px solid var(--desk-border, #334155);
+  color: var(--desk-gold, #c28b28);
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+.qr-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 8px;
+  border: 1px solid var(--desk-border, #334155);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.qr-hint {
+  font-size: 12px;
+  color: var(--desk-gold, #c28b28);
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.qr-url {
+  font-family: monospace;
+  font-size: 10px;
+  color: var(--desk-text-muted, #94a3b8);
+  word-break: break-all;
+  max-width: 100%;
+  max-height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: var(--desk-bg-secondary, #0f172a);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.qr-close-btn {
+  margin-top: 6px;
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
 
 
 

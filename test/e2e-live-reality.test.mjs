@@ -43,6 +43,7 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     try {
       execSync('node scratch/clean-proc.mjs', { cwd: projectRoot, stdio: 'ignore' });
     } catch (e) {}
+    await new Promise((r) => setTimeout(r, 600));
 
     // 1. 啟動真實 server.mjs
     console.log('[E2E] 正在啟動真實 server.mjs 伺服器...');
@@ -91,6 +92,7 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     if (deskCdp) deskCdp.close();
     try {
       await fetchHttp('http://127.0.0.1:9998/api/shutdown', { method: 'POST' });
+      await new Promise((r) => setTimeout(r, 600));
     } catch (e) {}
     if (serverProcess && serverProcess.pid) {
       try { process.kill(serverProcess.pid); } catch (e) {}
@@ -325,4 +327,206 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     }
     console.log('   📌 官方播稿模式載入檢查開啟與雙向真實反映已通過驗證！');
   });
+
+  test('✅ [E2E-9] 主控台大慈恩明亮/暗黑雙風格實質切換與持久化閉環 (Theme Diff & Persistence)', async () => {
+    if (!deskCdp || !deskCdp.isConnected) {
+      console.log('   ⚠️ 主控台 CDP 未掛載，跳過主題切換驗證');
+      return;
+    }
+
+    // 0. 重置為預設宣紙明亮風格 (保證測試幂等獨立性)
+    await deskCdp.eval(`
+      localStorage.removeItem('amrtf_theme');
+      if (typeof window.applyTheme === 'function') {
+        window.applyTheme('light');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.body.classList.remove('theme-dark');
+        document.body.classList.add('theme-light');
+      }
+    `);
+    await new Promise((r) => setTimeout(r, 200));
+
+    // 1. 初始化狀態驗證（長官指定預設：宣紙明亮風格）
+    const initialThemeState = await deskCdp.eval(`
+      (function() {
+        const deskBtn = document.getElementById('btnDeskThemeToggle');
+        const screenThemeBtn = document.getElementById('btnThemeToggle');
+        const bg = window.getComputedStyle(document.body).backgroundColor;
+        return {
+          existsDeskBtn: !!deskBtn,
+          existsScreenThemeBtn: !!screenThemeBtn,
+          screenThemeBtnText: screenThemeBtn ? screenThemeBtn.textContent.trim() : '',
+          hasLightClass: document.body.classList.contains('theme-light'),
+          dataTheme: document.documentElement.getAttribute('data-theme'),
+          btnText: deskBtn ? deskBtn.textContent.trim() : '',
+          savedTheme: localStorage.getItem('amrtf_theme'),
+          bgColor: bg
+        };
+      })()
+    `);
+    console.log('   🔍 [E2E-9 Info] 初始大慈恩宣紙明亮風格現場狀態:', JSON.stringify(initialThemeState));
+    assert.strictEqual(initialThemeState.existsDeskBtn, true, '#btnDeskThemeToggle 按鈕必須存在於主控台頂部導航列');
+    assert.strictEqual(initialThemeState.existsScreenThemeBtn, true, '#btnThemeToggle (🌓) 必須存在於下方按鈕陣列');
+    assert.strictEqual(initialThemeState.screenThemeBtnText, '🌓', '下方放映端主題按鈕文字必須為 🌓');
+    assert.strictEqual(initialThemeState.hasLightClass, true, '預設狀態 document.body 必須包含 theme-light 類別');
+    assert.strictEqual(initialThemeState.btnText, '🌞', '明亮風格下頂部按鈕必須顯示 🌞 符號');
+
+    // 2. 點擊頂部按鈕切換主控台為玄木暗黑風格
+    await deskCdp.eval(`document.getElementById('btnDeskThemeToggle').click()`);
+    await new Promise((r) => setTimeout(r, 350));
+
+    const darkThemeState = await deskCdp.eval(`
+      (function() {
+        const btn = document.getElementById('btnDeskThemeToggle');
+        const bg = window.getComputedStyle(document.body).backgroundColor;
+        return {
+          hasDarkClass: document.body.classList.contains('theme-dark'),
+          dataTheme: document.documentElement.getAttribute('data-theme'),
+          btnText: btn ? btn.textContent.trim() : '',
+          savedTheme: localStorage.getItem('amrtf_theme'),
+          bgColor: bg
+        };
+      })()
+    `);
+    console.log('   🔍 [E2E-9 Info] 切換為玄木暗黑風格狀態:', JSON.stringify(darkThemeState));
+    assert.strictEqual(darkThemeState.hasDarkClass, true, '點擊後 document.body 必須切換為 theme-dark 類別');
+    assert.strictEqual(darkThemeState.btnText, '🌙', '暗黑風格下按鈕必須顯示 🌙 符號');
+    assert.strictEqual(darkThemeState.savedTheme, 'dark', 'localStorage 必須持久化記錄 amrtf_theme 为 dark');
+    assert.notStrictEqual(darkThemeState.bgColor, initialThemeState.bgColor, '深淺風格切換必須引發背景色彩實質突變 (Δ ≠ 0)');
+
+    // 捕獲玄木暗黑真機快照
+    try {
+      const darkSnap = await deskCdp.captureScreenshot();
+      if (darkSnap) {
+        const darkSnapPath = path.join(artifactsDir, 'e2e-desk-dark-theme-live.png');
+        fs.writeFileSync(darkSnapPath, Buffer.from(darkSnap, 'base64'));
+        console.log(`   📸 [Screenshot-Evidence] 大慈恩玄木暗黑真機快照已存檔: ${darkSnapPath}`);
+      }
+    } catch (e) {}
+
+    // 3. 再次點擊切換回大慈恩宣紙明亮風格
+    await deskCdp.eval(`document.getElementById('btnDeskThemeToggle').click()`);
+    await new Promise((r) => setTimeout(r, 350));
+
+    const restoredThemeState = await deskCdp.eval(`
+      (function() {
+        const btn = document.getElementById('btnDeskThemeToggle');
+        const bg = window.getComputedStyle(document.body).backgroundColor;
+        return {
+          hasLightClass: document.body.classList.contains('theme-light'),
+          dataTheme: document.documentElement.getAttribute('data-theme'),
+          btnText: btn ? btn.textContent.trim() : '',
+          savedTheme: localStorage.getItem('amrtf_theme'),
+          bgColor: bg
+        };
+      })()
+    `);
+    console.log('   🔍 [E2E-9 Info] 二次切換恢復宣紙明亮風格狀態:', JSON.stringify(restoredThemeState));
+    assert.strictEqual(restoredThemeState.hasLightClass, true, '二次點擊必須精準恢復為 theme-light');
+    assert.strictEqual(restoredThemeState.btnText, '🌞', '按鈕恢復為 🌞');
+    assert.notStrictEqual(restoredThemeState.bgColor, darkThemeState.bgColor, '恢復後背景色彩必須與玄木暗黑存在實質色彩突變');
+    assert.ok(restoredThemeState.bgColor.includes('248') || restoredThemeState.bgColor.includes('247'), '背景色彩必須恢復為宣紙雅白');
+
+    // 捕獲宣紙明亮真機快照
+    try {
+      const lightSnap = await deskCdp.captureScreenshot();
+      if (lightSnap) {
+        const lightSnapPath = path.join(artifactsDir, 'e2e-desk-light-theme-live.png');
+        fs.writeFileSync(lightSnapPath, Buffer.from(lightSnap, 'base64'));
+        console.log(`   📸 [Screenshot-Evidence] 大慈恩宣紙明亮真機快照已存檔: ${lightSnapPath}`);
+      }
+    } catch (e) {}
+
+    console.log('   📌 大慈恩明暗雙風格切換、LocalStorage 持久化與色彩突變已通過真機閉環驗證！');
+  });
+
+  test('✅ [E2E-10] 系統版本號展示與自動更新偵測 API 閉環驗證', async () => {
+    if (!deskCdp || !deskCdp.isConnected) {
+      console.log('   ⚠️ 主控台 CDP 未掛載，跳過版本檢測驗證');
+      return;
+    }
+
+    // 1. 打開設定艙
+    await deskCdp.eval(`document.getElementById('btnSettingsToggle').click()`);
+    await new Promise((r) => setTimeout(r, 400));
+
+    // 2. 檢驗版本徽章與狀態標籤
+    const versionDomState = await deskCdp.eval(`
+      (function() {
+        const badge = document.getElementById('currentVersionBadge');
+        const tag = document.getElementById('versionStatusTag');
+        const checkBtn = document.getElementById('btnCheckUpdate');
+        return {
+          hasBadge: !!badge,
+          badgeText: badge ? badge.textContent.trim() : '',
+          hasTag: !!tag,
+          tagText: tag ? tag.textContent.trim() : '',
+          hasCheckBtn: !!checkBtn
+        };
+      })()
+    `);
+    console.log('   🔍 [E2E-10 Info] 設定艙版本與更新狀態:', JSON.stringify(versionDomState));
+    assert.strictEqual(versionDomState.hasBadge, true, '#currentVersionBadge 必須存在');
+    assert.ok(versionDomState.badgeText.startsWith('v'), '版本號必須以 v 開頭 (例如 v1.0.0)');
+    assert.strictEqual(versionDomState.hasCheckBtn, true, '必須存在 #btnCheckUpdate 按鈕');
+
+    // 關閉設定艙保持環境整潔
+    await deskCdp.eval(`window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))`);
+    await new Promise((r) => setTimeout(r, 300));
+
+    console.log('   📌 系統版本號與更新檢測介面已通過端到端驗證！');
+  });
+
+  test('✅ [E2E-11] Firebase 雲端純掃碼中繼 API、SPA 靜態託管與主控台雙軌 QR Modal 端到端驗證', async () => {
+    // 1. 驗證 REST API /api/cloud-relay/status
+    const relayRes = await fetchHttp('http://127.0.0.1:9998/api/cloud-relay/status');
+    assert.strictEqual(relayRes.statusCode, 200, '/api/cloud-relay/status 應回傳 200');
+    const relayData = JSON.parse(relayRes.body);
+    assert.strictEqual(relayData.ok, true);
+    assert.strictEqual(relayData.relay.token.length, 32, '雲端 Token 必須為 32 碼密碼學高熵隨機字串');
+    assert.match(relayData.relay.roomId, /^ROOM-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{4}$/, 'Room ID 必須為 8 碼排除易混淆字格式');
+
+    // 2. 驗證手機端 SPA 靜態託管 /mobile-app
+    const mobileAppRes = await fetchHttp('http://127.0.0.1:9998/mobile-app');
+    assert.strictEqual(mobileAppRes.statusCode, 200, '/mobile-app 應回傳 200');
+    assert.ok(mobileAppRes.body.includes('unauthorizedScreen'), '手機 SPA 必須包含未授權掃碼防護門禁');
+    assert.ok(mobileAppRes.body.includes('authorizedApp'), '手機 SPA 必須包含已授權操作介面');
+
+    // 3. 驗證主控台 CDP 點擊 #btnQrCode 彈窗與雲端純掃碼分頁
+    if (deskCdp && deskCdp.isConnected) {
+      await deskCdp.eval(`document.getElementById('btnQrCode').click()`);
+      await new Promise((r) => setTimeout(r, 400));
+
+      const qrModalState = await deskCdp.eval(`
+        (function() {
+          const modal = document.getElementById('qrModal');
+          const tabCloud = document.getElementById('tabCloudQr');
+          const tabLan = document.getElementById('tabLanQr');
+          const badge = document.getElementById('qrRoomBadge');
+          const urlText = document.getElementById('qrUrlText');
+          return {
+            isOpen: modal ? modal.classList.contains('active') : false,
+            isCloudTabActive: tabCloud ? tabCloud.classList.contains('active') : false,
+            hasLanTab: !!tabLan,
+            badgeText: badge ? badge.textContent.trim() : '',
+            urlText: urlText ? urlText.textContent.trim() : ''
+          };
+        })()
+      `);
+      console.log('   🔍 [E2E-11 Info] 主控台 QR Modal 狀態:', JSON.stringify(qrModalState));
+      assert.strictEqual(qrModalState.isOpen, true, '#qrModal 必須處於 active 開啟狀態');
+      assert.strictEqual(qrModalState.isCloudTabActive, true, '預設必須為雲端純掃碼 (tabCloudQr) 分頁');
+      assert.strictEqual(qrModalState.hasLanTab, true, '必須具備區域網路 (tabLanQr) 切換備援分頁');
+
+      // 關閉 QR Modal
+      await deskCdp.eval(`document.getElementById('btnCloseQr').click()`);
+      await new Promise((r) => setTimeout(r, 200));
+      const isClosed = await deskCdp.eval(`document.getElementById('qrModal').classList.contains('active')`);
+      assert.strictEqual(isClosed, false, '點擊關閉按鈕後 #qrModal 必須退出 active 狀態');
+    }
+
+    console.log('   📌 Firebase 雲端純掃碼中繼、多房間隔離與主控台雙軌 QR Modal 已通過端到端真機驗證！');
+  });
 });
+

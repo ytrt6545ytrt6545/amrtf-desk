@@ -14,8 +14,10 @@ assets/videos/*.mkv
 .env
 .env.local
 last-lesson.json
+last-room.json
 logs/
 scratch/
+.firebase/
 
 # OS & Editor files
 .DS_Store

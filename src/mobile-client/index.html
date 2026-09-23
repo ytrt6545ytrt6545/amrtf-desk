@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>AMRTF 4×8 行動操作艙</title>
+  <link rel="stylesheet" href="mobile.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;800;900&family=JetBrains+Mono:wght@600;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body class="mobile-font-100 theme-dark">
+  <!-- 1. 未帶合法 Token 阻斷導向畫面 (Scan-Only Guard) -->
+  <div id="unauthorizedScreen" class="guard-screen">
+    <div class="guard-card">
+      <div class="guard-lotus-icon">🪷</div>
+      <h1 class="guard-title">大慈恩研討艙 · 雲端遙控</h1>
+      <div class="guard-divider"></div>
+      <p class="guard-desc">
+        本遙控器採用<strong>密碼學極限安全架構</strong>，不提供手動輸入。
+      </p>
+      <div class="guard-instruction">
+        <span class="step-num">1</span>
+        <span>請使用手機相機掃描<strong>研討教室主控台</strong>螢幕上的專屬動態 QR Code。</span>
+      </div>
+      <div class="guard-instruction">
+        <span class="step-num">2</span>
+        <span>掃描後系統將自動攜帶 32 碼安全金鑰，一秒瞬間直通教室 4×8 播控艙。</span>
+      </div>
+      <div class="guard-footer">
+        100% 房間物理隔離 · 零串台保證
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 📖 講次快速直通艙 Modal (支援 3/03/003/0003 智慧補零跳轉) -->
+  <div class="lecture-modal-backdrop" id="lectureModalBackdrop">
+    <div class="lecture-modal-card">
+      <div class="lecture-modal-header">
+        <span class="lecture-modal-title">📖 講次快速直通艙</span>
+        <button class="lecture-modal-close" id="btnLectureModalClose">✕</button>
+      </div>
+      <div class="lecture-modal-display">
+        <div class="lecture-display-raw" id="lectureDisplayRaw">0000</div>
+        <div class="lecture-display-preview" id="lectureDisplayPreview">預覽: 請點按輸入講次</div>
+      </div>
+      <div class="lecture-pad-grid">
+        <button class="pad-btn pad-num" data-num="1">1</button>
+        <button class="pad-btn pad-num" data-num="2">2</button>
+        <button class="pad-btn pad-num" data-num="3">3</button>
+        <button class="pad-btn pad-num" data-num="4">4</button>
+        <button class="pad-btn pad-num" data-num="5">5</button>
+        <button class="pad-btn pad-num" data-num="6">6</button>
+        <button class="pad-btn pad-num" data-num="7">7</button>
+        <button class="pad-btn pad-num" data-num="8">8</button>
+        <button class="pad-btn pad-num" data-num="9">9</button>
+        <button class="pad-btn pad-clear" id="btnPadClear">⌫ 清除</button>
+        <button class="pad-btn pad-num" data-num="0">0</button>
+        <button class="pad-btn pad-go" id="btnPadGo">🚀 前往</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 已授權 4×8 行動操作艙 (Authorized Studio Console) -->
+  <div id="authorizedApp" class="mobile-app hidden">
+    <!-- 頂部沉浸式極簡狀態列 -->
+    <header class="app-header">
+      <div class="room-pill">
+        <span class="status-dot online" id="statusDot"></span>
+        <span class="room-label" id="roomLabel">ROOM-????</span>
+        <span class="relay-stat" id="relayStat">連線探測中...</span>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" id="btnMobileScale" title="一鍵放大按鈕文字">🔤 100%</button>
+        <button class="header-btn icon-btn" id="btnThemeToggle" title="切換深淺模式">🌓</button>
+        <button class="header-btn icon-btn" id="btnWakeLock" title="螢幕常亮開關">☀️</button>
+      </div>
+    </header>
+
+    <!-- 4×8 磁吸水晶操作網格本體 -->
+    <main id="mobileDeckGrid">
+      <div class="loading-deck-notice">
+        📡 正在同步教室專屬 4×8 水晶操作艙...
+      </div>
+    </main>
+  </div>
+
+  <script src="mobile-app.js"></script>
+</body>
+</html>

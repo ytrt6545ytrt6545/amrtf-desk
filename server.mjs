@@ -15,6 +15,7 @@ import { WebRemoteServer } from './src/server/web-remote.js';
 import { CompanionBridgeClient } from './src/server/companion-bridge.js';
 import { MobileLayoutStore } from './src/server/mobile-layout-store.js';
 import { VideoManager } from './src/server/video-manager.js';
+import { FirebaseRelayManager } from './src/server/firebase-relay.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -142,6 +143,12 @@ let screenProcess = null;
 let deskProcess = null;
 const mobileLayoutStore = new MobileLayoutStore();
 const videoManager = new VideoManager();
+const firebaseRelay = new FirebaseRelayManager({
+  dispatchCommand: (cmd, params) => dispatchCommand(cmd, params),
+  hostingDomain: process.env.FIREBASE_HOSTING_URL || 'https://my-amrtf.web.app',
+  mobileLayoutStore: mobileLayoutStore,
+  enableCloud: true
+});
 
 const server = http.createServer((req, res) => {
   const url = req.url.split('?')[0];
@@ -152,8 +159,89 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 🎬 影片離線快取狀態與下載 API
+  // ☁️ 手機純掃碼 SPA 靜態託管 (提供本地開發與內網測試直接預覽)
+  if (url === '/mobile-app' || url === '/mobile-app/') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(fs.readFileSync(path.join(__dirname, 'src', 'mobile-client', 'index.html'), 'utf8'));
+    return;
+  }
+  if (url === '/mobile-app/mobile.css') {
+    res.writeHead(200, { 'Content-Type': 'text/css; charset=utf-8' });
+    res.end(fs.readFileSync(path.join(__dirname, 'src', 'mobile-client', 'mobile.css'), 'utf8'));
+    return;
+  }
+  if (url === '/mobile-app/mobile-app.js') {
+    res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+    res.end(fs.readFileSync(path.join(__dirname, 'src', 'mobile-client', 'mobile-app.js'), 'utf8'));
+    return;
+  }
+
+  // ☁️ Firebase 雲端中繼狀態與信令 API
   const requestUrl = new URL(req.url, `http://${req.headers.host || '127.0.0.1'}`);
+  if (requestUrl.pathname === '/api/cloud-relay/status' && req.method === 'GET') {
+    const lanIp = getLanIPv4();
+    const localOrigin = `http://${lanIp}:9998`;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ ok: true, relay: firebaseRelay.getRelayInfo(localOrigin) }));
+    return;
+  }
+
+  if (requestUrl.pathname === '/api/cloud-relay/layout' && req.method === 'GET') {
+    const roomId = requestUrl.searchParams.get('room');
+    const token = requestUrl.searchParams.get('token');
+    const layout = firebaseRelay.getRoomLayout(roomId, token);
+    if (layout) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ ok: true, layout }));
+    } else {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ ok: false, error: 'UNAUTHORIZED_OR_NOT_FOUND' }));
+    }
+    return;
+  }
+
+  if (requestUrl.pathname === '/api/cloud-relay/state' && req.method === 'GET') {
+    const roomId = requestUrl.searchParams.get('room');
+    const token = requestUrl.searchParams.get('token');
+    const state = firebaseRelay.getRoomState(roomId, token);
+    if (state) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ ok: true, state }));
+    } else {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ ok: false, error: 'UNAUTHORIZED_OR_NOT_FOUND' }));
+    }
+    return;
+  }
+
+  if (requestUrl.pathname === '/api/cloud-relay/cmd' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const envelope = JSON.parse(body);
+        const roomId = requestUrl.searchParams.get('room') || envelope.room;
+        const token = requestUrl.searchParams.get('token') || envelope.token;
+        const result = firebaseRelay.handleIncomingCommand(roomId, token, envelope.action, envelope.payload);
+        res.writeHead(result.success ? 200 : 403, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(result));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // 🛑 優雅停機 API (觸發全域銷毀與雲端自毀 Zero-Garbage)
+  if (requestUrl.pathname === '/api/shutdown' && req.method === 'POST') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ ok: true, message: 'Server gracefully shutting down' }));
+    setTimeout(() => shutdownApp(), 80);
+    return;
+  }
+
+  // 🎬 影片離線快取狀態與下載 API
   if (requestUrl.pathname === '/api/videos/status') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify(videoManager.getStatus()));
@@ -198,6 +286,7 @@ const server = http.createServer((req, res) => {
           const targetProfile = parsed.profile || profileParam;
           const saved = mobileLayoutStore.saveLayout(parsed, targetProfile);
           webRemote.broadcastMobileLayout(saved);
+          firebaseRelay.broadcastMobileLayout(saved);
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
           res.end(JSON.stringify({ ok: true, layout: saved }));
         } catch (err) {
@@ -213,8 +302,131 @@ const server = http.createServer((req, res) => {
     const profileParam = requestUrl.searchParams.get('profile') || 'full';
     const reset = mobileLayoutStore.resetLayout(profileParam);
     webRemote.broadcastMobileLayout(reset);
+    firebaseRelay.broadcastMobileLayout(reset);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({ ok: true, layout: reset }));
+    return;
+  }
+
+  // 📦 系統版本檢測與自動更新 API
+  if (requestUrl.pathname === '/api/system/check-update' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    try {
+      let currentVersion = '1.0.0';
+      try {
+        const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+        if (pkg && pkg.version) currentVersion = pkg.version;
+      } catch (e) {}
+
+      const isGitRepo = fs.existsSync(path.join(__dirname, '.git'));
+
+      let localChangelog = '';
+      try {
+        localChangelog = fs.readFileSync(path.join(__dirname, 'CHANGELOG.md'), 'utf8');
+      } catch (e) {}
+
+      // 透過 GitHub API 非同步探測最新 Release
+      const reqGit = https.get('https://api.github.com/repos/ytrt6545ytrt6545/amrtf-desk/releases/latest', {
+        headers: { 'User-Agent': 'AMRTF-Desk-Updater' },
+        timeout: 3000
+      }, (resGit) => {
+        let raw = '';
+        resGit.on('data', c => raw += c);
+        resGit.on('end', () => {
+          try {
+            if (resGit.statusCode === 200) {
+              const rel = JSON.parse(raw);
+              const latestTag = (rel.tag_name || '').replace(/^v/, '');
+              const isNewer = (remote, local) => {
+                const r = (remote || '').split('.').map(n => parseInt(n, 10) || 0);
+                const l = (local || '').split('.').map(n => parseInt(n, 10) || 0);
+                for (let i = 0; i < Math.max(r.length, l.length); i++) {
+                  const rv = r[i] || 0;
+                  const lv = l[i] || 0;
+                  if (rv > lv) return true;
+                  if (rv < lv) return false;
+                }
+                return false;
+              };
+              const hasUpdate = !!(latestTag && isNewer(latestTag, currentVersion));
+              res.end(JSON.stringify({
+                ok: true,
+                currentVersion,
+                latestVersion: latestTag || currentVersion,
+                hasUpdate,
+                releaseNotes: (hasUpdate && rel.body) ? rel.body : localChangelog,
+                publishedAt: rel.published_at,
+                htmlUrl: rel.html_url || 'https://github.com/ytrt6545ytrt6545/amrtf-desk',
+                isGitRepo
+              }));
+              return;
+            }
+          } catch (err) {}
+          res.end(JSON.stringify({
+            ok: true,
+            currentVersion,
+            latestVersion: currentVersion,
+            hasUpdate: false,
+            releaseNotes: localChangelog || '當前版本已是最新穩定版。',
+            isGitRepo
+          }));
+        });
+      });
+
+      reqGit.on('error', () => {
+        res.end(JSON.stringify({
+          ok: true,
+          currentVersion,
+          latestVersion: currentVersion,
+          hasUpdate: false,
+          offline: true,
+          message: '現場無外網或無法連線至 GitHub 伺服器',
+          isGitRepo
+        }));
+      });
+
+      reqGit.on('timeout', () => {
+        reqGit.destroy();
+        res.end(JSON.stringify({
+          ok: true,
+          currentVersion,
+          latestVersion: currentVersion,
+          hasUpdate: false,
+          offline: true,
+          message: '連線逾時 (現場無外網)',
+          isGitRepo
+        }));
+      });
+    } catch (e) {
+      res.end(JSON.stringify({ ok: false, error: e.message }));
+    }
+    return;
+  }
+
+  if (requestUrl.pathname === '/api/system/apply-update' && req.method === 'POST') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+    const isGitRepo = fs.existsSync(path.join(__dirname, '.git'));
+    if (!isGitRepo) {
+      res.end(JSON.stringify({
+        ok: false,
+        message: '當前非 Git 源碼環境，請前往 GitHub 下載最新 Release 安裝包覆蓋。'
+      }));
+      return;
+    }
+    try {
+      const output = execSync('git pull origin main', { cwd: __dirname, encoding: 'utf8', timeout: 15000 });
+      res.end(JSON.stringify({
+        ok: true,
+        success: true,
+        message: '🎉 更新成功！最新代碼已成功拉取，請重啟系統。',
+        output
+      }));
+    } catch (err) {
+      res.end(JSON.stringify({
+        ok: false,
+        message: '拉取更新失敗: ' + (err.message || '未知錯誤')
+      }));
+    }
     return;
   }
   if (url === '/desk.css') {
@@ -309,7 +521,18 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocketServer({ server });
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
+  const reqUrl = req && req.url ? new URL(req.url, `http://${req.headers.host || '127.0.0.1'}`) : null;
+  if (reqUrl && reqUrl.pathname === '/ws-relay') {
+    const roomId = reqUrl.searchParams.get('room');
+    const token = reqUrl.searchParams.get('token');
+    const ok = firebaseRelay.attachClient(roomId, token, ws);
+    if (!ok) {
+      console.warn(`[Firebase-Relay] 拒絕未經授權的 WebSocket 連線: room=${roomId}`);
+    }
+    return;
+  }
+
   deskWsClients.add(ws);
 
   // 初次連線立即同步真實 LAN IP
@@ -362,6 +585,7 @@ function broadcastToDesk(state) {
   }
   merged.screenConnected = cdpBridge.isConnected;
   activeState = merged;
+  firebaseRelay.broadcastState(activeState);
   const msg = JSON.stringify({ type: 'STATE_UPDATE', data: { ...activeState, lanIp: getLanIPv4(), screenConnected: cdpBridge.isConnected } });
   for (const client of deskWsClients) {
     if (client.readyState === WebSocket.OPEN) {
@@ -423,6 +647,7 @@ const cdpBridge = new CdpBridge(9222, (state) => {
   broadcastToDesk(state);
   webRemote.broadcastState(state);
   companionClient.syncState(state);
+  firebaseRelay.broadcastState(state);
 }, () => {
   console.log('[System] 監測到放映艙視窗已由長官按 ✕ 關閉，連鎖觸發主控台關閉與全域資源釋放...');
   shutdownApp();
@@ -434,12 +659,20 @@ const companionClient = new CompanionBridgeClient(9999, dispatchCommand);
 let isShuttingDown = false;
 
 // 6. 全域乾淨退出與子進程徹底清理 (100% 滅除兩個視窗、0 記憶體殘留)
-function shutdownApp() {
+async function shutdownApp() {
   if (isShuttingDown) return;
   isShuttingDown = true;
-  console.log('[System] 正在執行全域乾淨關閉三部曲（特徵滅殺雙視窗、釋放所有端口、退出伺服器）...');
+  console.log('[System] 正在執行全域乾淨關閉三部曲（雲端自毀抹除、特徵滅殺雙視窗、釋放所有端口）...');
 
-  // (1) 特徵精準全滅：透過 PowerShell WMI 查詢所有命令列包含 amrtf-desk-profile 或 amrtf-screen-profile 的進程
+  // (1) 優先執行雲端自毀抹除與附屬服務關閉 (落實 Zero-Garbage，絕不中途被截斷)
+  try { await firebaseRelay.destroyRoom(firebaseRelay.roomId, true); } catch (e) {}
+  try { webRemote.stop(); } catch (e) {}
+  try { companionClient.stop(); } catch (e) {}
+  try { cdpBridge.close(); } catch (e) {}
+  try { server.close(); } catch (e) {}
+  try { wss.close(); } catch (e) {}
+
+  // (2) 特徵精準全滅：透過 PowerShell WMI 查詢所有命令列包含 amrtf-desk-profile 或 amrtf-screen-profile 的進程
   // 不論是主視窗、GPU 進程、Renderer、Network 還是 Utility，瞬間連根拔起，0 記憶體殘留！
   try {
     const psKill = "$ProgressPreference = 'SilentlyContinue'; Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'amrtf-(desk|screen)-profile' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }";
@@ -447,7 +680,7 @@ function shutdownApp() {
     execSync(`powershell -NoProfile -EncodedCommand ${b64Kill}`, { stdio: 'ignore' });
   } catch (e) {}
 
-  // (2) 輔助 PID 滅殺 (若進程句柄仍存活)
+  // (3) 輔助 PID 滅殺 (若進程句柄仍存活)
   try {
     if (screenProcess && screenProcess.pid) {
       try { execSync(`taskkill /F /PID ${screenProcess.pid} /T`, { stdio: 'ignore' }); } catch (e) {}
@@ -457,7 +690,7 @@ function shutdownApp() {
     }
   } catch (e) {}
 
-  // (3) 徹底釋放 9222, 9223, 9998 佔用進程
+  // (4) 徹底釋放 9222, 9223, 9998 佔用進程
   for (const port of [9222, 9223, 9998]) {
     try {
       const netstat = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf8' });
@@ -469,13 +702,6 @@ function shutdownApp() {
       });
     } catch (e) {}
   }
-
-  // (4) 關閉附屬服務與 HTTP 伺服器
-  try { webRemote.stop(); } catch (e) {}
-  try { companionClient.stop(); } catch (e) {}
-  try { cdpBridge.close(); } catch (e) {}
-  try { server.close(); } catch (e) {}
-  try { wss.close(); } catch (e) {}
 
   console.log('✅ 所有放映艙、主控台視窗與背景進程已 100% 徹底關閉，記憶體完全釋放。');
   process.exit(0);
@@ -510,6 +736,8 @@ server.listen(9998, '0.0.0.0', async () => {
   const lanIp = getLanIPv4();
   console.log(`✅ [1/4] 主控台與手機遙控伺服器已就緒: http://127.0.0.1:9998/desk`);
   console.log(`📱 [LAN IP] 手機掃碼直連網址: http://${lanIp}:9998/mobile`);
+  console.log(`☁️ [Firebase 雲端] 手機純掃碼網址: ${firebaseRelay.getRemoteUrl()}`);
+  console.log(`   └─ 本地開發掃碼測試: http://${lanIp}:9998/mobile-app/?room=${encodeURIComponent(firebaseRelay.roomId)}&token=${encodeURIComponent(firebaseRelay.token)}`);
   companionClient.start();
 
   const browserBin = getBrowserExecutable();

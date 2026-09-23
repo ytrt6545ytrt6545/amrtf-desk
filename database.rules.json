@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomId": {
+        ".read": "query.token === data.child('token').val() || auth != null",
+        ".write": "newData.child('token').val() === data.child('token').val() || !data.exists() || auth != null",
+        "cmd": {
+          ".validate": "newData.hasChildren(['action', 'token']) && newData.child('token').val() === data.parent().child('token').val()"
+        },
+        "state": {
+          ".validate": "newData.parent().child('token').val() === data.parent().child('token').val()"
+        }
+      }
+    }
+  }
+}

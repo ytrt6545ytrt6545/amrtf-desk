@@ -5,8 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AMRTF Control Desk</title>
   <link rel="stylesheet" href="desk.css">
+  <script>
+    (function() {
+      try {
+        var savedTheme = localStorage.getItem('amrtf_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } catch (e) {}
+    })();
+  </script>
 </head>
-<body class="desk-body">
+<body class="desk-body theme-light">
   <!-- 頂部系統狀態列 -->
   <header class="desk-header">
     <div class="header-left">
@@ -17,7 +25,8 @@
       <button class="header-btn" id="btnScaleToggle" title="點擊切換全域按鈕字體比例 (100%/125%/150%/175%/200%)">🔤 100%</button>
       <button class="btn-edit-toggle" id="btnEditLayoutToggle" title="切換自訂佈局模式 (Ctrl+E)">🛠️ 佈局</button>
       <button class="header-btn btn-mobile-nav" id="btnMobileStudioToggle" title="1:1 手機佈局模擬編排艙">📱 手機</button>
-      <button class="header-btn btn-settings-nav" id="btnSettingsToggle" title="打開系統設定艙 (離線影音管理)">⚙️ 設定</button>
+      <button class="header-btn btn-settings-nav" id="btnSettingsToggle" title="打開系統設定艙 (離線影音與系統更新)">⚙️ 設定<span class="update-badge-dot" id="updateBadgeDot" style="display: none;"></span></button>
+      <button class="header-btn" id="btnDeskThemeToggle" title="點擊切換主控台外觀風格 (宣紙明亮 / 玄木暗黑)">🌞</button>
       <button class="header-btn" id="btnQrCode" title="手機掃碼無線遙控">QR</button>
       <button class="header-btn" id="btnMiniToggle" title="MINI 懸浮模式">🗕</button>
       <button class="header-btn btn-exit" id="btnExit" title="EXIT 全域退出">🚪</button>
@@ -114,12 +123,18 @@
     <button class="keycap-btn" id="btnFontSmaller">🔤-</button>
   </footer>
 
-  <!-- QR Code 彈窗 Modal -->
+  <!-- QR Code 彈窗 Modal (支援 Firebase 雲端純掃碼與區域網路切換) -->
   <div class="qr-modal" id="qrModal">
     <div class="qr-card">
-      <div class="qr-title">📱 手機無線遙控</div>
+      <div class="qr-header-tabs">
+        <button class="qr-tab-btn active" id="tabCloudQr">☁️ 雲端純掃碼 (推薦)</button>
+        <button class="qr-tab-btn" id="tabLanQr">📶 區域網路</button>
+      </div>
+      <div class="qr-title" id="qrTitle">📱 手機雲端純掃碼遙控</div>
+      <div class="qr-room-badge" id="qrRoomBadge">房間：載入中...</div>
       <img id="qrImage" class="qr-img" alt="QR Code" />
-      <div class="qr-url" id="qrUrlText">http://...</div>
+      <div class="qr-hint" id="qrHint">✨ 零手動輸入 · 密碼學安全金鑰已封裝於 QR Code 中</div>
+      <div class="qr-url" id="qrUrlText">載入中...</div>
       <button class="keycap-btn qr-close-btn" id="btnCloseQr">關閉</button>
     </div>
   </div>
@@ -151,6 +166,27 @@
         <div class="download-progress-bar-container" id="downloadProgressContainer" style="display: none;">
           <div class="progress-track"><div class="progress-fill" id="downloadProgressFill"></div></div>
           <div class="progress-status-text" id="downloadStatusText">準備下載中...</div>
+        </div>
+      </section>
+
+      <!-- 區塊 2: 📦 系統版本與自動更新 -->
+      <section class="settings-section">
+        <div class="section-title">📦 系統版本與自動更新</div>
+        <div class="version-info-box">
+          <div class="version-row">
+            <span class="version-label">當前版本：</span>
+            <span class="version-value-badge" id="currentVersionBadge">v1.0.0</span>
+            <span class="version-status-tag" id="versionStatusTag">偵測中...</span>
+          </div>
+          <div class="update-notes-container" id="updateNotesContainer" style="display: none;">
+            <div class="update-notes-title">🚀 最新版本亮點與更新說明：</div>
+            <div class="update-notes-body" id="updateNotesBody"></div>
+          </div>
+        </div>
+        <div class="version-action-row">
+          <button class="settings-action-btn btn-secondary" id="btnCheckUpdate">🔄 檢查更新</button>
+          <button class="settings-action-btn btn-primary" id="btnApplyUpdate" style="display: none;">⚡ 一鍵熱更新 (Git Pull)</button>
+          <a class="settings-action-btn btn-primary" id="btnDownloadRelease" href="https://github.com/ytrt6545ytrt6545/amrtf-desk/releases" target="_blank" style="display: none; text-decoration: none; text-align: center;">🌐 前往下載最新安裝包</a>
         </div>
       </section>
     </div>

@@ -42,6 +42,15 @@
   const btnVideoDedication = document.getElementById('btnVideoDedication');
   const btnCloseVideo = document.getElementById('btnCloseVideo');
   const btnThemeToggle = document.getElementById('btnThemeToggle');
+  const btnDeskThemeToggle = document.getElementById('btnDeskThemeToggle');
+  const updateBadgeDot = document.getElementById('updateBadgeDot');
+  const currentVersionBadge = document.getElementById('currentVersionBadge');
+  const versionStatusTag = document.getElementById('versionStatusTag');
+  const updateNotesContainer = document.getElementById('updateNotesContainer');
+  const updateNotesBody = document.getElementById('updateNotesBody');
+  const btnCheckUpdate = document.getElementById('btnCheckUpdate');
+  const btnApplyUpdate = document.getElementById('btnApplyUpdate');
+  const btnDownloadRelease = document.getElementById('btnDownloadRelease');
   const btnFontLarger = document.getElementById('btnFontLarger');
   const btnFontSmaller = document.getElementById('btnFontSmaller');
   const btnFullscreen = document.getElementById('btnFullscreen');
@@ -233,7 +242,49 @@
   btnVideoPrep.addEventListener('click', () => sendCmd('modal_prep_video'));
   btnVideoDedication.addEventListener('click', () => sendCmd('modal_dedication_video'));
   btnCloseVideo.addEventListener('click', () => sendCmd('modal_close'));
-  btnThemeToggle.addEventListener('click', () => sendCmd('set_theme'));
+  // ==============================================================================
+  // 🌞 / 🌙 大慈恩明暗雙風格主題切換模組 (Parchment Light / Zen Dark)
+  // ==============================================================================
+  const THEME_STORAGE_KEY = 'amrtf_theme';
+
+  function getSavedTheme() {
+    return localStorage.getItem(THEME_STORAGE_KEY) || 'light'; // 長官指定：預設宣紙明亮風格
+  }
+
+  function applyTheme(theme) {
+    const isDark = theme === 'dark';
+    document.body.classList.remove('theme-light', 'theme-dark');
+    document.body.classList.add(isDark ? 'theme-dark' : 'theme-light');
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
+
+    if (btnDeskThemeToggle) {
+      btnDeskThemeToggle.textContent = isDark ? '🌙' : '🌞';
+      btnDeskThemeToggle.title = isDark ? '目前為主控台玄木暗黑風格（點擊切換為宣紙明亮）' : '目前為主控台宣紙明亮風格（點擊切換為玄木暗黑）';
+    }
+  }
+
+  function toggleTheme() {
+    const currentTheme = getSavedTheme();
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(nextTheme);
+  }
+
+  // 頂部按鈕專責控制主控台自身明暗風格
+  if (btnDeskThemeToggle) {
+    btnDeskThemeToggle.addEventListener('click', toggleTheme);
+  }
+  window.applyTheme = applyTheme;
+  window.toggleTheme = toggleTheme;
+
+  // 立即套用保存的主題或預設宣紙明亮風格
+  applyTheme(getSavedTheme());
+
+  // 🌓 下方鍵盤矩陣按鈕 100% 恢復崇高使命：精準控制大慈恩放映端手抄稿深淺色！
+  if (btnThemeToggle) {
+    btnThemeToggle.addEventListener('click', () => sendCmd('set_theme'));
+  }
+
   btnFontLarger.addEventListener('click', () => sendCmd('adjust_font_size', { delta: 1.5 }));
   btnFontSmaller.addEventListener('click', () => sendCmd('adjust_font_size', { delta: -1.5 }));
 
@@ -406,15 +457,79 @@
     btnMiniToggle.textContent = isMiniMode ? '🗖' : '🗕';
   });
 
-  // QR Code (採用真實本機區域網路 IP，手機在同 Wi-Fi 掃碼即連！)
-  btnQrCode.addEventListener('click', () => {
+  // QR Code (支援 Firebase 雲端純掃碼直通 與 區域網路 LAN 雙軌切換)
+  const tabCloudQr = document.getElementById('tabCloudQr');
+  const tabLanQr = document.getElementById('tabLanQr');
+  const qrTitle = document.getElementById('qrTitle');
+  const qrRoomBadge = document.getElementById('qrRoomBadge');
+  const qrHint = document.getElementById('qrHint');
+
+  let cloudRelayData = null;
+  let currentQrMode = 'cloud'; // 'cloud' | 'lan'
+
+  function updateQrDisplay() {
     const port = window.location.port || '9998';
     const hostIp = (currentLanIp && currentLanIp !== '127.0.0.1' && currentLanIp !== 'localhost') ? currentLanIp : window.location.hostname;
-    const mobileUrl = `http://${hostIp}:${port}/mobile`;
-    qrUrlText.textContent = mobileUrl;
-    // 使用輕量 QR API 產生
-    qrImage.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(mobileUrl);
+    const lanUrl = `http://${hostIp}:${port}/mobile`;
+
+    if (currentQrMode === 'cloud') {
+      if (tabCloudQr) tabCloudQr.classList.add('active');
+      if (tabLanQr) tabLanQr.classList.remove('active');
+      if (qrTitle) qrTitle.textContent = '☁️ 手機雲端純掃碼遙控';
+      if (qrHint) qrHint.textContent = '✨ 零手動輸入 · 32碼密碼學安全金鑰已封裝於 QR Code';
+
+      if (cloudRelayData && cloudRelayData.cloudUrl) {
+        if (qrRoomBadge) qrRoomBadge.textContent = `房間：${cloudRelayData.roomId}`;
+        qrUrlText.textContent = cloudRelayData.cloudUrl;
+        qrImage.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(cloudRelayData.cloudUrl);
+      } else {
+        if (qrRoomBadge) qrRoomBadge.textContent = '房間：連線中...';
+        qrUrlText.textContent = '正在獲取雲端中繼房間代碼...';
+      }
+    } else {
+      if (tabCloudQr) tabCloudQr.classList.remove('active');
+      if (tabLanQr) tabLanQr.classList.add('active');
+      if (qrTitle) qrTitle.textContent = '📶 區域網路 LAN 遙控';
+      if (qrHint) qrHint.textContent = '需手機與主控台連接在同一個 Wi-Fi 區域網路';
+      if (qrRoomBadge) qrRoomBadge.textContent = `內網 IP：${hostIp}`;
+      qrUrlText.textContent = lanUrl;
+      qrImage.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(lanUrl);
+    }
+  }
+
+  if (tabCloudQr) {
+    tabCloudQr.addEventListener('click', () => {
+      currentQrMode = 'cloud';
+      updateQrDisplay();
+    });
+  }
+
+  if (tabLanQr) {
+    tabLanQr.addEventListener('click', () => {
+      currentQrMode = 'lan';
+      updateQrDisplay();
+    });
+  }
+
+  btnQrCode.addEventListener('click', async () => {
     qrModal.classList.add('active');
+    updateQrDisplay();
+
+    // 背景非同步拉取最新雲端房間 Token
+    try {
+      const res = await fetch('/api/cloud-relay/status');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.ok && json.relay) {
+          cloudRelayData = json.relay;
+          if (currentQrMode === 'cloud') {
+            updateQrDisplay();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[Desk] 拉取雲端中繼資訊失敗:', e);
+    }
   });
 
   btnCloseQr.addEventListener('click', () => {
@@ -442,12 +557,130 @@
     if (settingsBackdrop) settingsBackdrop.classList.add('active');
     if (settingsLanIp) settingsLanIp.textContent = `${currentLanIp}:9998`;
     refreshVideoStatus();
+    checkSystemUpdate(false);
   }
 
   function closeSettings() {
     if (settingsDrawer) settingsDrawer.classList.remove('open');
     if (settingsBackdrop) settingsBackdrop.classList.remove('active');
   }
+
+  // ==============================================================================
+  // 📦 系統版本檢測與自動更新管理 (GitHub 遠端聯動與熱更新)
+  // ==============================================================================
+  let isCheckingUpdate = false;
+
+  async function checkSystemUpdate(isManual = false) {
+    if (isCheckingUpdate) return;
+    isCheckingUpdate = true;
+    if (versionStatusTag && isManual) {
+      versionStatusTag.textContent = '正在探測遠端版本...';
+      versionStatusTag.classList.remove('has-update');
+    }
+
+    try {
+      const res = await fetch('/api/system/check-update');
+      const data = await res.json();
+      if (!data || !data.ok) throw new Error(data.error || '無法獲取版本資訊');
+
+      if (currentVersionBadge) {
+        currentVersionBadge.textContent = `v${data.currentVersion || '1.0.0'}`;
+      }
+
+      if (data.hasUpdate) {
+        // 發現新版本！
+        if (updateBadgeDot) updateBadgeDot.style.display = 'block';
+        if (versionStatusTag) {
+          versionStatusTag.textContent = `🎉 發現新版 v${data.latestVersion}`;
+          versionStatusTag.classList.add('has-update');
+        }
+        if (updateNotesContainer && updateNotesBody) {
+          updateNotesContainer.style.display = 'block';
+          updateNotesBody.textContent = data.releaseNotes || '無更新備註';
+        }
+        if (data.isGitRepo) {
+          if (btnApplyUpdate) {
+            btnApplyUpdate.style.display = 'inline-block';
+            btnApplyUpdate.textContent = `⚡ 立即升級至 v${data.latestVersion} (Git Pull)`;
+          }
+          if (btnDownloadRelease) btnDownloadRelease.style.display = 'none';
+        } else {
+          if (btnApplyUpdate) btnApplyUpdate.style.display = 'none';
+          if (btnDownloadRelease) {
+            btnDownloadRelease.style.display = 'inline-block';
+            if (data.htmlUrl) btnDownloadRelease.href = data.htmlUrl;
+          }
+        }
+        if (isManual) {
+          alert(`🎉 發現新版本 v${data.latestVersion}！\n\n更新亮點：\n${data.releaseNotes || '請查看下方更新說明面板'}`);
+        }
+      } else {
+        // 已是最新或離線
+        if (updateBadgeDot) updateBadgeDot.style.display = 'none';
+        if (versionStatusTag) {
+          versionStatusTag.textContent = data.offline ? '⚠️ 現場離線 (無外網)' : '✅ 已是最新版本';
+          versionStatusTag.classList.remove('has-update');
+        }
+        if (updateNotesContainer && updateNotesBody) {
+          updateNotesContainer.style.display = 'block';
+          updateNotesBody.textContent = data.releaseNotes || '當前版本已是最新穩定版。';
+        }
+        if (data.isGitRepo && btnApplyUpdate) {
+          btnApplyUpdate.style.display = 'inline-block';
+          btnApplyUpdate.textContent = '⚡ 檢查並同步主幹最新代碼 (Git Pull)';
+        } else if (btnApplyUpdate) {
+          btnApplyUpdate.style.display = 'none';
+        }
+        if (btnDownloadRelease) btnDownloadRelease.style.display = 'none';
+        if (isManual) {
+          alert(data.offline ? '⚠️ 目前處於現場離線模式，無法連線至 GitHub 伺服器。' : `✅ 目前已是最新版本 (v${data.currentVersion})！\n\n詳細版本更新說明已在下方展開。`);
+        }
+      }
+    } catch (err) {
+      if (versionStatusTag) {
+        versionStatusTag.textContent = '檢查失敗';
+        versionStatusTag.classList.remove('has-update');
+      }
+      if (isManual) alert('檢查更新失敗: ' + err.message);
+    } finally {
+      isCheckingUpdate = false;
+    }
+  }
+
+  async function applySystemUpdate() {
+    if (!confirm('確定要執行一鍵熱更新嗎？\n系統將自動自 GitHub 拉取最新程式碼。')) return;
+    if (btnApplyUpdate) {
+      btnApplyUpdate.disabled = true;
+      btnApplyUpdate.textContent = '⏳ 正在拉取最新代碼...';
+    }
+    try {
+      const res = await fetch('/api/system/apply-update', { method: 'POST' });
+      const data = await res.json();
+      if (!data || !data.ok) throw new Error(data.message || '更新失敗');
+      alert(data.message || '更新完成！請重啟系統以生效。');
+      checkSystemUpdate(false);
+    } catch (err) {
+      alert('更新失敗: ' + err.message);
+    } finally {
+      if (btnApplyUpdate) {
+        btnApplyUpdate.disabled = false;
+        btnApplyUpdate.textContent = '⚡ 一鍵熱更新 (Git Pull)';
+      }
+    }
+  }
+
+  if (btnCheckUpdate) {
+    btnCheckUpdate.addEventListener('click', () => checkSystemUpdate(true));
+  }
+
+  if (btnApplyUpdate) {
+    btnApplyUpdate.addEventListener('click', applySystemUpdate);
+  }
+
+  // 開機自動靜默探測一次
+  setTimeout(() => {
+    checkSystemUpdate(false);
+  }, 1000);
 
   if (btnSettingsToggle) {
     btnSettingsToggle.addEventListener('click', (e) => {
