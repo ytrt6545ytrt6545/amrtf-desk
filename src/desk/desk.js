@@ -438,17 +438,9 @@
     sendCmd('toggle_fullscreen');
   });
 
-  // 視窗右上角按 ✕ 關閉時，連動關閉放映艙網頁並退出伺服器釋放記憶體
-  const triggerShutdown = () => {
-    try {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'SHUTDOWN' }));
-      }
-      navigator.sendBeacon('/api/shutdown');
-    } catch (e) {}
-  };
-  window.addEventListener('beforeunload', triggerShutdown);
-  window.addEventListener('pagehide', triggerShutdown);
+  // 視窗關閉由後端 WebSocket 連線池生命週期與寬限計時器自動管理；
+  // 嚴禁在 beforeunload / pagehide 盲目調用 /api/shutdown，否則頁面切換或重新整理會瞬間觸發全域殉爆閃退！
+  // 真正退出請透過頂部導航列之 btnExit「🚪」紅色退出按鈕。
 
   // 折疊 Mini 懸浮條
   btnMiniToggle.addEventListener('click', () => {

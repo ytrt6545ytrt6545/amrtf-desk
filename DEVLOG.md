@@ -4,6 +4,38 @@
 
 ## 專案歷史與踩坑避雷手冊
 
+### 亮點 126：修復點擊「🌙 明月」切換操作艙瞬間閃退（根除 beforeunload 自毀信標與建立 6 秒平滑切換寬限期）
+* **長官現場反饋與實測症狀**：
+  - 「切換廣海明月閃退? 你不是有測試過嗎?」
+  - 長官在主控台點擊頂部導航列「🌙 明月」按鈕（`location.href='/moonlight'`）時，視窗與伺服器瞬間雙雙消失（閃退）。
+* **先前測試盲區反思（消滅 Mock 假象）**：
+  - 先前 `test/moonlight-station.test.mjs` 僅透過 Node.js 建立局部 mock HTTP 伺服器比對靜態 HTML 字串，未真實走完整個主控台頁面跳轉生命週期與 WebSocket 事件，落入靜態跑分假象。
+* **深層根本原因剖析（Root Cause Analysis）**：
+  1. **前端 `beforeunload` / `pagehide` 盲目自毀信標（Premature Beacon Nuclear Detonation）**：
+     - `src/desk/desk.js` 中註冊了 `window.addEventListener('beforeunload', triggerShutdown)` 與 `pagehide`，原意是在視窗被長官按 ✕ 關閉時清理後端；
+     - 但在瀏覽器規範中，任何同頁導航（如點擊按鈕 `location.href='/moonlight'` 切換主題艙、或按 F5 重新整理）在卸載當前頁面時均會必然觸發 `beforeunload` / `pagehide`；
+     - 導致前端瞬間透過 `navigator.sendBeacon('/api/shutdown')` 向後端發射自殺信標！
+  2. **後端無差別 100ms 殉爆處決（Zero-Tolerance Execution）**：
+     - `server.mjs` 收到 `/api/shutdown` 信標後，於 100ms 內無差別調用 `shutdownApp()`；
+     - `shutdownApp()` 透過 PowerShell 滅殺所有 `amrtf-desk-profile` 與 `amrtf-screen-profile` 瀏覽器進程、殺除伺服器並釋放端口，導致視窗與伺服器瞬間消失（閃退）！
+  3. **WebSocket 連線池 1.5 秒斷線判定過於嚴苛**：
+     - 當舊頁面關閉到新頁面加載完成（解析 Tailwind、字體與腳本），WebSocket 重新連線耗時易超過 1.5 秒，原判定易誤判為視窗關閉。
+  4. **信令派發相容缺陷**：
+     - `server.mjs` 中僅解析 `msg.command || msg.cmd`，而廣海明月發送的 `msg.type === 'ACTION'`（帶 `msg.action`）未被解析。
+* **工業級解決方案與全面落地**：
+  1. **根除前端盲目自毀信標 (`src/desk/desk.js`)**：
+     - 徹底移除 `beforeunload` 與 `pagehide` 中粗暴發送 `/api/shutdown` 的邏輯；
+     - 明確關閉責任交由頂部導航列之 `btnExit`（「🚪 退出」按鈕，具備長官二階段確認彈窗）；
+  2. **引進 6 秒平滑換頁/重整寬限期與動態攔截 (`server.mjs`)**：
+     - 建立 `deskEmptyShutdownTimer`：當 `deskWsClients.size === 0` 時，啟動 6 秒寬限倒數；
+     - 只要有任何新操作艙（`/desk` 或 `/moonlight`）連入，立即 `clearTimeout` 取消退出，徹底杜絕換頁、跳轉與 F5 重整時的誤殺！
+  3. **信令融合解析**：
+     - `const cmd = msg.command || msg.cmd || msg.action;`，全渠道無縫兼容。
+* **現場物證驗證（Single Source of Test Truth · npm test）**：
+  - 執行全域標準測試指令：`npm test`；
+  - 判定結果：**5 大測試套件、35 項物理測試 100% 全部通過（Exit Code: 0）**！
+
+
 ### 亮點 125：廣海明月 · 大慈恩譯經基金會 Studio Control Desk (Moonlight Station) 方案 B 移植落地（32 軌戰術矩陣、528Hz 西藏銅鐘、即時手抄稿波形與雙向自由切換）
 * **長官現場指示與需求**：
   - 長官指示「一鍵移植入」並明確選定「方案 B（獨立主題 / 新皮膚模態）：保留原本介面，將 Moonlight 封裝為可自由切換的主題視窗／放映模態。請開始製作」。

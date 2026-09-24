@@ -566,6 +566,8 @@ const server = http.createServer((req, res) => {
   res.end('Not Found');
 });
 
+let deskEmptyShutdownTimer = null;
+
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws, req) => {
@@ -578,6 +580,13 @@ wss.on('connection', (ws, req) => {
       console.warn(`[Firebase-Relay] 拒絕未經授權的 WebSocket 連線: room=${roomId}`);
     }
     return;
+  }
+
+  // 只要有任何新操作艙 (包含經典播控台、廣海明月奢華艙) 接入，立即清除關閉計時器
+  if (deskEmptyShutdownTimer) {
+    clearTimeout(deskEmptyShutdownTimer);
+    deskEmptyShutdownTimer = null;
+    console.log('[Desk] ✅ 操作艙新連線接入，已取消自動退出倒數');
   }
 
   deskWsClients.add(ws);
@@ -601,7 +610,7 @@ wss.on('connection', (ws, req) => {
         return;
       }
       if (msg.type === 'COMMAND' || msg.type === 'ACTION') {
-        const cmd = msg.command || msg.cmd;
+        const cmd = msg.command || msg.cmd || msg.action;
         dispatchCommand(cmd, msg.params || {});
       }
     } catch (e) {}
@@ -610,14 +619,15 @@ wss.on('connection', (ws, req) => {
   ws.on('close', () => {
     deskWsClients.delete(ws);
     console.log(`[Desk] 操作艙連線中斷，剩餘活躍連線數: ${deskWsClients.size}`);
-    // 當長官把主控台視窗按 ✕ 關閉且無客戶端連線時，延遲 1.5 秒自動關閉放映艙與伺服器
+    // 當長官把主控台視窗按 ✕ 關閉且無客戶端連線時，給予 6 秒平滑切換/重整寬限期，逾時才自動關閉放映艙與伺服器
     if (deskWsClients.size === 0) {
-      setTimeout(() => {
+      if (deskEmptyShutdownTimer) clearTimeout(deskEmptyShutdownTimer);
+      deskEmptyShutdownTimer = setTimeout(() => {
         if (deskWsClients.size === 0) {
-          console.log('[System] 操作艙視窗已全數關閉，自動清理放映艙並退出伺服器釋放記憶體');
+          console.log('[System] 操作艙視窗已全數關閉超過寬限期 (6s)，自動清理放映艙並退出伺服器釋放記憶體');
           shutdownApp();
         }
-      }, 1500);
+      }, 6000);
     }
   });
 });
