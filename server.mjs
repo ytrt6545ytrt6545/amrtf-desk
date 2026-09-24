@@ -159,6 +159,18 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // 🌙 廣海明月 · Studio Control Desk 奢華操作艙
+  if (url === '/moonlight' || url === '/moonlight/') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(fs.readFileSync(path.join(__dirname, 'src', 'desk', 'moonlight.html'), 'utf8'));
+    return;
+  }
+  if (url === '/moonlight.js') {
+    res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+    res.end(fs.readFileSync(path.join(__dirname, 'src', 'desk', 'moonlight.js'), 'utf8'));
+    return;
+  }
+
   // ☁️ 手機純掃碼 SPA 靜態託管 (提供本地開發與內網測試直接預覽)
   if (url === '/mobile-app' || url === '/mobile-app/') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -233,7 +245,42 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 🛑 優雅停機 API (觸發全域銷毀與雲端自毀 Zero-Garbage)
+  // ☁️ 手機編排與實機預覽：即時向 Firebase 雲端資料庫廣播最新狀態與版面
+  if (requestUrl.pathname === '/api/cloud-relay/broadcast' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const envelope = body ? JSON.parse(body) : {};
+        const targetProfile = envelope.profile || 'full';
+        const layout = envelope.layout || mobileLayoutStore.getLayout(targetProfile);
+
+        // 1. 廣播最新版面至 Firebase RTDB 與本地 WebRemote
+        if (layout) {
+          webRemote.broadcastMobileLayout(layout);
+          firebaseRelay.broadcastMobileLayout(layout);
+        }
+
+        // 2. 廣播當前最新放映狀態 (若有額外傳入 state 則合併)
+        const stateToBroadcast = envelope.state ? { ...(activeState || {}), ...envelope.state } : (activeState || {});
+        firebaseRelay.broadcastState(stateToBroadcast);
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({
+          ok: true,
+          broadcasted: true,
+          trigger: envelope.trigger || 'manual',
+          roomId: firebaseRelay.roomId,
+          timestamp: Date.now()
+        }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
   if (requestUrl.pathname === '/api/shutdown' && req.method === 'POST') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({ ok: true, message: 'Server gracefully shutting down' }));
@@ -633,8 +680,8 @@ function dispatchCommand(cmd, params = {}) {
     return;
   }
 
-  // 專門處理放映艙網頁全螢幕切換 (由 CDP 視窗特權控制，徹底消除雙重衝突與手勢阻礙)
-  if (cmd === 'toggle_fullscreen') {
+  // 專門處理放映艙網頁全螢幕切換 (由 CDP 視窗特權控制，相容 toggle_fullscreen / fullscreen / FULLSCREEN)
+  if (cmd === 'toggle_fullscreen' || cmd === 'fullscreen' || cmd === 'FULLSCREEN') {
     cdpBridge.toggleFullscreen();
     return;
   }

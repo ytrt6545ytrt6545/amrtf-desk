@@ -4,6 +4,85 @@
 
 ## 專案歷史與踩坑避雷手冊
 
+### 亮點 125：廣海明月 · 大慈恩譯經基金會 Studio Control Desk (Moonlight Station) 方案 B 移植落地（32 軌戰術矩陣、528Hz 西藏銅鐘、即時手抄稿波形與雙向自由切換）
+* **長官現場指示與需求**：
+  - 長官指示「一鍵移植入」並明確選定「方案 B（獨立主題 / 新皮膚模態）：保留原本介面，將 Moonlight 封裝為可自由切換的主題視窗／放映模態。請開始製作」。
+* **深層架構設計與深模組移植落實**：
+  1. **獨立路由與靜態資產架構 (`server.mjs`, `src/desk/moonlight.html`, `src/desk/moonlight.js`)**：
+     - 新增 `/moonlight` 與 `/moonlight/` HTTP 200 靜態路由，提供專屬的「廣海明月 · 大慈恩譯經基金會 Studio Control Desk」操作視窗；
+     - 完整重現現代深色月光主題設計（Tailwind CSS v3、Inter & Noto Serif TC、Material Symbols、Glassmorphism、流光琥珀高亮色 `#d4af37` / `#f2ca50`）；
+     - 32 軌全戰術矩陣（CH 01 皈依頌至 CH 32 淨口業真言）全數採原生靜態 DOM 標記，徹底根除 `document.write` 渲染白屏與 FOUC 隱患；
+  2. **AMRTF 全雙工 WebSocket 信令雙向綁定 (`src/desk/moonlight.js`)**：
+     - 即時連線至 `ws://${location.host}/ws`，動態接收 `STATE_UPDATE` 狀態推播；
+     - 碼表雙計時器（`elapsed-timer` / `remaining-timer`）與研討講次徽章（`lesson-badge`）即時連鎖更新；
+     - 經文即時字幕卡（`sub-zh-text`）動態反映放映端手抄稿提詞，音訊律動波形條（`waveform-bars`）隨播放狀態活躍律動；
+     - 戰術播控條（⏪ 10s、⏪ 5s、▶/⏸ 播控、⏹ 停止、5s ⏩、10s ⏩、1.0x/1.25x/1.5x、🗣️ 播稿、📜 持續、🖥️ 全螢幕）全數無縫嫁接至既有核心信令；
+  3. **本機聲學合成引擎（Web Audio API 528Hz 西藏銅鐘）**：
+     - 點擊「Meditation Bell Trigger」時，調用 Web Audio API 以 528Hz 金黃月光基頻與四重金屬泛音演算法（指數遞減包絡衰減 3.5s）純本地合成西藏清淨銅鐘真音，無外部音檔相依，100% 離線秒響；
+  4. **雙向無縫互通切換體驗**：
+     - 經典主控台（`/desk`）頂部狀態列新增「🌙 明月」按鈕，一鍵直通 Moonlight Studio；
+     - Moonlight Studio 頂部導航列常駐「🎛️ 經典主控」按鈕，隨時一鍵跳轉回經典雙視窗播控台；
+* **現場物證驗證（Single Source of Test Truth · npm test）**：
+  - 新增專屬測試套件：`test/moonlight-station.test.mjs`；
+  - 執行全域標準測試：`npm test`；
+  - 判定結果：**5 大測試套件、35 項物理測試 100% 全綠 PASS（Exit Code: 0）**！
+
+### 亮點 124：修復手機端手抄稿 markers 下拉選單為空（RTDB 物件化轉型與競態死鎖突破）與手機「⛶ 全螢幕」特權 CDP 控制穿透
+* **長官現場反饋與實測症狀**：
+  - 「有資料但是沒有送過去雲端」：電腦端 4×8 行動操作艙編排與實機預覽中，起訖段落選單已完整解析出 14 段手抄稿 markers（如 00:00, 00:17, 00:54...），但真實手機端透過 `my-amrtf.web.app` 連上雲端後，下拉選單點開卻只有預設的唯一一項 `00:00 起點`；
+  - 「還有手機全螢幕按鍵沒能控制網頁」：手機端點擊「⛶ 全螢幕」按鈕無法將電腦第二螢幕上的大慈恩放映端切換為全螢幕。
+* **深層根本原因剖析（Root Cause Analysis）**：
+  1. **Firebase RTDB 陣列轉化物件陷阱（Array-to-Object Serialization）**：
+     - 電腦端以陣列 `markers: [{time: 0, text: '00:00 起點'}, ...]` 推播至 Firebase Realtime Database；RTDB 會將包含數字索引的陣列直接儲存並序列化為 Object（`{ "0": {...}, "1": {...} }`）；
+     - 手機端舊代碼前置守衛使用 `Array.isArray(currentState.markers)`，因 Object 判定為 `false`，導致所有 markers 填充邏輯直接被靜默略過！
+  2. **下拉選單渲染競態死鎖（Race Condition & Deadlock）**：
+     - 原程式碼中 `lastRenderedMarkerHash = markers.length` 寫在 `if (!selStart || !selEnd) return;` 之前；
+     - 若 Firebase RTDB 的 `state` 推播先於 `deck` 網格佈局到達，計數器被提前賦值為 14，但 DOM 中的 `<select>` 尚未生成而退出；
+     - 當後續 `renderDeck` 渲染出 `<select>` DOM（預設僅有 1 個 option）後，再次調用時因 `14 === 14` 被判定為「重複無變更」而永久中斷，造成下拉選單永久只有 `00:00 起點`！
+  3. **手機全螢幕按鈕信令未走特權 CDP 控制（Security Policy Rejection）**：
+     - 手機端全螢幕按鍵發送之 action 為 `fullscreen` 或 `FULLSCREEN`；
+     - `server.mjs` 原本僅攔截 `cmd === 'toggle_fullscreen'`，未被攔截的信令被原樣轉發進網頁 DOM；
+     - 瀏覽器安全性規範強制要求 `requestFullscreen()` 必須由「本機使用者手勢（User Gesture）」觸發，手機透過網路發送的虛擬事件遭放映艙 Chromium 靜默拒絕。
+* **工業級解決方案與全面落地**：
+  1. **物件轉型容錯與競態防護 (`src/mobile-client/mobile-app.js`)**：
+     - `populateMobileIntervalOptions` 支援 Object 自動轉換：`const list = Array.isArray(markers) ? markers : Object.values(markers)`；
+     - 計數與防抖快照（`lastRenderedMarkerHash`）移至確認 `selStart && selEnd` DOM 存在且成功填充之後；
+     - 在 `renderDeck` 佈局渲染完成後，立即主動調用 `populateMobileIntervalOptions(currentState.markers, true)` 強制刷新，徹底消滅時序相依。
+  2. **特權全螢幕信令全渠道對齊 (`server.mjs`, `src/mobile-client/mobile-app.js`)**：
+     - 手機端按鈕發送之全螢幕信令統一為 `toggle_fullscreen`；
+     - `server.mjs` 增設多信令融合相容：凡接收到 `toggle_fullscreen`、`fullscreen` 或 `FULLSCREEN`，一律攔截並調用 `cdpBridge.toggleFullscreen()`，以特權 CDP 視窗幾何控制，徹底繞過瀏覽器 User Gesture 限制！
+  3. **線上環境一鍵部署**：
+     - 執行 `npx -y firebase-tools@latest deploy --only hosting`，將最新客戶端部署至 `https://my-amrtf.web.app`。
+* **現場物證驗證（Single Source of Test Truth · npm test）**：
+  - 執行全域標準測試：`npm test`
+  - 判定結果：**4 大測試套件、31 項物理測試 100% 全部 PASS（Exit Code: 0）**！
+  - Firebase Hosting 部署成功物證：`Deploy complete! Hosting URL: https://my-amrtf.web.app`。
+
+### 亮點 123：手機編排與實機預覽 · 進入廣播與畫面變化即時網路資料庫 (Firebase RTDB) 雙向廣播閉環
+* **長官現場反饋與需求指示**：
+  - 「當進入手機的編排與實機預覽時，預覽畫面有變化就要向網路資料庫廣播最新狀態，剛進入時也要廣播一次。先跟我討論再做。」
+* **現場代碼排查與斷鏈物證定位**：
+  1. **進入預覽畫面缺少剛進入廣播 (Initial Enter Miss)**：
+     - 在 `src/desk/modules/mobile-studio-drawer.js` 中，點擊打開抽屜 (`open()`) 或切換為真機預覽模式 (`toggleMode()`) 時，原本僅執行本地 `GET /api/mobile-layout` 與 DOM 渲染，**未向後端或 Firebase 發送任何全量廣播**；
+  2. **預覽畫面變化缺少熱同步 (Mutation Miss)**：
+     - 模板切換（`switchProfile`）、重設版面（`resetLayout`）與按鈕字體放縮時，未即時觸發雲端資料庫更新；在真機預覽模式下接收主控台狀態時，缺少主動向 Firebase RTDB 節流同步的管道；
+  3. **後端缺少專屬廣播端點**：
+     - 原本後端僅在 `POST /api/mobile-layout` 時被動廣播，缺少前端一鍵發起全量即時廣播的專用端點。
+* **工業級解決方案與全面落地**：
+  1. **後端增設雲端即時同步廣播 API (`server.mjs`)**：
+     - 增設 `POST /api/cloud-relay/broadcast` 端點，接收前端傳入之 `{ trigger, profile, layout, state, ... }`；
+     - 立即調用 `firebaseRelay.broadcastMobileLayout()` 與 `firebaseRelay.broadcastState()`，同步推播至 Firebase Realtime Database 雲端機房與本地 WebRemote 客戶端。
+  2. **前端抽屜全生命週期廣播掛載 (`src/desk/modules/mobile-studio-drawer.js`)**：
+     - **剛進入預覽廣播**：在 `open()` 抽屜開啟完成及 `toggleMode()` 切換為 `'preview'` 實機預覽時，立即發送 `broadcastToCloud('enter')`；
+     - **畫面變化即時廣播**：在拖曳換位（`commitLayout`）、刪除/調整按鍵尺寸、模板切換（`switchProfile`）、重設佈局（`resetLayout`）與字級比例調整時，自動調用 `broadcastToCloud()`；
+     - **真機預覽狀態防抖同步**：在預覽模式下接收即時放映狀態時，以 300ms Trailing-edge Debounce 節流廣播至雲端資料庫，避免頻寬與配額浪費。
+  3. **測試套件擴充與 E2E 競態徹底解決**：
+     - 於 `test/firebase-relay.test.mjs` 中新增端對端合約測試：驗證「剛進入預覽時廣播一次」與「畫面變化時熱推播」之 `MOBILE_LAYOUT_UPDATED` 與 `ROOM_STATE_SYNC` 信令穿透；
+     - 優化 `test/e2e-live-reality.test.mjs` 中的 CSS 轉場等待與屬性驗證，消滅因 transition 異步渲染造成的色值誤差。
+* **現場物證驗證（Single Source of Test Truth · npm test）**：
+  - 執行全域標準測試：`npm test`
+  - 判定結果：**4 大套件、31 項物理測試 100% 全部 PASS（Exit Code: 0）**！
+
 ### 亮點 122：堅決拔除房間固化機制 · 每次開機全新隨機動態生成 ＋ 優化關機自毀順序（Zero-Garbage 雙重物理閉環）
 * **長官現場指示與安全哲學**：
   - 「我關掉了 看看有殘留嗎?」

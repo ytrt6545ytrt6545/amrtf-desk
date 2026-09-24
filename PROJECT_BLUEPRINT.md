@@ -32,6 +32,13 @@ graph LR
 
 ## 三、 已交付里程碑與核心技術亮點 (Completed Milestones)
 
+- [x] **廣海明月 · 大慈恩譯經基金會 Studio Control Desk (Moonlight Station) 奢華操作艙（方案 B 移植）**：
+  - **雙重視窗模態解耦**：保留既有 `/desk` 雙視窗主控台，新增 `/moonlight` 獨立廣播級奢華操作艙視窗，滿足高階現場操作需求；
+  - **頂級深色月光美學 (Deep Moonlight & Gold Aesthetic)**：Tailwind CSS v3、深色玻璃擬態（Glassmorphism）、Inter & Noto Serif TC、流光琥珀高亮色（`#d4af37` / `#f2ca50`）；
+  - **32 軌戰術矩陣 (Tactical Matrix 32 Channels)**：全靜態 DOM 結構，提供 32 軌梵唄真言與早晚課模板切換；
+  - **即時手抄稿提詞監控與音訊波形視覺化**：動態對齊放映艙字幕與手抄稿開示，音訊波形條隨播放狀態靈動律動；
+  - **本地 528Hz 西藏銅鐘合成器**：Web Audio API 純本地金屬諧波聲學合成，零網路相依、秒級鐘聲反饋；
+  - **雙向自由穿梭切換**：`/desk` 頂部狀態列新增「🌙 明月」按鈕，Moonlight 頂部導航列常駐「🎛️ 經典主控」按鈕，隨時秒切。
 - [x] **Firebase 雲端中繼、100% 密碼學純掃碼直通與 100 間研討教室多租戶隔離（含原生 RTDB 穿透、段落 markers 同步與去固化下課即焚）**：
   - **解決現場 Wi-Fi AP 隔離與 Mixed Content 阻斷**：手機在 HTTPS（`my-amrtf.web.app`）下直連 Firebase Realtime Database 原生端點（`asia-southeast1`），跨越 AP 隔離與瀏覽器混合內容阻斷，延遲 <50ms；
   - **100% 純掃碼安全策略 (Scan-Only Policy)**：徹底揚棄手動輸入框，使用 32 碼密碼學高熵隨機字串（`base64url`），全封裝在 QR Code 網址內，講師一秒直通；直接打開根網址時強制阻斷並呈現專屬引導畫面；
@@ -88,6 +95,11 @@ graph LR
   - **開機自動靜默探測與離線保護**：開機背景向 GitHub Releases API 探測，離線或逾時 3 秒自動安全降級，絕不阻塞現場；
   - **Release Notes 說明與一鍵熱更新**：展示更新說明，Git 環境支援一鍵 `git pull origin main` 熱更新，打包環境支援下載跳轉；
   - **測試套件沉澱**：新增 `[E2E-10]` 測試，全域測試 Exit Code 0 全綠通過。
+- [x] **手機編排與實機預覽：進入廣播與畫面變化即時網路資料庫 (Firebase RTDB) 雙向廣播閉環 (亮點 117)**：
+  - **進入即廣播 (Initial Enter Broadcast)**：使用者點擊打開「4×8 行動操作艙編排與實機預覽」抽屜或切換為「🎮 真機預覽操作」時，立即向 `/api/cloud-relay/broadcast` 推送全量最新狀態與版面，Firebase RTDB 雲端機房零秒就緒；
+  - **預覽畫面變化即時廣播 (Mutation Broadcast)**：拖曳換位（`commitLayout`）、刪除/調整按鍵尺寸、切換模板（`switchProfile`）、重設佈局（`resetLayout`）與字級比例調整時，自動觸發雲端資料庫更新；
+  - **真機預覽狀態防抖同步 (Debounced Live Sync)**：在真機預覽模式下，畫面 LED 碼表、提詞與按鈕狀態更新時，防抖 300ms 節流推播至 Firebase 雲端機房，避免配額暴增；
+  - **測試套件驗證**：新增 `test/firebase-relay.test.mjs` 端對端合約測試，全域 `npm test` 31 項測試 Exit Code 0 100% 全綠。
 
 
 ---
