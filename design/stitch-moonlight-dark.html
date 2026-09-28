@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AMRTF Moonlight Ocean Studio Desk - Clear Moonlight Ocean</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "ocean-bg": "#070b12",
+            "ocean-chassis": "#0d1420",
+            "ocean-surface": "#121b2a",
+            "ocean-card": "#162234",
+            "gold-glow": "#d4af37",
+            "gold-bright": "#facc15",
+            "gold-deep": "#8c7114",
+            "sapphire-light": "#38bdf8",
+            "sapphire-deep": "#0e1e36"
+          },
+          fontFamily: {
+            "serif-tc": ["'Noto Serif TC'", "serif"],
+            "cinzel": ["'Cinzel'", "serif"],
+            "mono-num": ["'JetBrains Mono'", "monospace"],
+            "inter": ["'Inter'", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Stream Deck Master Studio Chassis in Deep Moonlight Ocean */
+    .moonlight-master-chassis {
+      background: linear-gradient(175deg, #131c2c 0%, #0d1422 55%, #080c15 100%);
+      box-shadow: 
+        0 25px 60px -15px rgba(0, 0, 0, 0.95),
+        0 10px 25px -5px rgba(0, 0, 0, 0.8),
+        inset 0 1px 2px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -2px 4px 0 rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(71, 85, 105, 0.45);
+    }
+
+    /* Precision Titanium Corner Rivets */
+    .chassis-rivet {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #64748b 0%, #334155 55%, #0f172a 100%);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+      position: relative;
+    }
+    .chassis-rivet::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 7px;
+      height: 1.5px;
+      background: #090d14;
+      transform: translate(-50%, -50%) rotate(38deg);
+      box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Polished Dark Chrome Key Collar */
+    .chrome-collar {
+      background: linear-gradient(145deg, #2a374d 0%, #151f2e 40%, #223045 70%, #0e1520 100%);
+      box-shadow: 
+        0 3px 6px -1px rgba(0, 0, 0, 0.6),
+        0 1px 2px rgba(0, 0, 0, 0.8),
+        inset 0 1px 1px rgba(255, 255, 255, 0.22);
+      padding: 2.5px;
+    }
+
+    /* Inset Glass Sub-cards */
+    .ocean-inset-card {
+      background: linear-gradient(180deg, #101826 0%, #0b111c 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Recessed Control Tray */
+    .recess-tray {
+      background: #080d15;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85);
+    }
+
+    /* Crystal Liquid Glass Keycaps */
+    .crystal-key {
+      position: relative;
+      transition: all 0.14s cubic-bezier(0.2, 0.8, 0.25, 1);
+      transform: translateY(0);
+      user-select: none;
+      overflow: hidden;
+    }
+    .crystal-key:active {
+      transform: translateY(2px) scale(0.985);
+      box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.8),
+        inset 0 2px 5px rgba(0, 0, 0, 0.8) !important;
+    }
+
+    /* Top Arc Specular Reflection Lens */
+    .crystal-lens-reflection {
+      position: absolute;
+      top: 1.5px;
+      left: 3px;
+      right: 3px;
+      height: 46%;
+      border-radius: 9999px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.10) 50%, rgba(255, 255, 255, 0) 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Dark Mode Key Themes */
+    /* Dark Ocean Glass Crystal */
+    .key-dark-glass {
+      background: linear-gradient(180deg, #1f2b3e 0%, #131c2b 52%, #0a0f18 100%);
+      box-shadow: 
+        0 4px 8px -1px rgba(0, 0, 0, 0.7),
+        inset 0 1px 1px rgba(255, 255, 255, 0.22),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      color: #e2e8f0;
+    }
+    .key-dark-glass:hover {
+      background: linear-gradient(180deg, #25334a 0%, #172234 52%, #0e1522 100%);
+      border-color: rgba(212, 175, 55, 0.4);
+      color: #ffffff;
+    }
+
+    /* Golden Luminous Hero Key */
+    .key-gold-hero {
+      background: linear-gradient(180deg, #ffe082 0%, #d4af37 42%, #997300 100%);
+      box-shadow: 
+        0 0 18px rgba(212, 175, 55, 0.45),
+        0 5px 14px rgba(0, 0, 0, 0.8),
+        inset 0 1px 2px rgba(255, 255, 255, 0.85),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 245, 195, 0.7);
+      color: #111417;
+    }
+    .key-gold-hero:hover {
+      box-shadow: 
+        0 0 24px rgba(212, 175, 55, 0.6),
+        0 6px 16px rgba(0, 0, 0, 0.9),
+        inset 0 1px 2px rgba(255, 255, 255, 1);
+    }
+
+    /* Warm Gold Accent Key */
+    .key-gold-warm {
+      background: linear-gradient(180deg, #3d3115 0%, #291f09 50%, #161003 100%);
+      color: #ffd875;
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.7),
+        inset 0 1px 1px rgba(255, 235, 170, 0.3);
+    }
+    .key-gold-warm:hover {
+      border-color: rgba(212, 175, 55, 0.75);
+      color: #fff;
+    }
+
+    /* Ruby Glass Exit Key */
+    .key-ruby-glass {
+      background: linear-gradient(180deg, #59161a 0%, #360b0e 52%, #1c0507 100%);
+      color: #fca5a5;
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.8),
+        0 0 10px rgba(239, 68, 68, 0.25),
+        inset 0 1px 1px rgba(255, 200, 200, 0.4);
+    }
+    .key-ruby-glass:hover {
+      border-color: rgba(248, 113, 113, 0.75);
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+    }
+
+    /* Sapphire Matrix Glass Key */
+    .key-sapphire-glass {
+      background: linear-gradient(180deg, #163259 0%, #0e1e36 50%, #07101d 100%);
+      color: #bae6fd;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.8),
+        inset 0 1px 1px rgba(186, 230, 253, 0.3);
+    }
+    .key-sapphire-glass:hover {
+      border-color: rgba(56, 189, 248, 0.75);
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+    }
+
+    /* Watermark text */
+    .ocean-card-watermark {
+      position: relative;
+    }
+    .ocean-card-watermark::before {
+      content: 'AMRTF';
+      position: absolute;
+      right: 18px;
+      bottom: -6px;
+      font-family: 'Cinzel', serif;
+      font-size: 54px;
+      font-weight: 900;
+      color: rgba(212, 175, 55, 0.05);
+      pointer-events: none;
+      line-height: 1;
+      letter-spacing: 0.12em;
+    }
+
+    /* Custom range slider for dark ocean theme */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 5px;
+      background: #1b2638;
+      border-radius: 9999px;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff 0%, #fde047 35%, #d4af37 100%);
+      margin-top: -6px;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.8), 0 2px 4px rgba(0, 0, 0, 0.9);
+      border: 1.5px solid #ffffff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body class="bg-[#05080e] text-slate-100 font-inter antialiased min-h-screen p-3 sm:p-6 lg:p-10 flex flex-col justify-start items-center overflow-y-auto scroll-smooth selection:bg-gold-glow selection:text-black">
+
+  <!-- ========================================================================= -->
+  <!-- MASTER CHASSIS CONTAINER (650px Tactical Window Ergonomics)               -->
+  <!-- ========================================================================= -->
+  <main id="mainChassis" class="w-full max-w-[650px] transition-transform duration-200 rounded-3xl p-4 sm:p-5 moonlight-master-chassis relative overflow-hidden">
+    
+    <!-- 4 Hardware Corner Screws -->
+    <div class="chassis-rivet absolute top-3.5 left-3.5 z-20"></div>
+    <div class="chassis-rivet absolute top-3.5 right-3.5 z-20"></div>
+    <div class="chassis-rivet absolute bottom-3.5 left-3.5 z-20"></div>
+    <div class="chassis-rivet absolute bottom-3.5 right-3.5 z-20"></div>
+
+    <!-- Soft Ambient Golden Moon Glow -->
+    <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-3/4 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="flex flex-col gap-3.5 relative z-10 pt-1">
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 0: Top System Utility Header Bar]                             -->
+      <!-- 長官紅線去贅：去掉按鈕內部 Emoji 圖標，按鈕 100% 完整保留！主題靠右     -->
+      <!-- ===================================================================== -->
+      <section class="ocean-inset-card rounded-2xl p-2.5 px-3 flex items-center justify-between gap-2 shadow-sm">
+        
+        <!-- Left group: 100% badge & Utility buttons (布局, 手機, 設定 全數健在) -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <!-- Font zoom badge: 100% (去 Emoji，純粹專業數值) -->
+          <div class="px-2 py-1 rounded-lg bg-[#0e1624] border border-gold-500/30 flex items-center gap-1 shadow-inner text-amber-200">
+            <span class="text-[11px] font-mono font-bold tracking-tight">100%</span>
+          </div>
+
+          <!-- 布局按鈕 (按鈕完整保留，去贅字圖示) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-dark-glass px-2.5 py-1 rounded-[6px] flex items-center text-[11px] font-medium text-slate-300 hover:text-white" title="切換布局">
+              <div class="crystal-lens-reflection"></div>
+              <span class="font-serif-tc font-semibold">布局</span>
+            </button>
+          </div>
+
+          <!-- 手機按鈕 (按鈕完整保留，去贅字圖示) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-dark-glass px-2.5 py-1 rounded-[6px] flex items-center text-[11px] font-medium text-slate-300 hover:text-white" title="手機檢視">
+              <div class="crystal-lens-reflection"></div>
+              <span class="font-serif-tc font-semibold">手機</span>
+            </button>
+          </div>
+
+          <!-- 設定按鈕 (按鈕完整保留，去贅字圖示) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-dark-glass px-2.5 py-1 rounded-[6px] flex items-center text-[11px] font-medium text-slate-300 hover:text-white" title="系統設定">
+              <div class="crystal-lens-reflection"></div>
+              <span class="font-serif-tc font-semibold">設定</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right group: Theme toggles & navigation (依紅箭頭向右側緊湊靠齊) -->
+        <div class="flex items-center gap-1.5">
+          <!-- 🌙 Moon Icon (向量圖標) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-dark-glass w-7 h-7 rounded-[6px] flex items-center justify-center text-amber-300" title="深色模式">
+              <div class="crystal-lens-reflection"></div>
+              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8z"/></svg>
+            </button>
+          </div>
+
+          <!-- 明月主題按鈕 (依長官指示：純粹明月就好) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-gold-warm px-2.5 py-1 rounded-[6px] flex items-center gap-1 text-[11px] font-serif-tc font-bold text-amber-200" title="明月深色模式">
+              <div class="crystal-lens-reflection"></div>
+              <span>明月</span>
+            </button>
+          </div>
+
+          <!-- QR -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-dark-glass px-2 py-1 rounded-[6px] flex items-center justify-center text-[10px] font-mono font-bold text-slate-300" title="QR Code 配對">
+              <div class="crystal-lens-reflection"></div>
+              <span>QR</span>
+            </button>
+          </div>
+
+          <!-- 最小化 (純向量符號) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-dark-glass w-7 h-7 rounded-[6px] flex items-center justify-center text-xs text-slate-400 hover:text-white" title="最小化視窗">
+              <div class="crystal-lens-reflection"></div>
+              <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+            </button>
+          </div>
+
+          <!-- 退出 (按鈕保留，純文字退出，紅寶石晶透鍵) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-ruby-glass px-2.5 py-1 rounded-[6px] flex items-center gap-1 text-[11px] font-serif-tc font-bold text-rose-200 shadow-sm" title="關閉控制艙">
+              <div class="crystal-lens-reflection"></div>
+              <span>退出</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 1: Lecture Navigator & Switcher]                              -->
+      <!-- 按鈕 100% 完整保留！經典主控去贅保留純文字                               -->
+      <!-- ===================================================================== -->
+      <section class="ocean-inset-card rounded-2xl p-2.5 px-3 flex items-center justify-between gap-3 shadow-sm">
+        
+        <!-- Left-to-center button cluster -->
+        <div class="flex items-center gap-2">
+          
+          <!-- [ ◀ 上一講 ] -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-dark-glass px-3 py-2 rounded-lg flex items-center gap-1 text-xs font-serif-tc font-semibold text-slate-200 shadow-sm group">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-[10px] text-slate-400 group-hover:-translate-x-0.5 transition-transform">◀</span>
+              <span>上一講</span>
+            </button>
+          </div>
+
+          <!-- [ 第 0567 講 ] (金色立體發光膠囊標籤) -->
+          <div class="px-3.5 py-1.5 rounded-xl bg-gradient-to-b from-[#2a200e] via-[#1a1407] to-[#0c0a03] border-2 border-gold-glow/70 shadow-[0_2px_12px_rgba(212,175,55,0.35),inset_0_1px_1px_rgba(255,235,160,0.4)] flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-gold-bright shadow-[0_0_6px_#facc15] animate-pulse"></span>
+            <span class="font-serif-tc font-bold text-sm text-gold-bright tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">第 0567 講</span>
+          </div>
+
+          <!-- [ 下一講 ▶ ] -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-dark-glass px-3 py-2 rounded-lg flex items-center gap-1 text-xs font-serif-tc font-semibold text-slate-200 shadow-sm group">
+              <div class="crystal-lens-reflection"></div>
+              <span>下一講</span>
+              <span class="text-[10px] text-slate-400 group-hover:translate-x-0.5 transition-transform">▶</span>
+            </button>
+          </div>
+
+          <!-- [ # 0567 ↻ ] -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-dark-glass px-2.5 py-2 rounded-lg flex items-center gap-1 text-xs font-mono font-bold text-slate-300" title="重載本講音檔與手抄稿">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-gold-bright">#</span>
+              <span>0567</span>
+              <span class="text-[11px] text-slate-400 hover:rotate-180 transition-transform">↻</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Far right: [ 經典主控 ] (去 Emoji，純文字晶透鍵) -->
+        <div class="chrome-collar rounded-xl shrink-0">
+          <button class="crystal-key key-gold-warm px-3.5 py-2 rounded-lg flex items-center text-xs font-serif-tc font-bold text-amber-200 hover:text-white border border-gold-500/40">
+            <div class="crystal-lens-reflection"></div>
+            <span>經典主控</span>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 2: Audio Transport & Progress Card]                           -->
+      <!-- 走帶 5 鍵：長官紅筆依序標註 [+10] ➔ [+5] ➔ [中央純向量 Play ▶] ➔ [-5] ➔ [-10] -->
+      <!-- 中央金色大鍵：長官明確批註【不須文字 只用向量圖】！絕無文字！            -->
+      <!-- ===================================================================== -->
+      <section class="ocean-inset-card rounded-2xl p-4 flex flex-col gap-3 shadow-md">
+        
+        <!-- Top Track: Smooth Audio Seekbar Slider -->
+        <div class="flex flex-col gap-1.5">
+          <div class="relative w-full py-1">
+            <input type="range" min="0" max="525" value="0" class="w-full cursor-pointer z-10 relative" id="audioSeeker"/>
+          </div>
+          <div class="flex items-center justify-between text-[11px] font-mono">
+            <span class="text-slate-400">00:00 <span class="font-serif-tc">起點</span></span>
+            <span class="px-2.5 py-0.5 rounded-full bg-[#1b170c] text-gold-bright font-bold border border-gold-500/40 shadow-inner">
+              <span class="font-serif-tc">進度:</span> 00:00
+            </span>
+            <span class="text-slate-400 font-bold">08:45</span>
+          </div>
+        </div>
+
+        <!-- Central Transport Row: [+10], [+5], [純向量 Play ▶], [-5], [-10] -->
+        <div class="grid grid-cols-5 gap-2.5 items-center my-1">
+          
+          <!-- [+10] 鍵：純文字 +10 (依長官紅叉指令：徹底去除旋轉箭頭) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-dark-glass w-full h-16 rounded-lg flex items-center justify-center group border-gold-500/30" title="快退 10 秒 (+10)">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-base font-mono font-bold text-gold-300 tracking-tight group-hover:scale-110 transition-transform">+10</span>
+            </button>
+          </div>
+
+          <!-- [+5] 鍵：純文字 +5 (依長官紅叉指令：徹底去除旋轉箭頭) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-dark-glass w-full h-16 rounded-lg flex items-center justify-center group border-gold-500/30" title="快退 5 秒 (+5)">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-base font-mono font-bold text-gold-300 tracking-tight group-hover:scale-110 transition-transform">+5</span>
+            </button>
+          </div>
+
+          <!-- Centerpiece: Massive 3D Crystal Gold Play Button (長官批註：不須文字 只用向量圖) -->
+          <div class="chrome-collar rounded-2xl shadow-md">
+            <button class="crystal-key key-gold-hero w-full h-16 rounded-xl flex items-center justify-center group shadow-[0_0_20px_rgba(212,175,55,0.45)]" id="mainPlayBtn" title="播放 / 暫停">
+              <div class="crystal-lens-reflection"></div>
+              <!-- 純 SVG 向量 Play 三角形，絕無文字 -->
+              <svg class="w-10 h-10 text-neutral-950 fill-current group-hover:scale-115 transition-transform drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" viewBox="0 0 24 24" id="playGlyph">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- [-5] 鍵：純文字 -5 (依長官紅叉指令：徹底去除旋轉箭頭) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-dark-glass w-full h-16 rounded-lg flex items-center justify-center group border-sky-500/20" title="倒退 5 秒 (-5)">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-base font-mono font-bold text-sky-300 tracking-tight group-hover:scale-110 transition-transform">-5</span>
+            </button>
+          </div>
+
+          <!-- [-10] 鍵：純文字 -10 (依長官紅叉指令：徹底去除旋轉箭頭) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-dark-glass w-full h-16 rounded-lg flex items-center justify-center group border-sky-500/20" title="倒退 10 秒 (-10)">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-base font-mono font-bold text-sky-300 tracking-tight group-hover:scale-110 transition-transform">-10</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Secondary Sub-row: Time badges, Reset, Speed Pills -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
+          
+          <div class="flex items-center gap-2">
+            <!-- Time badge: 已播 00:00 -->
+            <div class="px-2.5 py-1 rounded-lg bg-[#0e1624] border border-slate-700/80 flex items-center gap-1.5 text-[11px] font-mono text-slate-300 shadow-inner">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></span>
+              <span>已播 00:00</span>
+            </div>
+
+            <!-- Reset button: [ 從頭 ] (去 Emoji，純文字金色晶透鍵) -->
+            <div class="chrome-collar rounded-lg">
+              <button class="crystal-key key-gold-warm px-2.5 py-1 rounded-[6px] flex items-center gap-1 text-[11px] font-serif-tc font-bold text-amber-200">
+                <div class="crystal-lens-reflection"></div>
+                <span>從頭</span>
+              </button>
+            </div>
+
+            <!-- Time badge: 剩餘 08:45 -->
+            <div class="px-2.5 py-1 rounded-lg bg-[#0e1624] border border-slate-700/80 flex items-center gap-1.5 text-[11px] font-mono text-slate-300 shadow-inner">
+              <span>剩餘 08:45</span>
+            </div>
+          </div>
+
+          <!-- Speed Group: [ 1.0x ] (active glow), [ 1.25x ], [ 1.5x ], [ 1.75x ] -->
+          <div class="recess-tray p-1 rounded-xl flex items-center gap-1">
+            <button class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold text-[#111417] bg-gradient-to-b from-[#ffe082] to-[#d4af37] shadow-sm border border-gold-500/80">1.0x</button>
+            <button class="px-2 py-1 rounded-lg text-xs font-mono text-slate-400 hover:text-white transition-colors">1.25x</button>
+            <button class="px-2 py-1 rounded-lg text-xs font-mono text-slate-400 hover:text-white transition-colors">1.5x</button>
+            <button class="px-2 py-1 rounded-lg text-xs font-mono text-slate-400 hover:text-white transition-colors">1.75x</button>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 3: Subtitle & Study Interval Loop Card]                       -->
+      <!-- 長官紅線去贅：去掉按鈕內部 Emoji 圖標，按鈕 100% 完整保留！              -->
+      <!-- ===================================================================== -->
+      <section class="ocean-inset-card rounded-2xl p-4 flex flex-col gap-3 shadow-md">
+        
+        <!-- Subtitle prompter window -->
+        <div class="ocean-card-watermark bg-gradient-to-b from-[#080e18] to-[#0c1422] rounded-xl p-3.5 flex flex-col gap-1.5 relative overflow-hidden border border-gold-500/20 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)]">
+          
+
+          <div class="py-2.5 flex items-center justify-center text-center">
+            <p class="font-serif-tc text-lg sm:text-xl font-bold text-amber-100 tracking-wide leading-relaxed">
+              「如是我聞... 清淨月光大洋講堂」
+            </p>
+          </div>
+        </div>
+
+        <!-- Interval Dropdown Row: Start & End -->
+        <div class="grid grid-cols-2 gap-3">
+          
+          <!-- Start Interval: 起點: [ 00:00 (起點) ▼ ] -->
+          <div class="recess-tray p-2 px-3 rounded-xl flex items-center justify-between border border-slate-700/60">
+            <span class="text-xs font-serif-tc font-bold text-amber-200 shrink-0">起點:</span>
+            <select class="bg-transparent text-xs font-mono font-semibold text-slate-200 focus:outline-none cursor-pointer text-right">
+              <option selected class="bg-[#0e1624] text-slate-200">00:00 (起點)</option>
+              <option class="bg-[#0e1624] text-slate-200">01:15 (開示破題)</option>
+              <option class="bg-[#0e1624] text-slate-200">02:40 (法鏡自省)</option>
+            </select>
+          </div>
+
+          <!-- End Interval: 訖點: [ 00:11 (段落) ▼ ] -->
+          <div class="recess-tray p-2 px-3 rounded-xl flex items-center justify-between border border-slate-700/60">
+            <span class="text-xs font-serif-tc font-bold text-amber-200 shrink-0">訖點:</span>
+            <select class="bg-transparent text-xs font-mono font-semibold text-slate-200 focus:outline-none cursor-pointer text-right">
+              <option selected class="bg-[#0e1624] text-slate-200">00:11 (段落)</option>
+              <option class="bg-[#0e1624] text-slate-200">03:20 (科判綱要)</option>
+              <option class="bg-[#0e1624] text-slate-200">05:45 (研討精選)</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- 3 Loop Action Buttons in a row (去 Emoji，按鈕完整保留) -->
+        <div class="grid grid-cols-3 gap-2.5 pt-1">
+          
+          <!-- [ 起訖區間循環 ] (Active warm gold crystal button) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-gold-hero w-full py-2.5 px-1.5 rounded-lg flex items-center justify-center text-xs font-serif-tc font-bold text-[#111417]">
+              <div class="crystal-lens-reflection"></div>
+              <span>起訖區間循環</span>
+            </button>
+          </div>
+
+          <!-- [ 7句循環 ] (Muted dark crystal button) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-dark-glass w-full py-2.5 px-1.5 rounded-lg flex items-center justify-center text-xs font-serif-tc font-semibold text-slate-200 hover:text-white">
+              <div class="crystal-lens-reflection"></div>
+              <span>7句循環</span>
+            </button>
+          </div>
+
+          <!-- [ 釋放循環 ] (Standby crystal button) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-dark-glass w-full py-2.5 px-1.5 rounded-lg flex items-center justify-center text-xs font-serif-tc font-semibold text-rose-300 hover:text-rose-100">
+              <div class="crystal-lens-reflection"></div>
+              <span>釋放循環</span>
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 4: Extended Screen & Sacred Media Card (延伸螢幕)]           -->
+      <!-- 按鈕 100% 完整保留！去贅：去除按鈕內部 Emoji，中英雙語副標全數健在        -->
+      <!-- ===================================================================== -->
+      <section class="ocean-inset-card rounded-2xl p-4 flex flex-col gap-3 shadow-md">
+        
+        <!-- Header: 延伸螢幕 & Remote Status (去 Emoji 🖥️，保留乾淨文字) -->
+        <div class="flex items-center justify-between pb-1 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <h3 class="font-serif-tc font-bold text-sm text-slate-200">延伸螢幕</h3>
+            
+          </div>
+          
+        </div>
+
+        <!-- Font Scale Slider: [ A- ] [ ---●------- ] [ A+ 20.5px ] -->
+        <div class="flex items-center gap-3 px-1">
+          <span class="font-serif-tc font-bold text-xs text-slate-400">A-</span>
+          <div class="flex-1 relative py-1">
+            <input type="range" min="12" max="32" value="20.5" step="0.5" class="w-full cursor-pointer" id="fontSizeSlider"/>
+          </div>
+          <span class="px-2 py-0.5 rounded-md bg-[#0e1624] border border-slate-700/80 text-xs font-mono font-bold text-gold-300">
+            A+ 20.5px
+          </span>
+        </div>
+
+        <!-- Screen Mode Row: [ 播稿 ] | Radio Group: [ 手動 ] | [ 滾動 ] (Active) | [ 區間 ] | [ 全螢幕 ] -->
+        <div class="flex items-center justify-between gap-2 pt-1">
+          
+          <!-- [ 播稿 ] -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-dark-glass px-3 py-1.5 rounded-[6px] text-xs font-serif-tc font-semibold text-slate-200 hover:text-white">
+              <div class="crystal-lens-reflection"></div>
+              <span>播稿</span>
+            </button>
+          </div>
+
+          <!-- Radio Group: [ 手動 ] | [ 滾動 ] | [ 區間 ] -->
+          <div class="recess-tray p-1 rounded-xl flex items-center gap-1 flex-1 justify-center max-w-[240px]">
+            <button class="px-3 py-1 rounded-lg text-xs font-serif-tc text-slate-400 hover:text-slate-200 transition-colors">手動</button>
+            <button class="px-3 py-1 rounded-lg text-xs font-serif-tc font-bold text-[#111417] bg-gradient-to-b from-[#ffe082] to-[#d4af37] shadow-sm border border-gold-500/80">滾動</button>
+            <button class="px-3 py-1 rounded-lg text-xs font-serif-tc text-slate-400 hover:text-slate-200 transition-colors">區間</button>
+          </div>
+
+          <!-- [ 全螢幕 ] (去 Emoji ⛶，純文字晶透鍵) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-dark-glass px-3 py-1.5 rounded-[6px] flex items-center text-xs font-serif-tc font-semibold text-slate-200 hover:text-white">
+              <div class="crystal-lens-reflection"></div>
+              <span>全螢幕</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Sacred Media 3-Button Row: [ 前行 ] [ 密集嘛 ] [ 迴向 ] in Sapphire Matrix -->
+        <!-- 長官紅線去贅：去掉 Emoji (🎬, 🙏, ✨)，保留純粹法會專用矩陣鍵 -->
+        <div class="pt-2 border-t border-slate-800">
+          
+
+          <div class="grid grid-cols-3 gap-2.5">
+            
+            <!-- [ 前行 PREP MEDIA ] -->
+            <div class="chrome-collar rounded-xl">
+              <button class="crystal-key key-sapphire-glass w-full h-14 rounded-lg flex items-center justify-center group">
+                <div class="crystal-lens-reflection"></div>
+                <span class="text-sm font-serif-tc font-bold text-sky-200 group-hover:text-white">前行</span>
+                
+              </button>
+            </div>
+
+            <!-- [ 密集嘛 MIGTSEMA ] -->
+            <div class="chrome-collar rounded-xl">
+              <button class="crystal-key key-sapphire-glass w-full h-14 rounded-lg flex items-center justify-center group">
+                <div class="crystal-lens-reflection"></div>
+                <span class="text-sm font-serif-tc font-bold text-sky-200 group-hover:text-white">密集嘛</span>
+                
+              </button>
+            </div>
+
+            <!-- [ 迴向 DEDICATION ] -->
+            <div class="chrome-collar rounded-xl">
+              <button class="crystal-key key-sapphire-glass w-full h-14 rounded-lg flex items-center justify-center group">
+                <div class="crystal-lens-reflection"></div>
+                <span class="text-sm font-serif-tc font-bold text-sky-200 group-hover:text-white">迴向</span>
+                
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- BOTTOM CHASSIS TELEMETRY FOOTER                                       -->
+      <!-- ===================================================================== -->
+      <!-- 底欄已依長官紅叉去贅純淨化 -->
+
+    </div>
+  </main>
+
+  <!-- Interactive JavaScript for Tactile Keycap Audio Playback Simulation -->
+  <script>
+    let isPlaying = false;
+    const playBtn = document.getElementById('mainPlayBtn');
+    const playGlyph = document.getElementById('playGlyph');
+    const audioSeeker = document.getElementById('audioSeeker');
+
+    playBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        // 純向量 Pause 雙豎線圖標
+        playGlyph.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      } else {
+        // 純向量 Play 三角形圖標
+        playGlyph.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      }
+    });
+
+    // Seeker simulation
+    let currentSeconds = 0;
+    setInterval(() => {
+      if (isPlaying && currentSeconds < 525) {
+        currentSeconds++;
+        audioSeeker.value = currentSeconds;
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

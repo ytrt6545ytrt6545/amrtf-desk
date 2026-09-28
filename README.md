@@ -6,8 +6,8 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%2B-blue.svg)](#)
-[![Release Version](https://img.shields.io/badge/Release-v1.1.0-blue.svg)](https://github.com/ytrt6545ytrt6545/amrtf-desk/releases)
-[![Single Source of Truth](https://img.shields.io/badge/Tests-30%2F30%20PASS-success.svg)](#)
+[![Release Version](https://img.shields.io/badge/Release-v1.2.0-blue.svg)](https://github.com/ytrt6545ytrt6545/amrtf-desk/releases)
+[![Single Source of Truth](https://img.shields.io/badge/Tests-35%2F35%20PASS-success.svg)](#)
 
 ---
 

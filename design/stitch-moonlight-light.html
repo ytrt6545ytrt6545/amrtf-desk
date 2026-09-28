@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AMRTF Warm Xuan Paper Studio Desk - Clear Moonlight Xuan Edition</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "xuan-bg": "#ece6db",
+            "xuan-chassis": "#e8e1d3",
+            "xuan-surface": "#faf6ee",
+            "xuan-card": "#fbf8f2",
+            "ink-primary": "#1a1a1a",
+            "ink-secondary": "#4a453e",
+            "ink-muted": "#7a7469",
+            "champagne-gold": "#b48c36",
+            "champagne-light": "#f4eccd",
+            "gold-glow": "#d4af37",
+            "sand-border": "#ded5c4",
+            "sand-dark": "#c5b8a5"
+          },
+          fontFamily: {
+            "serif-tc": ["'Noto Serif TC'", "serif"],
+            "cinzel": ["'Cinzel'", "serif"],
+            "mono-num": ["'JetBrains Mono'", "monospace"],
+            "inter": ["'Inter'", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Stream Deck Master Studio Chassis in Warm Xuan Paper */
+    .xuan-master-chassis {
+      background: linear-gradient(175deg, #f5efe3 0%, #e9e1d2 60%, #ded4c2 100%);
+      box-shadow: 
+        0 24px 50px -10px rgba(78, 68, 52, 0.28),
+        0 10px 20px -5px rgba(90, 77, 60, 0.15),
+        inset 0 1px 2px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -2px 4px 0 rgba(140, 125, 100, 0.35);
+      border: 1px solid rgba(197, 184, 165, 0.7);
+    }
+
+    /* Brushed Titanium & Warm Silver Corner Rivets */
+    .chassis-rivet {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffffff 0%, #d8d0c0 55%, #a69b88 100%);
+      box-shadow: 0 1px 3px rgba(60, 50, 38, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+      position: relative;
+    }
+    .chassis-rivet::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 7px;
+      height: 1.5px;
+      background: #716654;
+      transform: translate(-50%, -50%) rotate(38deg);
+      box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    /* Polished Chrome Key Collar */
+    .chrome-collar {
+      background: linear-gradient(145deg, #ffffff 0%, #ded4c3 35%, #fbf8f1 65%, #bab09e 100%);
+      box-shadow: 
+        0 3px 6px -1px rgba(70, 58, 42, 0.22),
+        0 1px 2px rgba(60, 50, 38, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+      padding: 2.5px;
+    }
+
+    /* Crystal Liquid Glass Keycaps */
+    .crystal-key {
+      position: relative;
+      transition: all 0.14s cubic-bezier(0.2, 0.8, 0.25, 1);
+      transform: translateY(0);
+      user-select: none;
+      overflow: hidden;
+    }
+    .crystal-key:active {
+      transform: translateY(2px) scale(0.985);
+      box-shadow: 
+        0 1px 2px rgba(90, 77, 58, 0.25),
+        inset 0 2px 5px rgba(90, 77, 58, 0.25) !important;
+    }
+
+    /* Top Arc Specular Reflection Lens */
+    .crystal-lens-reflection {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      right: 4px;
+      height: 46%;
+      border-radius: 9999px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.45) 50%, rgba(255, 255, 255, 0) 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Tactile Keycap Color Varieties */
+    .key-ivory {
+      background: linear-gradient(180deg, #ffffff 0%, #faf6ef 50%, #eee4d4 100%);
+      color: #2b241c;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 
+        0 3px 8px -2px rgba(80, 68, 52, 0.25),
+        inset 0 1px 2px rgba(255, 255, 255, 1),
+        inset 0 -1px 2px rgba(160, 142, 118, 0.35);
+    }
+    .key-ivory:hover {
+      background: linear-gradient(180deg, #ffffff 0%, #fdfbf7 50%, #f4eee2 100%);
+      box-shadow: 0 4px 12px -2px rgba(80, 68, 52, 0.32);
+    }
+
+    .key-gold-hero {
+      background: linear-gradient(180deg, #fff9e6 0%, #fde68a 30%, #f59e0b 80%, #b45309 100%);
+      color: #382404;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 
+        0 4px 14px rgba(217, 119, 6, 0.38),
+        inset 0 1px 3px rgba(255, 255, 255, 0.95),
+        inset 0 -2px 3px rgba(146, 64, 14, 0.55);
+    }
+    .key-gold-hero:hover {
+      box-shadow: 0 0 18px rgba(245, 158, 11, 0.6), inset 0 1px 3px #fff;
+    }
+
+    .key-gold-warm {
+      background: linear-gradient(180deg, #ffffff 0%, #fbf3db 45%, #f4deb0 100%);
+      color: #5c410b;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 
+        0 3px 8px -2px rgba(180, 140, 54, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 1);
+    }
+
+    .key-crimson {
+      background: linear-gradient(180deg, #fff1f2 0%, #fecdd3 50%, #fda4af 100%);
+      color: #881337;
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 2px 6px -1px rgba(190, 18, 60, 0.25);
+    }
+
+    .key-celadon {
+      background: linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 45%, #99f6e4 80%, #2dd4bf 100%);
+      color: #0f4a43;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 
+        0 3px 10px rgba(13, 148, 136, 0.28),
+        inset 0 1px 2px rgba(255, 255, 255, 1);
+    }
+    .key-celadon:hover {
+      box-shadow: 0 0 14px rgba(20, 184, 166, 0.45);
+      color: #042f2e;
+    }
+
+    /* 淡黃色法會專用晶透鍵 (依長官批示) */
+    .key-light-yellow {
+      background: linear-gradient(180deg, #fffef5 0%, #fef9c3 45%, #fef08a 85%, #fde047 100%);
+      color: #713f12;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 
+        0 3px 8px -1px rgba(180, 140, 54, 0.28),
+        inset 0 1px 2px rgba(255, 255, 255, 1);
+    }
+    .key-light-yellow:hover {
+      box-shadow: 0 0 14px rgba(250, 204, 21, 0.45);
+      color: #451a03;
+    }
+
+    /* Xuan Card Container & Inset Tray */
+    .xuan-inset-card {
+      background: linear-gradient(180deg, #fcfaf4 0%, #f6f0e4 100%);
+      border: 1px solid rgba(208, 196, 178, 0.8);
+      box-shadow: 
+        0 2px 6px rgba(80, 70, 55, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    }
+
+    .recess-tray {
+      background: #e9e1d1;
+      box-shadow: 
+        inset 0 1px 3px rgba(80, 68, 50, 0.28),
+        0 1px 0 rgba(255, 255, 255, 0.85);
+      border: 1px solid #d5c8b3;
+    }
+
+    /* Custom range slider for light xuan theme */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 5px;
+      background: #d8cdba;
+      border-radius: 9999px;
+      box-shadow: inset 0 1px 2px rgba(80, 68, 50, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffffff 0%, #fde047 40%, #b45309 100%);
+      margin-top: -6px;
+      box-shadow: 0 0 8px rgba(217, 119, 6, 0.6), 0 1px 3px rgba(60, 50, 35, 0.4);
+      border: 1.5px solid #ffffff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body class="bg-[#ece6db] text-ink-primary font-inter antialiased min-h-screen p-3 sm:p-6 lg:p-10 flex flex-col justify-start items-center overflow-y-auto scroll-smooth">
+
+  <!-- MASTER CHASSIS CONTAINER -->
+  <main id="mainChassis" class="w-full max-w-[650px] rounded-3xl p-4 sm:p-5 xuan-master-chassis relative overflow-hidden transition-transform duration-200">
+    
+    <!-- 4 Hardware Corner Screws -->
+    <div class="chassis-rivet absolute top-3.5 left-3.5 z-20"></div>
+    <div class="chassis-rivet absolute top-3.5 right-3.5 z-20"></div>
+    <div class="chassis-rivet absolute bottom-3.5 left-3.5 z-20"></div>
+    <div class="chassis-rivet absolute bottom-3.5 right-3.5 z-20"></div>
+
+    <!-- Soft Ambient Warm Golden Sheen -->
+    <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-3/4 h-48 bg-amber-200/35 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="flex flex-col gap-3.5 relative z-10 pt-1">
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 0: Top System Utility Header Bar]                             -->
+      <!-- 100% 對標深色版白板成果：按鈕全留、去贅 Emoji、主題群靠右緊湊            -->
+      <!-- ===================================================================== -->
+      <section class="xuan-inset-card rounded-2xl p-2.5 px-3 flex items-center justify-between gap-2 shadow-sm">
+        
+        <!-- Left group: 100%, 布局, 手機, 設定 (保留全部按鈕，去除 Emoji) -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <div class="px-2 py-1 rounded-lg bg-[#e8decb] border border-[#d2c3aa] flex items-center gap-1 shadow-inner text-ink-secondary">
+            <span class="text-[11px] font-mono font-bold tracking-tight">100%</span>
+          </div>
+
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-ivory px-2 py-1 rounded-[6px] flex items-center gap-1 text-[11px] font-medium text-ink-secondary" title="切換布局">
+              <div class="crystal-lens-reflection"></div>
+              <span class="font-serif-tc font-semibold">布局</span>
+            </button>
+          </div>
+
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-ivory px-2 py-1 rounded-[6px] flex items-center gap-1 text-[11px] font-medium text-ink-secondary" title="手機檢視">
+              <div class="crystal-lens-reflection"></div>
+              <span class="font-serif-tc font-semibold">手機</span>
+            </button>
+          </div>
+
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-ivory px-2 py-1 rounded-[6px] flex items-center gap-1 text-[11px] font-medium text-ink-secondary" title="系統設定">
+              <div class="crystal-lens-reflection"></div>
+              <span class="font-serif-tc font-semibold">設定</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right group: 主題與導航群 (順著紅箭頭向右側緊湊靠齊) -->
+        <div class="flex items-center gap-1.5">
+          <!-- ☀️ Sun Light Icon -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-ivory w-7 h-7 rounded-[6px] flex items-center justify-center text-xs text-amber-700 font-bold" title="淺色模式">
+              <div class="crystal-lens-reflection"></div>
+              <span>☀️</span>
+            </button>
+          </div>
+
+          <!-- 明月主題按鈕 (依長官批示：明月就好) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-gold-hero px-2.5 py-1 rounded-[6px] flex items-center gap-1 text-[11px] font-serif-tc font-bold text-[#382404]" title="明月模式">
+              <div class="crystal-lens-reflection"></div>
+              <span>明月</span>
+            </button>
+          </div>
+
+          <!-- QR -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-ivory px-2 py-1 rounded-[6px] flex items-center justify-center text-[10px] font-mono font-bold text-ink-secondary" title="QR Code 配對">
+              <div class="crystal-lens-reflection"></div>
+              <span>QR</span>
+            </button>
+          </div>
+
+          <!-- - 最小化 (無 Emoji) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-ivory w-7 h-7 rounded-[6px] flex items-center justify-center text-xs text-ink-secondary font-bold" title="最小化視窗">
+              <div class="crystal-lens-reflection"></div>
+              <span>-</span>
+            </button>
+          </div>
+
+          <!-- 退出 (去 Emoji 🚪，純文字玫瑰晶透鍵) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-crimson px-2.5 py-1 rounded-[6px] flex items-center gap-1 text-[11px] font-serif-tc font-bold text-rose-900 shadow-sm" title="關閉控制艙">
+              <div class="crystal-lens-reflection"></div>
+              <span>退出</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 1: Lecture Navigator & Switcher]                              -->
+      <!-- ===================================================================== -->
+      <section class="xuan-inset-card rounded-2xl p-2.5 px-3 flex items-center justify-between gap-3 shadow-sm">
+        
+        <div class="flex items-center gap-2">
+          <!-- [ ◀ 上一講 ] -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-ivory px-3 py-2 rounded-lg flex items-center gap-1 text-xs font-serif-tc font-semibold text-ink-primary shadow-sm group">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-[10px] text-ink-muted group-hover:-translate-x-0.5 transition-transform">◀</span>
+              <span>上一講</span>
+            </button>
+          </div>
+
+          <!-- [ 第 0567 講 ] -->
+          <div class="px-3.5 py-1.5 rounded-xl bg-gradient-to-b from-[#fffcf4] to-[#f4ecd8] border-2 border-champagne-gold/70 shadow-[0_2px_8px_rgba(180,140,54,0.22),inset_0_1px_1px_#ffffff] flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-champagne-gold shadow-[0_0_6px_#b48c36] animate-pulse"></span>
+            <span class="font-serif-tc font-bold text-sm text-[#3f300c] tracking-wide">第 0567 講</span>
+          </div>
+
+          <!-- [ 下一講 ▶ ] -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-ivory px-3 py-2 rounded-lg flex items-center gap-1 text-xs font-serif-tc font-semibold text-ink-primary shadow-sm group">
+              <div class="crystal-lens-reflection"></div>
+              <span>下一講</span>
+              <span class="text-[10px] text-ink-muted group-hover:translate-x-0.5 transition-transform">▶</span>
+            </button>
+          </div>
+
+          <!-- [ # 0567 ↻ ] -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-ivory px-2.5 py-2 rounded-lg flex items-center gap-1 text-xs font-mono font-bold text-ink-secondary">
+              <div class="crystal-lens-reflection"></div>
+              <span># 0567 ↻</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- [ 經典主控 ] -->
+        <div class="chrome-collar rounded-xl">
+          <button class="crystal-key key-ivory px-3 py-2 rounded-lg flex items-center gap-1.5 text-xs font-serif-tc font-bold text-ink-primary shadow-sm">
+            <div class="crystal-lens-reflection"></div>
+            <span>經典主控</span>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 2: Audio Transport & Progress Card]                           -->
+      <!-- 走帶5鍵純化：+10, +5, 純向量金石Play ▶, -5, -10                        -->
+      <!-- ===================================================================== -->
+      <section class="xuan-inset-card rounded-2xl p-4 flex flex-col gap-3 shadow-md">
+        
+        <!-- Track: Smooth Audio Seekbar Slider -->
+        <div class="flex flex-col gap-1.5">
+          <div class="relative w-full py-1">
+            <input type="range" min="0" max="525" value="0" class="w-full cursor-pointer z-10 relative" id="audioSeeker"/>
+          </div>
+          <div class="flex items-center justify-between text-[11px] font-mono">
+            <span class="text-ink-muted">00:00 <span class="font-serif-tc">起點</span></span>
+            <span class="px-2.5 py-0.5 rounded-full bg-[#f2e9d2] text-[#4d3a0f] font-bold border border-champagne-gold/40 shadow-inner">
+              <span class="font-serif-tc">進度:</span> 00:00
+            </span>
+            <span class="text-ink-muted font-bold">08:45</span>
+          </div>
+        </div>
+
+        <!-- Central Transport 5 Keys: +10, +5, Massive Play Button, -5, -10 -->
+        <div class="grid grid-cols-5 gap-2.5 items-center my-1">
+          
+          <!-- [+10] 鍵：純文字 +10 (依長官紅叉指令：徹底去除旋轉箭頭) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-ivory w-full h-16 rounded-lg flex items-center justify-center group" title="快退 10 秒 (+10)">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-base font-mono font-bold text-amber-900 tracking-tight group-hover:scale-110 transition-transform">+10</span>
+            </button>
+          </div>
+
+          <!-- [+5] 鍵：純文字 +5 (依長官紅叉指令：徹底去除旋轉箭頭) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-ivory w-full h-16 rounded-lg flex items-center justify-center group" title="快退 5 秒 (+5)">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-base font-mono font-bold text-amber-900 tracking-tight group-hover:scale-110 transition-transform">+5</span>
+            </button>
+          </div>
+
+          <!-- Centerpiece: Massive 3D Crystal Liquid Glass Gold Play Button (純向量圖，無任何文字) -->
+          <div class="chrome-collar rounded-2xl shadow-md">
+            <button class="crystal-key key-gold-hero w-full h-16 rounded-xl flex items-center justify-center group shadow-[0_4px_16px_rgba(217,119,6,0.35)]" id="mainPlayBtn" title="播放 / 暫停">
+              <div class="crystal-lens-reflection"></div>
+              <svg class="w-10 h-10 text-[#382404] fill-current group-hover:scale-115 transition-transform drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]" viewBox="0 0 24 24" id="playGlyph">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- [-5] 鍵：純文字 -5 (依長官紅叉指令：徹底去除旋轉箭頭) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-ivory w-full h-16 rounded-lg flex items-center justify-center group" title="倒退 5 秒 (-5)">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-base font-mono font-bold text-amber-900 tracking-tight group-hover:scale-110 transition-transform">-5</span>
+            </button>
+          </div>
+
+          <!-- [-10] 鍵：純文字 -10 (依長官紅叉指令：徹底去除旋轉箭頭) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-ivory w-full h-16 rounded-lg flex items-center justify-center group" title="倒退 10 秒 (-10)">
+              <div class="crystal-lens-reflection"></div>
+              <span class="text-base font-mono font-bold text-amber-900 tracking-tight group-hover:scale-110 transition-transform">-10</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Secondary Sub-row: Time badges, Reset, Speed Pills -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#ded5c4]">
+          
+          <div class="flex items-center gap-2">
+            <!-- Time badge [ 已播 00:00 ] -->
+            <div class="px-2.5 py-1 rounded-lg bg-[#ebe3d3] border border-[#d8cdb9] flex items-center gap-1.5 text-[11px] font-mono text-ink-secondary shadow-inner">
+              <span class="w-2 h-2 rounded-full bg-emerald-600 shadow-[0_0_4px_#059669]"></span>
+              <span>已播 00:00</span>
+            </div>
+
+            <!-- Reset button [ 從頭 ] (去 Emoji，純文字晶透鍵) -->
+            <div class="chrome-collar rounded-lg">
+              <button class="crystal-key key-gold-warm px-2.5 py-1 rounded-[6px] flex items-center gap-1 text-[11px] font-serif-tc font-bold text-[#5c410b]">
+                <div class="crystal-lens-reflection"></div>
+                <span>從頭</span>
+              </button>
+            </div>
+
+            <!-- Time badge [ 剩餘 08:45 ] -->
+            <div class="px-2.5 py-1 rounded-lg bg-[#ebe3d3] border border-[#d8cdb9] flex items-center gap-1.5 text-[11px] font-mono text-ink-secondary shadow-inner">
+              <span>剩餘 08:45</span>
+            </div>
+          </div>
+
+          <!-- Speed Group: [ 1.0x ] (active glow), [ 1.25x ], [ 1.5x ], [ 1.75x ] -->
+          <div class="recess-tray p-1 rounded-xl flex items-center gap-1">
+            <button class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold text-[#44310a] bg-gradient-to-b from-[#fffcf4] to-[#f4ecd4] shadow-sm border border-champagne-gold/60">1.0x</button>
+            <button class="px-2 py-1 rounded-lg text-xs font-mono text-ink-muted hover:text-ink-primary transition-colors">1.25x</button>
+            <button class="px-2 py-1 rounded-lg text-xs font-mono text-ink-muted hover:text-ink-primary transition-colors">1.5x</button>
+            <button class="px-2 py-1 rounded-lg text-xs font-mono text-ink-muted hover:text-ink-primary transition-colors">1.75x</button>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 3: Subtitle & Study Interval Loop Card]                       -->
+      <!-- 100% 依長官紅叉指令：徹底移除頂部聞思提詞與法音同步標籤列，純粹乾淨        -->
+      <!-- ===================================================================== -->
+      <section class="xuan-inset-card rounded-2xl p-4 flex flex-col gap-3 shadow-md">
+        
+        <!-- Subtitle prompter window (去贅後純粹手抄稿) -->
+        <div class="bg-gradient-to-b from-[#fbf8f0] to-[#f4ede0] rounded-xl p-3.5 flex flex-col gap-1.5 relative overflow-hidden border border-champagne-gold/40 shadow-[inset_0_1px_4px_rgba(80,68,50,0.1)]">
+          <div class="py-2.5 flex items-center justify-center text-center">
+            <p class="font-serif-tc text-lg sm:text-xl font-bold text-[#2d2212] tracking-wide leading-relaxed">
+              「如是我聞... 清淨月光大洋講堂」
+            </p>
+          </div>
+        </div>
+
+        <!-- Interval Dropdown Row: Start & End -->
+        <div class="grid grid-cols-2 gap-3">
+          
+          <!-- Start Interval: 起點: [ 00:00 (起點) ▼ ] -->
+          <div class="recess-tray p-2 px-3 rounded-xl flex items-center justify-between border border-[#d5c8b3]">
+            <span class="text-xs font-serif-tc font-bold text-[#5c410b] shrink-0">起點:</span>
+            <select class="bg-transparent text-xs font-mono font-semibold text-ink-primary focus:outline-none cursor-pointer text-right">
+              <option selected class="bg-[#faf6ee] text-ink-primary">00:00 (起點)</option>
+              <option class="bg-[#faf6ee] text-ink-primary">01:15 (開示破題)</option>
+              <option class="bg-[#faf6ee] text-ink-primary">02:40 (法鏡自省)</option>
+            </select>
+          </div>
+
+          <!-- End Interval: 訖點: [ 00:11 (段落) ▼ ] -->
+          <div class="recess-tray p-2 px-3 rounded-xl flex items-center justify-between border border-[#d5c8b3]">
+            <span class="text-xs font-serif-tc font-bold text-[#5c410b] shrink-0">訖點:</span>
+            <select class="bg-transparent text-xs font-mono font-semibold text-ink-primary focus:outline-none cursor-pointer text-right">
+              <option selected class="bg-[#faf6ee] text-ink-primary">00:11 (段落)</option>
+              <option class="bg-[#faf6ee] text-ink-primary">03:20 (科判綱要)</option>
+              <option class="bg-[#faf6ee] text-ink-primary">05:45 (研討精選)</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- 3 Loop Action Buttons in a row (去 Emoji，按鈕完整保留) -->
+        <div class="grid grid-cols-3 gap-2.5 pt-1">
+          
+          <!-- [ 起訖區間循環 ] (Active warm champagne gold button) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-gold-hero w-full py-2.5 px-1.5 rounded-lg flex items-center justify-center text-xs font-serif-tc font-bold text-[#382404]">
+              <div class="crystal-lens-reflection"></div>
+              <span>起訖區間循環</span>
+            </button>
+          </div>
+
+          <!-- [ 7句循環 ] (Ivory key) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-ivory w-full py-2.5 px-1.5 rounded-lg flex items-center justify-center text-xs font-serif-tc font-semibold text-ink-primary hover:text-black">
+              <div class="crystal-lens-reflection"></div>
+              <span>7句循環</span>
+            </button>
+          </div>
+
+          <!-- [ 釋放循環 ] (Crimson soft key) -->
+          <div class="chrome-collar rounded-xl">
+            <button class="crystal-key key-crimson w-full py-2.5 px-1.5 rounded-lg flex items-center justify-center text-xs font-serif-tc font-semibold text-rose-900 hover:text-rose-950">
+              <div class="crystal-lens-reflection"></div>
+              <span>釋放循環</span>
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 4: Extended Screen & Sacred Media Card (延伸螢幕)]           -->
+      <!-- 100% 依長官紅叉指令：去除 EXT DUAL SCREEN、1080p SYNC 與法會英文副標       -->
+      <!-- ===================================================================== -->
+      <section class="xuan-inset-card rounded-2xl p-4 flex flex-col gap-3 shadow-md">
+        
+        <!-- Header: 延伸螢幕 (純淨無雜質副標) -->
+        <div class="flex items-center justify-between pb-1 border-b border-[#ded5c4]">
+          <div class="flex items-center gap-2">
+            <h3 class="font-serif-tc font-bold text-sm text-ink-primary">延伸螢幕</h3>
+          </div>
+        </div>
+
+        <!-- Font Scale Slider: [ A- ] [ ---●------- ] [ A+ 20.5px ] -->
+        <div class="flex items-center gap-3 px-1">
+          <span class="font-serif-tc font-bold text-xs text-ink-muted">A-</span>
+          <div class="flex-1 relative py-1">
+            <input type="range" min="12" max="32" value="20.5" step="0.5" class="w-full cursor-pointer" id="fontSizeSlider"/>
+          </div>
+          <span class="px-2 py-0.5 rounded-md bg-[#eadecb] border border-[#cfbeab] text-xs font-mono font-bold text-[#5c410b]">
+            A+ 20.5px
+          </span>
+        </div>
+
+        <!-- Screen Mode Row: [ 播稿 ] | Radio Group: [ 手動 ] | [ 滾動 ] (Active) | [ 區間 ] | [ 全螢幕 ] -->
+        <div class="flex items-center justify-between gap-2 pt-1">
+          
+          <!-- [ 播稿 ] -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-ivory px-3 py-1.5 rounded-[6px] text-xs font-serif-tc font-semibold text-ink-primary hover:text-black">
+              <div class="crystal-lens-reflection"></div>
+              <span>播稿</span>
+            </button>
+          </div>
+
+          <!-- Radio Group: [ 手動 ] | [ 滾動 ] | [ 區間 ] -->
+          <div class="recess-tray p-1 rounded-xl flex items-center gap-1 flex-1 justify-center max-w-[240px]">
+            <button class="px-3 py-1 rounded-lg text-xs font-serif-tc text-ink-muted hover:text-ink-primary transition-colors">手動</button>
+            <button class="px-3 py-1 rounded-lg text-xs font-serif-tc font-bold text-[#382404] bg-gradient-to-b from-[#fffcf4] to-[#f4ecd4] shadow-sm border border-champagne-gold/60">滾動</button>
+            <button class="px-3 py-1 rounded-lg text-xs font-serif-tc text-ink-muted hover:text-ink-primary transition-colors">區間</button>
+          </div>
+
+          <!-- [ 全螢幕 ] (純文字晶透鍵) -->
+          <div class="chrome-collar rounded-lg">
+            <button class="crystal-key key-ivory px-3 py-1.5 rounded-[6px] flex items-center text-xs font-serif-tc font-semibold text-ink-primary hover:text-black">
+              <div class="crystal-lens-reflection"></div>
+              <span>全螢幕</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Sacred Media 3-Button Row: [ 前行 ] [ 密集嘛 ] [ 迴向 ] in Light Yellow Crystal -->
+        <!-- 依長官指示：用淡黃色當按鈕背景色，中文字置中醒目呈現 -->
+        <div class="pt-2 border-t border-[#ded5c4]">
+          <div class="grid grid-cols-3 gap-2.5">
+            
+            <!-- [ 前行 ] -->
+            <div class="chrome-collar rounded-xl">
+              <button class="crystal-key key-light-yellow w-full h-14 rounded-lg flex items-center justify-center group">
+                <div class="crystal-lens-reflection"></div>
+                <span class="text-sm font-serif-tc font-bold text-[#713f12] group-hover:text-amber-950">前行</span>
+              </button>
+            </div>
+
+            <!-- [ 密集嘛 ] -->
+            <div class="chrome-collar rounded-xl">
+              <button class="crystal-key key-light-yellow w-full h-14 rounded-lg flex items-center justify-center group">
+                <div class="crystal-lens-reflection"></div>
+                <span class="text-sm font-serif-tc font-bold text-[#713f12] group-hover:text-amber-950">密集嘛</span>
+              </button>
+            </div>
+
+            <!-- [ 迴向 ] -->
+            <div class="chrome-collar rounded-xl">
+              <button class="crystal-key key-light-yellow w-full h-14 rounded-lg flex items-center justify-center group">
+                <div class="crystal-lens-reflection"></div>
+                <span class="text-sm font-serif-tc font-bold text-[#713f12] group-hover:text-amber-950">迴向</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 底欄已依長官紅叉指令去贅純淨化 (完全去除文字) -->
+
+    </div>
+  </main>
+
+  <script>
+    let isPlaying = false;
+    const playBtn = document.getElementById('mainPlayBtn');
+    const playGlyph = document.getElementById('playGlyph');
+    const audioSeeker = document.getElementById('audioSeeker');
+
+    playBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        playGlyph.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      } else {
+        playGlyph.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      }
+    });
+
+    audioSeeker.addEventListener('input', (e) => {
+      const val = e.target.value;
+      const min = Math.floor(val / 60);
+      const sec = Math.floor(val % 60);
+      const str = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+      // 可擴展即時數值回饋
+    });
+  </script>
+</body>
+</html>

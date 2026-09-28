@@ -593,7 +593,7 @@
         if (data.isGitRepo) {
           if (btnApplyUpdate) {
             btnApplyUpdate.style.display = 'inline-block';
-            btnApplyUpdate.textContent = `⚡ 立即升級至 v${data.latestVersion} (Git Pull)`;
+            btnApplyUpdate.textContent = `⚡ 升級至 v${data.latestVersion} (同步)`;
           }
           if (btnDownloadRelease) btnDownloadRelease.style.display = 'none';
         } else {
@@ -619,7 +619,7 @@
         }
         if (data.isGitRepo && btnApplyUpdate) {
           btnApplyUpdate.style.display = 'inline-block';
-          btnApplyUpdate.textContent = '⚡ 檢查並同步主幹最新代碼 (Git Pull)';
+          btnApplyUpdate.textContent = '⚡ 同步';
         } else if (btnApplyUpdate) {
           btnApplyUpdate.style.display = 'none';
         }
@@ -640,10 +640,10 @@
   }
 
   async function applySystemUpdate() {
-    if (!confirm('確定要執行一鍵熱更新嗎？\n系統將自動自 GitHub 拉取最新程式碼。')) return;
+    if (!confirm('確定要執行同步嗎？\n系統將自動自 GitHub 拉取最新程式碼。')) return;
     if (btnApplyUpdate) {
       btnApplyUpdate.disabled = true;
-      btnApplyUpdate.textContent = '⏳ 正在拉取最新代碼...';
+      btnApplyUpdate.textContent = '⏳ 正在同步代碼...';
     }
     try {
       const res = await fetch('/api/system/apply-update', { method: 'POST' });
@@ -656,7 +656,7 @@
     } finally {
       if (btnApplyUpdate) {
         btnApplyUpdate.disabled = false;
-        btnApplyUpdate.textContent = '⚡ 一鍵熱更新 (Git Pull)';
+        btnApplyUpdate.textContent = '⚡ 同步';
       }
     }
   }

@@ -298,13 +298,19 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
         return {
           exists: !!input,
           checked: input ? input.checked : false,
-          bound: input ? !!input.__amrtf_speech_bound : false
+          bound: input ? !!input.__amrtf_speech_bound : false,
+          hasLrc: (window.jQuery ? window.jQuery('span.lrc:visible').length > 0 : false) || document.querySelectorAll('span.lrc').length > 0
         };
       })()
     `);
     console.log('   🔍 [E2E-8 Info] 官方播稿模式現場狀態:', JSON.stringify(speechState));
     if (speechState.exists) {
       assert.strictEqual(speechState.bound, true, '官方播稿開關必須掛載雙向監聽器 (__amrtf_speech_bound === true)');
+    }
+
+    if (!speechState.hasLrc) {
+      console.log('   ℹ️ 本講次官方尚未發布 LRC 播稿字幕，大慈恩官方原生物理禁止開啟播稿，符合現場客觀真機行為');
+      return;
     }
 
     // 2. 測試切換指令 toggle_speech_mode
@@ -468,8 +474,44 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     `);
     console.log('   🔍 [E2E-10 Info] 設定艙版本與更新狀態:', JSON.stringify(versionDomState));
     assert.strictEqual(versionDomState.hasBadge, true, '#currentVersionBadge 必須存在');
-    assert.ok(versionDomState.badgeText.startsWith('v'), '版本號必須以 v 開頭 (例如 v1.0.0)');
+    assert.ok(versionDomState.badgeText.startsWith('v'), '版本號必須以 v 開頭 (例如 v1.2.0)');
     assert.strictEqual(versionDomState.hasCheckBtn, true, '必須存在 #btnCheckUpdate 按鈕');
+
+    // 3. 點擊檢查更新，驗證更新說明與同步按鈕
+    await deskCdp.eval(`
+      window.alert = function(msg) { console.log('[Suppressed-Alert]', msg); };
+      const btn = document.getElementById('btnCheckUpdate');
+      if (btn) btn.click();
+      const body = document.querySelector('.settings-body') || document.querySelector('.settings-drawer');
+      if (body) body.scrollTop = body.scrollHeight;
+    `);
+    await new Promise((r) => setTimeout(r, 600));
+
+    const updateSectionState = await deskCdp.eval(`
+      (function() {
+        const title = document.querySelector('.update-notes-title');
+        const syncBtn = document.getElementById('btnApplyUpdate');
+        const notesBody = document.getElementById('updateNotesBody');
+        return {
+          titleText: title ? title.textContent.trim() : '',
+          syncBtnText: syncBtn ? syncBtn.textContent.trim() : '',
+          hasBody: !!notesBody && notesBody.textContent.trim().length > 0
+        };
+      })()
+    `);
+    console.log('   🔍 [E2E-10 Info] 更新說明區塊真實狀態:', JSON.stringify(updateSectionState));
+    assert.strictEqual(updateSectionState.titleText, '更新說明', '更新說明標題必須為「更新說明」');
+    assert.strictEqual(updateSectionState.syncBtnText, '⚡ 同步', '同步按鈕文字必須為「⚡ 同步」');
+
+    // 捕獲更新說明展開的真機快照
+    try {
+      const updateSnap = await deskCdp.captureScreenshot();
+      if (updateSnap) {
+        const updateSnapPath = path.join(artifactsDir, 'e2e-settings-update-notes-live.png');
+        fs.writeFileSync(updateSnapPath, Buffer.from(updateSnap, 'base64'));
+        console.log(`   📸 [Screenshot-Evidence] 設定艙更新說明真機快照已存檔: ${updateSnapPath}`);
+      }
+    } catch (e) {}
 
     // 關閉設定艙保持環境整潔
     await deskCdp.eval(`window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))`);
