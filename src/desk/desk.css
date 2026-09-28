@@ -2798,6 +2798,124 @@ select option:disabled {
   font-weight: 800;
 }
 
+/* ==============================================================================
+ * 🌟 Stitch 雙版本奢華操作艙視覺昇華外殼 (Moonlight & Parchment Stitch Shell)
+ * 嚴格遵循長官指示：外觀全面換裝、預設深色板、淺色淡黃法會三鍵、不改動底層任何邏輯
+ * ============================================================================== */
+
+/* 1. 深色操作艙 (Stitch Moonlight Deep Chassis) */
+body.theme-dark,
+[data-theme="dark"] body.desk-body {
+  background: linear-gradient(175deg, #131c2c 0%, #0d1422 55%, #080c15 100%) !important;
+  color: #EDE8DF !important;
+}
+
+body.theme-dark .desk-header {
+  background: rgba(13, 20, 34, 0.85) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.22) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+body.theme-dark .desk-main {
+  background: transparent !important;
+}
+
+body.theme-dark .time-display-container {
+  background: radial-gradient(circle at center, #111a28 0%, #0a0f18 100%) !important;
+  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 15px rgba(212, 175, 55, 0.15) !important;
+}
+
+body.theme-dark .led-clock {
+  color: #facc15 !important;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.6) !important;
+}
+
+body.theme-dark .prompter-card {
+  background: linear-gradient(180deg, #101826 0%, #0b111c 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.theme-dark .prompter-text {
+  color: #f1f5f9 !important;
+}
+
+body.theme-dark .deck-grid-container {
+  background: rgba(10, 16, 26, 0.75) !important;
+  border-top: 1px solid rgba(212, 175, 55, 0.18) !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* 深色模式下按鈕晶透質感升級 (Stitch Crystal Keycaps) */
+body.theme-dark .keycap-btn {
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.6),
+    inset 0 1px 1px rgba(255, 255, 255, 0.22) !important;
+  color: #f8fafc !important;
+  border-radius: 8px !important;
+  font-weight: 600;
+  transition: all 0.12s cubic-bezier(0.2, 0.8, 0.25, 1) !important;
+}
+
+body.theme-dark .keycap-btn:hover {
+  border-color: #d4af37 !important;
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.45) !important;
+  transform: translateY(-1.5px);
+  color: #fef08a !important;
+}
+
+body.theme-dark .keycap-btn:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85) !important;
+}
+
+body.theme-dark .keycap-btn.btn-play-pause {
+  background: linear-gradient(145deg, #166534 0%, #14532d 100%) !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .keycap-btn.btn-stop {
+  background: linear-gradient(145deg, #991b1b 0%, #7f1d1d 100%) !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+/* 2. 淺色操作艙 (Stitch Parchment Light Chassis) */
+body.theme-light,
+[data-theme="light"] body.desk-body {
+  background: #F8F6F0 !important;
+  color: #2B2521 !important;
+}
+
+/* 依長官指示第 4 點：淡黃色只在淺色版本換，深色版本不動 */
+/* 【前行】、【密集嘛】、【迴向】三鍵換裝典雅淡黃金石晶透鍵 (Light Warm Amber) */
+body.theme-light #btnVideoPrep,
+body.theme-light #btnVideoMigsema,
+body.theme-light #btnVideoDedication {
+  background: linear-gradient(180deg, #fffef5 0%, #fef9c3 45%, #fef08a 85%, #fde047 100%) !important;
+  color: #713f12 !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 
+    0 3px 8px -1px rgba(180, 140, 54, 0.28),
+    inset 0 1px 2px rgba(255, 255, 255, 1) !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+}
+
+body.theme-light #btnVideoPrep:hover,
+body.theme-light #btnVideoMigsema:hover,
+body.theme-light #btnVideoDedication:hover {
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.5) !important;
+  color: #451a03 !important;
+  transform: translateY(-1px);
+}
+
+
 
 
 
