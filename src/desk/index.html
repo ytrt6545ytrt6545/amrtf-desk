@@ -27,6 +27,7 @@
       <button class="header-btn btn-mobile-nav" id="btnMobileStudioToggle" title="1:1 手機佈局模擬編排艙">📱 手機</button>
       <button class="header-btn btn-settings-nav" id="btnSettingsToggle" title="打開系統設定艙 (離線影音與系統更新)">⚙️ 設定<span class="update-badge-dot" id="updateBadgeDot" style="display: none;"></span></button>
       <button class="header-btn" id="btnDeskThemeToggle" title="點擊切換主控台外觀風格 (宣紙明亮 / 玄木暗黑)">🌞</button>
+      <button class="header-btn" id="btnSkinToggle" title="自由切換介面皮膚 (經典導播台 / 水晶戰術矩陣 / 極簡盲按艙)">🎨 介面</button>
       <button class="header-btn" id="btnMoonlightToggle" onclick="location.href='/moonlight'" title="切換至廣海明月奢華操作艙 (Moonlight Studio)">🌙 明月</button>
       <button class="header-btn" id="btnQrCode" title="手機掃碼無線遙控">QR</button>
       <button class="header-btn" id="btnMiniToggle" title="MINI 懸浮模式">🗕</button>
@@ -69,27 +70,27 @@
   <!-- 底部 Companion 8 欄磁吸自訂畫布容器 -->
   <footer class="desk-footer deck-grid-container" id="deckGridContainer">
     <!-- 行 1: 播控核心 -->
-    <button class="keycap-btn btn-play-pause" id="btnPlayPause">▶</button>
-    <button class="keycap-btn btn-stop" id="btnStop">⏹</button>
+    <button class="keycap-btn btn-play-pause" id="btnPlayPause" data-action="play_pause">▶</button>
+    <button class="keycap-btn btn-stop" id="btnStop" data-action="stop">⏹</button>
 
     <!-- 行 2: 精細秒數跳轉與倍速 -->
-    <button class="keycap-btn" id="btnRewind10">⏪ 10s</button>
-    <button class="keycap-btn" id="btnRewind5">⏪ 5s</button>
-    <button class="keycap-btn" id="btnForward5">5s ⏩</button>
-    <button class="keycap-btn" id="btnForward10">10s ⏩</button>
-    <button class="keycap-btn btn-rate" id="btnRate10">1.0x</button>
-    <button class="keycap-btn btn-rate" id="btnRate125">1.25x</button>
-    <button class="keycap-btn btn-rate" id="btnRate15">1.5x</button>
-    <button class="keycap-btn" id="btnFullscreen">🖥️</button>
+    <button class="keycap-btn" id="btnRewind10" data-action="seek_bwd_10">⏪ 10s</button>
+    <button class="keycap-btn" id="btnRewind5" data-action="seek_bwd">⏪ 5s</button>
+    <button class="keycap-btn" id="btnForward5" data-action="seek_fwd">5s ⏩</button>
+    <button class="keycap-btn" id="btnForward10" data-action="seek_fwd_10">10s ⏩</button>
+    <button class="keycap-btn btn-rate" id="btnRate10" data-action="set_speed" data-value="1.0">1.0x</button>
+    <button class="keycap-btn btn-rate" id="btnRate125" data-action="set_speed" data-value="1.25">1.25x</button>
+    <button class="keycap-btn btn-rate" id="btnRate15" data-action="set_speed" data-value="1.5">1.5x</button>
+    <button class="keycap-btn" id="btnFullscreen" data-action="fullscreen">🖥️</button>
 
     <!-- 行 3: 引文循環、講次導航與閱讀模式 -->
-    <button class="keycap-btn btn-quote" id="btnSeekQuote">#引文</button>
-    <button class="keycap-btn btn-loop" id="btnLoopQuote">🔁 引文</button>
-    <button class="keycap-btn btn-loop" id="btnLoopParagraph">🔁 段落</button>
-    <button class="keycap-btn" id="btnPrevLesson">◀ 上講</button>
-    <button class="keycap-btn" id="btnNextLesson">下講 ▶</button>
-    <button class="keycap-btn active-deep" id="btnSpeechMode">🗣️ 播稿</button>
-    <button class="keycap-btn active-deep" id="btnScrollMode">📜 持續</button>
+    <button class="keycap-btn btn-quote" id="btnSeekQuote" data-action="toggle_quote">#引文</button>
+    <button class="keycap-btn btn-loop" id="btnLoopQuote" data-action="toggle_quote">🔁 引文</button>
+    <button class="keycap-btn btn-loop" id="btnLoopParagraph" data-action="loop_interval">🔁 段落</button>
+    <button class="keycap-btn" id="btnPrevLesson" data-action="prev_lecture">◀ 上講</button>
+    <button class="keycap-btn" id="btnNextLesson" data-action="next_lecture">下講 ▶</button>
+    <button class="keycap-btn active-deep" id="btnSpeechMode" data-action="toggle_speech_lead">🗣️ 播稿</button>
+    <button class="keycap-btn active-deep" id="btnScrollMode" data-action="toggle_scroll">📜 持續</button>
 
     <!-- 行 3.5: 講師精準區段選單模組 Widget -->
     <div class="interval-row int-theme-gold int-font-md" id="intervalRowWidget">
@@ -106,22 +107,22 @@
           <option value="0">--:-- 終點</option>
         </select>
       </div>
-      <button class="keycap-btn btn-interval" id="btnPlayInterval">▶ 區間</button>
-      <button class="keycap-btn btn-interval" id="btnLoopInterval">🔁 區間</button>
-      <button class="keycap-btn btn-interval-stop" id="btnStopInterval" style="display: none;">⏹ 停</button>
+      <button class="keycap-btn btn-interval" id="btnPlayInterval" data-action="play_interval_default">▶ 區間</button>
+      <button class="keycap-btn btn-interval" id="btnLoopInterval" data-action="loop_interval">🔁 區間</button>
+      <button class="keycap-btn btn-interval-stop" id="btnStopInterval" data-action="stop_interval" style="display: none;">⏹ 停</button>
       <button class="int-ctrl-btn" id="btnIntervalColor" title="切換起訖淡雅半透明高亮色">🎨 色彩</button>
       <button class="int-ctrl-btn" id="btnIntervalFontSize" title="單獨調整起訖顯示文字大小">🔤 尺寸</button>
     </div>
 
     <!-- 行 4: 前行影片彈窗與畫面視覺控制 -->
-    <button class="keycap-btn btn-video" id="btnVideoMigsema">密集嘛</button>
-    <button class="keycap-btn btn-video" id="btnVideoPrep">前行</button>
-    <button class="keycap-btn btn-video" id="btnVideoDedication">迴向</button>
-    <button class="keycap-btn btn-close-video" id="btnCloseVideo">✕ 關片</button>
-    <button class="keycap-btn" id="btnThemeToggle">🌓</button>
-    <button class="keycap-btn" id="btnFontLarger">🔤+</button>
+    <button class="keycap-btn btn-video" id="btnVideoMigsema" data-action="modal_migtsema">密集嘛</button>
+    <button class="keycap-btn btn-video" id="btnVideoPrep" data-action="modal_prep_video">前行</button>
+    <button class="keycap-btn btn-video" id="btnVideoDedication" data-action="modal_dedication_video">迴向</button>
+    <button class="keycap-btn btn-close-video" id="btnCloseVideo" data-action="close_video">✕ 關片</button>
+    <button class="keycap-btn" id="btnThemeToggle" data-action="toggle_theme">🌓</button>
+    <button class="keycap-btn" id="btnFontLarger" data-action="adjust_font_size">🔤+</button>
     <button class="keycap-btn" id="btnFontCycle" title="一鍵循環放映字級 (20px➔40px➔60px➔80px➔100px)">🔤 20px</button>
-    <button class="keycap-btn" id="btnFontSmaller">🔤-</button>
+    <button class="keycap-btn" id="btnFontSmaller" data-action="adjust_font_size">🔤-</button>
   </footer>
 
   <!-- QR Code 彈窗 Modal (支援 Firebase 雲端純掃碼與區域網路切換) -->
@@ -195,6 +196,9 @@
 
   <!-- 永久常駐 DOM 隱形暫存池 (防止隱藏按鈕時 DOM 節點被垃圾回收銷毀) -->
   <div id="deckStashPool" style="display: none !important;"></div>
+
+  <!-- 引入無頭解耦核心引擎與視圖皮膚綁定器 -->
+  <script type="module" src="/core/desk-controller.js"></script>
 
   <!-- 引入深模組與主控制邏輯 -->
   <script src="modules/deck-storage.js"></script>

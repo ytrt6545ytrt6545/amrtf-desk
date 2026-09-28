@@ -1060,4 +1060,114 @@
       };
     }
   }
+
+  // ==============================================================================
+  // 🎨 無頭控制核心與動態換膚管理器接入 (Headless Engine & Dynamic Skin Switcher)
+  // ==============================================================================
+  function initHeadlessDeskArchitecture() {
+    const ControllerModule = window.AMRTFDeskController;
+    if (!ControllerModule) {
+      // 若非同步模組尚未就緒，短暫延遲重試
+      setTimeout(initHeadlessDeskArchitecture, 50);
+      return;
+    }
+
+    const { createDeskController } = ControllerModule;
+    const deckContainer = document.getElementById('deckGridContainer');
+    const btnSkinToggle = document.getElementById('btnSkinToggle');
+
+    // 建立無頭控制器實例
+    const deskCtrl = createDeskController({
+      currentLesson: lessonBadge ? lessonBadge.textContent : '0001'
+    }, {
+      send: (msg) => {
+        sendCmd(msg.action, msg.payload || {});
+      }
+    });
+    window.deskCtrl = deskCtrl;
+
+    if (!deckContainer) return;
+
+    // 預先保存原始經典皮膚 HTML 樣板
+    const classicTemplateHtml = deckContainer.innerHTML;
+
+    // 建立皮膚切換器
+    const skinMgr = deskCtrl.createSkinManager(deckContainer);
+    window.skinMgr = skinMgr;
+
+    // 1. 註冊皮膚：經典全功能操作艙
+    skinMgr.registerSkin('classic', {
+      name: '經典全功能操作艙',
+      templateHtml: classicTemplateHtml,
+      onMount: () => {
+        if (btnSkinToggle) btnSkinToggle.textContent = '🎨 經典';
+        // 恢復經典畫布之自訂功能
+        if (window.DeckCanvas && typeof window.DeckCanvas.bindAllKeycaps === 'function') {
+          window.DeckCanvas.bindAllKeycaps();
+        }
+      }
+    });
+
+    // 2. 註冊皮膚：Stream Deck 4×8 水晶戰術矩陣
+    skinMgr.registerSkin('crystal', {
+      name: '4×8 水晶戰術矩陣',
+      templateHtml: `
+        <div class="crystal-skin-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; padding: 12px 6px;">
+          <button class="keycap-btn btn-play-pause" data-action="toggle_play" style="grid-column: span 2; height: 72px; font-size: 24px; font-weight: bold;">▶ / ⏸ 播控</button>
+          <button class="keycap-btn btn-stop" data-action="restart" style="grid-column: span 2; height: 72px; font-size: 24px; font-weight: bold; background: #e11d48 !important;">⏹ 急煞停止</button>
+          <button class="keycap-btn" data-action="rewind_5s" style="height: 58px;">⏪ 5s</button>
+          <button class="keycap-btn" data-action="forward_5s" style="height: 58px;">5s ⏩</button>
+          <button class="keycap-btn btn-quote" data-action="toggle_quote" style="height: 58px;"># 引文開關</button>
+          <button class="keycap-btn" data-action="toggle_theme" style="height: 58px;">🌓 明暗風格</button>
+          <button class="keycap-btn" data-action="prev_lesson" style="grid-column: span 2; height: 58px;">◀ 上一講次</button>
+          <button class="keycap-btn" data-action="next_lesson" style="grid-column: span 2; height: 58px;">下一講次 ▶</button>
+          <button class="keycap-btn active-deep" data-action="toggle_speech_mode" style="grid-column: span 2; height: 58px;">🗣️ 官方播稿</button>
+          <button class="keycap-btn active-deep" data-action="cycle_scroll_mode" style="grid-column: span 2; height: 58px;">📜 持續捲動</button>
+        </div>
+      `,
+      onMount: () => {
+        if (btnSkinToggle) btnSkinToggle.textContent = '💎 水晶';
+      }
+    });
+
+    // 3. 註冊皮膚：極簡巨型盲按艙
+    skinMgr.registerSkin('minimal', {
+      name: '極簡巨型盲按艙',
+      templateHtml: `
+        <div class="minimal-skin-flex" style="display: flex; gap: 14px; width: 100%; height: 100%; align-items: center; justify-content: center; padding: 16px;">
+          <button class="keycap-btn btn-play-pause" data-action="toggle_play" style="flex: 3; height: 110px; font-size: 38px; font-weight: 900;">▶ / ⏸</button>
+          <button class="keycap-btn btn-stop" data-action="restart" style="flex: 2; height: 110px; font-size: 32px; font-weight: 900; background: #e11d48 !important;">⏹ 停</button>
+          <button class="keycap-btn" data-action="rewind_5s" style="flex: 1.5; height: 110px; font-size: 24px;">⏪ 5s</button>
+          <button class="keycap-btn" data-action="forward_5s" style="flex: 1.5; height: 110px; font-size: 24px;">5s ⏩</button>
+          <button class="keycap-btn" data-action="toggle_fullscreen" style="flex: 1; height: 110px; font-size: 30px;">🖥️</button>
+        </div>
+      `,
+      onMount: () => {
+        if (btnSkinToggle) btnSkinToggle.textContent = '⚡ 極簡';
+      }
+    });
+
+    // 預設掛載經典皮膚並綁定
+    skinMgr.switchSkin('classic');
+
+    // 頂部按鈕點擊：循環切換皮膚 (classic ➔ crystal ➔ minimal)
+    if (btnSkinToggle) {
+      const skinOrder = ['classic', 'crystal', 'minimal'];
+      let currentIdx = 0;
+      btnSkinToggle.addEventListener('click', () => {
+        currentIdx = (currentIdx + 1) % skinOrder.length;
+        const targetSkin = skinOrder[currentIdx];
+        skinMgr.switchSkin(targetSkin);
+      });
+    }
+
+    console.log('✅ [HeadlessController] 無頭控制核心與皮膚管理器已成功掛載，自由換膚機制就緒！');
+  }
+
+  // 啟動無頭架構
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeadlessDeskArchitecture);
+  } else {
+    initHeadlessDeskArchitecture();
+  }
 })();

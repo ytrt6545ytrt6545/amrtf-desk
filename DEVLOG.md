@@ -4,6 +4,28 @@
 
 ## 專案歷史與踩坑避雷手冊
 
+### 亮點 130：介面與按鈕邏輯功能徹底解耦 · 無頭控制核心 (Headless Controller) 與自由換膚引擎 (Dynamic Skin Switcher) 落地
+* **長官指示與架構願景**：
+  - 「先把介面跟按鈕邏輯與功能解耦，這樣才可以自由的換介面，先提計畫我看看。」
+  - 經由第三方特遣質檢官（Guardian）二輪極限紅隊審查，封堵非同步一致性斷裂、動態皮膚注入與記憶體洩漏三大死穴，取得 8~9 分高分與「准予動手實作」終審裁決後正式落地。
+* **深模組架構設計與實現**：
+  1. **無頭控制核心（Headless Desk Controller & DeskStore）**：
+     - 新建 `src/core/desk-controller.js`，將業務邏輯、播放狀態機與硬體調用徹底剝離 DOM；
+     - 實裝兩階段狀態確認（Two-Phase Commit）與 3000ms 逾時自動回滾（Rollback），徹底消滅盲目樂觀更新導致的假死；
+     - 靜態命令白名單硬鎖（Static Command Catalog），物理阻斷任何惡意字串與動態注入。
+  2. **宣告式視圖皮膚綁定器（Declarative ViewSkinBinder）**：
+     - 揚棄所有寫死 DOM ID 之脆弱模式，介面僅需宣告 `data-action="..."` 或 `data-bind-state="..."`；
+     - 自動驅動 `is-pending` / `is-active` 四態視覺反饋與防抖抑制（250ms 抑震）。
+  3. **動態換膚管理器與安全清理協議（SkinManager & Teardown Protocol）**：
+     - 支援一鍵熱切換多套介面皮膚：【經典全功能操作艙】、【4×8 水晶戰術矩陣】、【極簡巨型盲按艙】；
+     - 換膚瞬間強制執行 Teardown Protocol，100% 註銷舊皮膚訂閱與定時器，徹底根除記憶體洩漏。
+  4. **主控台頂部「🎨 介面」熱切換按鈕**：
+     - 於 `src/desk/index.html` 頂部狀態列實裝 `btnSkinToggle`，操作員可隨時在三種皮膚間循環自由切換。
+* **唯一合法裁判標準驗證（Single Source of Test Truth · npm test）**：
+  - 新增 `test/desk-controller.test.mjs`，包含白名單硬鎖、兩階段確認、防抖抑制、宣告式綁定與換膚生命週期等 5 大自動化測試；
+  - 執行全域標準測試指令：`npm test`；
+  - 判定結果：**6 大測試套件、39 項測試 100% 全綠 PASS（Exit Code: 0）**！
+
 ### 亮點 129：發布 v1.2.0 廣海明月研討播控旗艦版（更新說明重構、導播視角 5 大精華、同步按鈕簡練化與消滅 CDP 模態 Alert 凍結）
 * **長官指示與需求直擊**：
   - 更新說明太長太複雜（充滿底層技術術語），要求重做；

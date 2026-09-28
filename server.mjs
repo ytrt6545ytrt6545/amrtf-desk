@@ -494,6 +494,14 @@ const server = http.createServer((req, res) => {
       return;
     }
   }
+  if (url.startsWith('/core/')) {
+    const corePath = path.join(__dirname, 'src', url);
+    if (fs.existsSync(corePath)) {
+      res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+      res.end(fs.readFileSync(corePath, 'utf8'));
+      return;
+    }
+  }
   if (url === '/' || url === '/mobile') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(webRemote.getMobileHtml());
