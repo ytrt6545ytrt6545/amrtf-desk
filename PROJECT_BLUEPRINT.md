@@ -100,12 +100,17 @@ graph LR
   - **預覽畫面變化即時廣播 (Mutation Broadcast)**：拖曳換位（`commitLayout`）、刪除/調整按鍵尺寸、切換模板（`switchProfile`）、重設佈局（`resetLayout`）與字級比例調整時，自動觸發雲端資料庫更新；
   - **真機預覽狀態防抖同步 (Debounced Live Sync)**：在真機預覽模式下，畫面 LED 碼表、提詞與按鈕狀態更新時，防抖 300ms 節流推播至 Firebase 雲端機房，避免配額暴增；
   - **測試套件驗證**：新增 `test/firebase-relay.test.mjs` 端對端合約測試，全域 `npm test` 31 項測試 Exit Code 0 100% 全綠。
-
+- [x] **四區塊精煉專案規則 (`PROJECT_RULES.md`) 與 Guardian 質檢官「改哪點哪」動態點擊驗收機制確立 (亮點 118)**：
+  - **4 核心區塊體系落地**：依長官指示徹底剔除冗長空話，確立「專案身分與硬體邊界、架構與深模組、AI 鐵三角協同、改動導向驗收閉環」4 大核心區塊；
+  - **破解自己寫自己測的確認偏誤**：確立 Guardian 質檢官（OpenCode Port 4096）作為紅隊自動化試車員角色；
+  - **改哪點哪實體試車法 (Change-Aware Click Testing)**：依 Git Diff 精準鎖定被修改的 UI 元件，真實拉起 Headed 視窗動滑鼠實體點擊驗收，杜絕「看得到按不到」假象；
+  - **唯一合法裁判捍衛**：所有驗收必須通過專案標準 `npm test`（Exit Code 0）與真機截圖存證。
 
 ---
 
 ## 四、 規格文件與架構檔案清單 (Documentation)
 
+* **專案執行準則：** [PROJECT_RULES.md](file:///d:/AI-made/projects/amrtf-desk/PROJECT_RULES.md)
 * **技術規格書：** [docs/specs/SPEC-004-amrtf-desktop-controller.md](file:///d:/AI-made/projects/amrtf-desk/docs/specs/SPEC-004-amrtf-desktop-controller.md)
 * **工程微工單：** [docs/specs/TICKETS-004-amrtf-desktop-controller.md](file:///d:/AI-made/projects/amrtf-desk/docs/specs/TICKETS-004-amrtf-desktop-controller.md)
 * **開發與踩坑日誌：** [DEVLOG.md](file:///d:/AI-made/projects/amrtf-desk/DEVLOG.md)
