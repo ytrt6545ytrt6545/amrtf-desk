@@ -1,131 +1,433 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AMRTF Control Desk</title>
+  <title>AMRTF Control Desk - Moonlight Luxury Studio</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="desk.css">
   <script>
     (function() {
       try {
         var savedTheme = localStorage.getItem('amrtf_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
+        document.addEventListener('DOMContentLoaded', function() {
+          if (savedTheme === 'light') {
+            document.body.classList.remove('theme-dark');
+            document.body.classList.add('theme-light');
+          } else {
+            document.body.classList.remove('theme-light');
+            document.body.classList.add('theme-dark');
+          }
+        });
       } catch (e) {}
     })();
   </script>
 </head>
-<body class="desk-body theme-dark">
-  <!-- 頂部系統狀態列 -->
-  <header class="desk-header">
-    <div class="header-left">
-      <span class="status-badge" id="statusBadge">● READY</span>
-      <span class="lesson-badge" id="lessonBadge">--</span>
-    </div>
-    <div class="header-right">
-      <button class="header-btn" id="btnScaleToggle" title="點擊切換全域按鈕字體比例 (100%/125%/150%/175%/200%)">🔤 100%</button>
-      <button class="btn-edit-toggle" id="btnEditLayoutToggle" title="切換自訂佈局模式 (Ctrl+E)">🛠️ 佈局</button>
-      <button class="header-btn btn-mobile-nav" id="btnMobileStudioToggle" title="1:1 手機佈局模擬編排艙">📱 手機</button>
-      <button class="header-btn btn-settings-nav" id="btnSettingsToggle" title="打開系統設定艙 (離線影音與系統更新)">⚙️ 設定<span class="update-badge-dot" id="updateBadgeDot" style="display: none;"></span></button>
-      <button class="header-btn" id="btnDeskThemeToggle" title="點擊切換主控台外觀風格 (宣紙明亮 / 玄木暗黑)">🌞</button>
-      <button class="header-btn" id="btnSkinToggle" title="自由切換介面皮膚 (經典導播台 / 水晶戰術矩陣 / 極簡盲按艙)">🎨 介面</button>
-      <button class="header-btn" id="btnMoonlightToggle" onclick="location.href='/moonlight'" title="切換至廣海明月奢華操作艙 (Moonlight Studio)">🌙 明月</button>
-      <button class="header-btn" id="btnQrCode" title="手機掃碼無線遙控">QR</button>
-      <button class="header-btn" id="btnMiniToggle" title="MINI 懸浮模式">🗕</button>
-      <button class="header-btn btn-exit" id="btnExit" title="EXIT 全域退出">🚪</button>
-    </div>
-  </header>
+<body class="desk-body theme-dark" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; padding: 12px; margin: 0; box-sizing: border-box; overflow-y: auto;">
 
-  <!-- 頂部抽屜式未上陣倉庫 (Drawer Dock) -->
-  <div class="deck-drawer-container" id="deckDrawerContainer">
-    <div class="drawer-header">
-      <span class="drawer-title">📦 未上陣按鈕倉庫 (點擊標籤召回網格)</span>
-      <div class="drawer-actions">
-        <select class="drawer-action-btn" id="selectDeckTemplate" style="background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 4px 8px; border-radius: 4px; outline: none; cursor: pointer;" title="切換自訂或官方模板">
-          <option value="full">全功能導播模板</option>
-          <option value="minimal">研討極簡模板</option>
-        </select>
-        <button class="drawer-action-btn" id="btnSaveDeckTemplate" title="另存為自訂名稱模板或覆寫當前模板" style="color: #38bdf8; font-weight: bold;">💾 儲存模板</button>
-        <button class="drawer-action-btn" id="btnResetLayout" title="重置為官方出廠配置">↺ 恢復預設</button>
-        <button class="drawer-action-btn" id="btnExportLayout" title="匯出佈局為 JSON">📤 匯出</button>
-        <label class="drawer-action-btn file-label" for="fileImportLayout" title="從 JSON 匯入佈局">📥 匯入</label>
-        <input type="file" id="fileImportLayout" accept=".json" style="display: none;">
-      </div>
-    </div>
-    <div class="drawer-list" id="deckDrawerList"></div>
-  </div>
+  <!-- ========================================================================= -->
+  <!-- 🎛️ STITCH 奢華主操作艙 (Master Chassis Container - 650px Ergonomics)      -->
+  <!-- ========================================================================= -->
+  <main id="mainChassis" class="stitch-master-chassis">
+    
+    <!-- 精密硬體四角鉚釘 (Precision Corner Rivets) -->
+    <div class="chassis-rivet" style="top: 14px; left: 14px;"></div>
+    <div class="chassis-rivet" style="top: 14px; right: 14px;"></div>
+    <div class="chassis-rivet" style="bottom: 14px; left: 14px;"></div>
+    <div class="chassis-rivet" style="bottom: 14px; right: 14px;"></div>
 
-  <!-- 中央區域：LED 碼表與實時手抄稿提詞機 -->
-  <main class="desk-main" id="deskMain">
-    <div class="time-display-container">
-      <div class="led-clock" id="ledClock">00:00 / 00:00</div>
-      <div class="speed-indicator" id="speedBadge">1.0x</div>
-    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 10; padding-top: 4px;">
 
-    <div class="prompter-card" id="prompterCard">
-      <div class="prompter-label">PROMPTER</div>
-      <div class="prompter-text" id="prompterText">大慈恩研討手抄稿提詞機就緒，點擊播放即時同步...</div>
+      <!-- ===================================================================== -->
+      <!-- [MODULE 0: 頂部系統狀態與工具列]                                       -->
+      <!-- 依長官指示：頁首的明月按鈕徹底移除！保留主題換膚 (黑曜夜態 ⇄ 宣紙明晝)  -->
+      <!-- ===================================================================== -->
+      <section class="stitch-inset-card" style="padding: 10px 12px; flex-direction: row; justify-content: space-between; align-items: center;">
+        
+        <!-- 左群組：連線狀態、字級比例與系統按鈕 -->
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <!-- 連線狀態指示燈 -->
+          <div class="recess-tray" style="padding: 4px 8px; gap: 6px; cursor: pointer;" id="statusBadge" title="點擊強制重連放映艙 CDP">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+            <span style="font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #38bdf8;">READY</span>
+          </div>
+
+          <!-- 100% 字級比例 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnScaleToggle" data-action="adjust_font_size" style="padding: 4px 10px; font-size: 11px; font-weight: 600;" title="切換字體比例 (100%/125%/150%)">
+              <div class="crystal-lens-reflection"></div>
+              <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">100%</span>
+            </button>
+          </div>
+
+          <!-- 佈局按鈕 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnEditLayoutToggle" data-action="toggle_edit_layout" style="padding: 4px 10px; font-size: 11px; font-weight: 600;" title="切換自訂佈局模式 (Ctrl+E)">
+              <div class="crystal-lens-reflection"></div>
+              <span style="font-family: 'Noto Serif TC', serif;">佈局</span>
+            </button>
+          </div>
+
+          <!-- 手機按鈕 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnMobileStudioToggle" data-action="toggle_mobile_studio" style="padding: 4px 10px; font-size: 11px; font-weight: 600;" title="打開 1:1 手機編排艙">
+              <div class="crystal-lens-reflection"></div>
+              <span style="font-family: 'Noto Serif TC', serif;">手機</span>
+            </button>
+          </div>
+
+          <!-- 設定按鈕 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnSettingsToggle" data-action="toggle_settings" style="padding: 4px 10px; font-size: 11px; font-weight: 600; position: relative;" title="打開系統設定 (離線影音與系統更新)">
+              <div class="crystal-lens-reflection"></div>
+              <span style="font-family: 'Noto Serif TC', serif;">設定</span>
+              <span class="update-badge-dot" id="updateBadgeDot" style="display: none; position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; border-radius: 50%; background: #f43f5e; box-shadow: 0 0 6px #f43f5e;"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 右群組：主題切換 (黑曜 ⇄ 宣紙)、QR、最小化、退出 -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- 🌞 / 🌙 主控台奢華日夜皮膚互換按鈕 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-gold-warm" id="btnDeskThemeToggle" data-action="toggle_desk_theme" style="width: 32px; height: 32px; font-size: 14px;" title="切換黑曜夜態 / 宣紙明晝雙奢華皮膚">
+              <div class="crystal-lens-reflection"></div>
+              <span id="themeToggleIcon">🌙</span>
+            </button>
+          </div>
+
+          <!-- QR Code 掃碼按鈕 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnQrCode" data-action="toggle_qr" style="padding: 4px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 700;" title="手機掃碼遙控配對">
+              <div class="crystal-lens-reflection"></div>
+              <span>QR</span>
+            </button>
+          </div>
+
+          <!-- 最小化按鈕 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnMiniToggle" data-action="toggle_mini" style="width: 32px; height: 32px; font-size: 13px;" title="最小化視窗">
+              <div class="crystal-lens-reflection"></div>
+              <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+            </button>
+          </div>
+
+          <!-- 退出按鈕 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-ruby-glass" id="btnExit" data-action="exit" style="padding: 4px 10px; font-size: 11px; font-weight: 700; font-family: 'Noto Serif TC', serif;" title="關閉控制艙與放映視窗">
+              <div class="crystal-lens-reflection"></div>
+              <span>退出</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 1: 講次切換與導航卡片]                                         -->
+      <!-- ===================================================================== -->
+      <section class="stitch-inset-card" style="padding: 10px 12px; flex-direction: row; justify-content: space-between; align-items: center;">
+        
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- [ ◀ 上一講 ] -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnPrevLesson" data-action="prev_lesson" style="padding: 6px 12px; font-size: 12px; font-weight: 600; font-family: 'Noto Serif TC', serif;">
+              <div class="crystal-lens-reflection"></div>
+              <span style="font-size: 10px; margin-right: 2px;">◀</span>
+              <span>上一講</span>
+            </button>
+          </div>
+
+          <!-- [ 第 0567 講 ] 金色立體發光徽章 -->
+          <div id="lessonBadgeContainer" style="padding: 6px 14px; border-radius: 12px; background: linear-gradient(180deg, #2a200e 0%, #1a1407 50%, #0c0a03 100%); border: 2px solid rgba(212, 175, 55, 0.7); box-shadow: 0 2px 12px rgba(212, 175, 55, 0.35), inset 0 1px 1px rgba(255, 235, 160, 0.4); display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #facc15; box-shadow: 0 0 6px #facc15; animation: pulse 2s infinite;"></span>
+            <span class="lesson-badge" id="lessonBadge" data-bind="currentLesson" style="font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 14px; color: #facc15; letter-spacing: 0.05em; text-shadow: 0 1px 2px rgba(0,0,0,0.9);">第 0567 講</span>
+          </div>
+
+          <!-- [ 下一講 ▶ ] -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnNextLesson" data-action="next_lesson" style="padding: 6px 12px; font-size: 12px; font-weight: 600; font-family: 'Noto Serif TC', serif;">
+              <div class="crystal-lens-reflection"></div>
+              <span>下一講</span>
+              <span style="font-size: 10px; margin-left: 2px;">▶</span>
+            </button>
+          </div>
+
+          <!-- [ # 0567 ↻ ] 重載講次按鈕 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnReloadLesson" data-action="reload_lesson" style="padding: 6px 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace; font-weight: 700;" title="重新載入本講音檔與講義">
+              <div class="crystal-lens-reflection"></div>
+              <span style="color: #facc15;">#</span>
+              <span id="lessonQuickNum">0567</span>
+              <span style="font-size: 11px; margin-left: 2px;">↻</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 右側：經典主控 / 模板切換 -->
+        <div class="chrome-collar">
+          <button class="crystal-key key-gold-warm" id="btnSaveDeckTemplate" data-action="save_template" style="padding: 6px 12px; font-size: 12px; font-weight: 700; font-family: 'Noto Serif TC', serif;" title="保存或管理操作艙佈局">
+            <div class="crystal-lens-reflection"></div>
+            <span>經典主控</span>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 2: 走帶播控與進度控制卡片]                                     -->
+      <!-- 走帶 5 鍵：[+10] ➔ [+5] ➔ [中央純向量 Play ▶] ➔ [-5] ➔ [-10]           -->
+      <!-- ===================================================================== -->
+      <section class="stitch-inset-card">
+        
+        <!-- 頂部：平滑音訊進度條 -->
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="position: relative; width: 100%; padding: 4px 0;">
+            <input type="range" min="0" max="525" value="0" class="w-full cursor-pointer" id="audioSeeker" style="width: 100%; accent-color: #d4af37;" />
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-family: 'JetBrains Mono', monospace;">
+            <span style="color: #94a3b8;">00:00 <span style="font-family: 'Noto Serif TC', serif;">起點</span></span>
+            <span class="recess-tray" style="padding: 2px 10px; border-radius: 9999px;">
+              <span class="led-clock" id="ledClock" data-bind="ledClock" style="color: #facc15; font-weight: 700;">00:00 / 08:45</span>
+            </span>
+            <span style="color: #94a3b8; font-weight: 700;">08:45</span>
+          </div>
+        </div>
+
+        <!-- 走帶 5 核心按鍵矩陣 -->
+        <div class="stitch-transport-grid">
+          
+          <!-- [+10] 鍵 -->
+          <div class="chrome-collar" style="width: 100%;">
+            <button class="crystal-key key-standard" id="btnForward10" data-action="forward_10s" style="width: 100%; height: 64px; font-size: 16px; font-weight: 700; font-family: 'JetBrains Mono', monospace;" title="快進 10 秒 (+10)">
+              <div class="crystal-lens-reflection"></div>
+              <span style="color: #ffd875;">+10</span>
+            </button>
+          </div>
+
+          <!-- [+5] 鍵 -->
+          <div class="chrome-collar" style="width: 100%;">
+            <button class="crystal-key key-standard" id="btnForward5" data-action="forward_5s" style="width: 100%; height: 64px; font-size: 16px; font-weight: 700; font-family: 'JetBrains Mono', monospace;" title="快進 5 秒 (+5)">
+              <div class="crystal-lens-reflection"></div>
+              <span style="color: #ffd875;">+5</span>
+            </button>
+          </div>
+
+          <!-- 中央巨型 3D 流體水晶金色播放按鍵 (純 SVG 向量，無任何贅字) -->
+          <div class="chrome-collar" style="width: 100%;">
+            <button class="crystal-key key-gold-hero" id="btnPlayPause" data-action="play_pause" style="width: 100%; height: 64px;" title="播放 / 暫停">
+              <div class="crystal-lens-reflection"></div>
+              <svg id="playGlyph" style="width: 38px; height: 38px; fill: currentColor; transition: transform 0.15s ease;" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- [-5] 鍵 -->
+          <div class="chrome-collar" style="width: 100%;">
+            <button class="crystal-key key-standard" id="btnRewind5" data-action="rewind_5s" style="width: 100%; height: 64px; font-size: 16px; font-weight: 700; font-family: 'JetBrains Mono', monospace;" title="倒退 5 秒 (-5)">
+              <div class="crystal-lens-reflection"></div>
+              <span style="color: #38bdf8;">-5</span>
+            </button>
+          </div>
+
+          <!-- [-10] 鍵 -->
+          <div class="chrome-collar" style="width: 100%;">
+            <button class="crystal-key key-standard" id="btnRewind10" data-action="rewind_10s" style="width: 100%; height: 64px; font-size: 16px; font-weight: 700; font-family: 'JetBrains Mono', monospace;" title="倒退 10 秒 (-10)">
+              <div class="crystal-lens-reflection"></div>
+              <span style="color: #38bdf8;">-10</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 次級控制行：已播秒數、從頭急煞、倍速膠囊 -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+          
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="recess-tray" style="padding: 4px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; gap: 6px;">
+              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+              <span id="timeElapsed">已播 00:00</span>
+            </div>
+
+            <!-- [ 從頭 ] 重新啟動鍵 -->
+            <div class="chrome-collar">
+              <button class="crystal-key key-gold-warm" id="btnStop" data-action="restart" style="padding: 4px 10px; font-size: 11px; font-weight: 700; font-family: 'Noto Serif TC', serif;" title="停止並急煞歸零重放">
+                <div class="crystal-lens-reflection"></div>
+                <span>從頭</span>
+              </button>
+            </div>
+
+            <div class="recess-tray" style="padding: 4px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace;">
+              <span id="timeRemaining">剩餘 08:45</span>
+            </div>
+          </div>
+
+          <!-- 倍速切換按鈕群組 -->
+          <div class="recess-tray" style="padding: 3px 4px; gap: 4px;">
+            <button class="crystal-key key-gold-hero" id="btnRate10" data-action="set_speed" data-value="1.0" style="padding: 4px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 700; border-radius: 6px;">1.0x</button>
+            <button class="crystal-key key-standard" id="btnRate125" data-action="set_speed" data-value="1.25" style="padding: 4px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; border-radius: 6px;">1.25x</button>
+            <button class="crystal-key key-standard" id="btnRate15" data-action="set_speed" data-value="1.5" style="padding: 4px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; border-radius: 6px;">1.5x</button>
+            <span class="speed-indicator" id="speedBadge" style="display: none;">1.0x</span>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 3: 提詞大屏與研討區間循環卡片]                                 -->
+      <!-- ===================================================================== -->
+      <section class="stitch-inset-card">
+        
+        <!-- 提詞機螢幕與 AMRTF 隱形水印 -->
+        <div class="stitch-card-watermark prompter-card" id="prompterCard" style="border-radius: 12px; padding: 14px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 72px;">
+          <div class="prompter-label" style="font-size: 10px; font-family: 'Cinzel', serif; letter-spacing: 0.15em; opacity: 0.6; align-self: flex-start;">PROMPTER</div>
+          <p class="prompter-text" id="prompterText" data-bind="prompterText" style="font-family: 'Noto Serif TC', serif; font-size: 18px; font-weight: 700; text-align: center; margin: 6px 0; line-height: 1.6; letter-spacing: 0.04em;">
+            大慈恩研討手抄稿提詞機就緒，點擊播放即時同步...
+          </p>
+        </div>
+
+        <!-- 區段起訖下拉選單 -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="recess-tray" style="justify-content: space-between; padding: 6px 10px;">
+            <span style="font-size: 12px; font-family: 'Noto Serif TC', serif; font-weight: 700; color: #ffd875;">起點:</span>
+            <select class="interval-select" id="selectIntervalStart" style="background: transparent; border: none; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: inherit; outline: none; cursor: pointer;">
+              <option value="0">00:00 (起點)</option>
+            </select>
+          </div>
+
+          <div class="recess-tray" style="justify-content: space-between; padding: 6px 10px;">
+            <span style="font-size: 12px; font-family: 'Noto Serif TC', serif; font-weight: 700; color: #ffd875;">訖點:</span>
+            <select class="interval-select" id="selectIntervalEnd" style="background: transparent; border: none; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: inherit; outline: none; cursor: pointer;">
+              <option value="0">--:-- (終點)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 3 大循環操作按鍵 -->
+        <div class="stitch-loop-grid">
+          
+          <!-- [ 起訖區間循環 ] -->
+          <div class="chrome-collar" style="width: 100%;">
+            <button class="crystal-key key-gold-hero" id="btnLoopInterval" data-action="loop_interval" style="width: 100%; padding: 10px 4px; font-size: 12px; font-weight: 700; font-family: 'Noto Serif TC', serif;">
+              <div class="crystal-lens-reflection"></div>
+              <span>起訖區間循環</span>
+            </button>
+            <button id="btnPlayInterval" data-action="play_interval_default" style="display: none;"></button>
+          </div>
+
+          <!-- [ 段落循環 ] -->
+          <div class="chrome-collar" style="width: 100%;">
+            <button class="crystal-key key-standard" id="btnLoopParagraph" data-action="loop_current_paragraph" style="width: 100%; padding: 10px 4px; font-size: 12px; font-weight: 600; font-family: 'Noto Serif TC', serif;">
+              <div class="crystal-lens-reflection"></div>
+              <span id="loopParagraphLabel">段落循環</span>
+            </button>
+          </div>
+
+          <!-- [ 釋放循環 ] -->
+          <div class="chrome-collar" style="width: 100%;">
+            <button class="crystal-key key-standard" id="btnStopInterval" data-action="stop_interval" style="width: 100%; padding: 10px 4px; font-size: 12px; font-weight: 600; font-family: 'Noto Serif TC', serif; color: #f87171;">
+              <div class="crystal-lens-reflection"></div>
+              <span>釋放循環</span>
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- [MODULE 4: 延伸螢幕與法會專題影音卡片]                                 -->
+      <!-- ===================================================================== -->
+      <section class="stitch-inset-card">
+        
+        <!-- 標頭 -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+          <h3 style="margin: 0; font-size: 13px; font-family: 'Noto Serif TC', serif; font-weight: 700;">延伸螢幕</h3>
+          <span style="font-size: 11px; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">1080p SYNCHRONIZED</span>
+        </div>
+
+        <!-- 字級微調拉桿 -->
+        <div style="display: flex; align-items: center; gap: 10px; padding: 2px 4px;">
+          <span style="font-size: 12px; font-weight: 700; font-family: 'Noto Serif TC', serif; color: #94a3b8;">A-</span>
+          <div style="flex: 1;">
+            <input type="range" min="10" max="22" value="16" step="0.5" id="fontSizeSlider" style="width: 100%; accent-color: #d4af37;" />
+          </div>
+          <span id="fontScaleDisplay" style="padding: 2px 8px; border-radius: 6px; font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #ffd875;" class="recess-tray">
+            A+ 16.0px
+          </span>
+        </div>
+
+        <!-- 模式切換行：[ 播稿 ] | [ 手動 / 滾動 / 區間 ] | [ 全螢幕 ] -->
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          
+          <!-- 播稿開關 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnSpeechMode" data-action="toggle_speech_mode" style="padding: 6px 12px; font-size: 12px; font-family: 'Noto Serif TC', serif; font-weight: 600;">
+              <div class="crystal-lens-reflection"></div>
+              <span>播稿</span>
+            </button>
+          </div>
+
+          <!-- 捲動模式單選膠囊 -->
+          <div class="recess-tray" style="flex: 1; justify-content: center; gap: 4px; padding: 3px;">
+            <button class="crystal-key" id="btnScrollMode" data-action="cycle_scroll_mode" style="padding: 4px 10px; font-size: 11px; font-family: 'Noto Serif TC', serif; font-weight: 700; border-radius: 6px;">滾動</button>
+          </div>
+
+          <!-- 全螢幕切換 -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnFullscreen" data-action="fullscreen" style="padding: 6px 12px; font-size: 12px; font-family: 'Noto Serif TC', serif; font-weight: 600;">
+              <div class="crystal-lens-reflection"></div>
+              <span>全螢幕</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 法會影音三巨鍵 (前行、密集嘛、迴向) -->
+        <div style="padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+          <div class="stitch-media-grid">
+            
+            <div class="chrome-collar" style="width: 100%;">
+              <button class="crystal-key key-sacred-media" id="btnVideoPrep" data-action="modal_prep_video" style="width: 100%; height: 52px; font-size: 14px; font-family: 'Noto Serif TC', serif; font-weight: 700;">
+                <div class="crystal-lens-reflection"></div>
+                <span>前行</span>
+              </button>
+            </div>
+
+            <div class="chrome-collar" style="width: 100%;">
+              <button class="crystal-key key-sacred-media" id="btnVideoMigsema" data-action="modal_migtsema" style="width: 100%; height: 52px; font-size: 14px; font-family: 'Noto Serif TC', serif; font-weight: 700;">
+                <div class="crystal-lens-reflection"></div>
+                <span>密集嘛</span>
+              </button>
+            </div>
+
+            <div class="chrome-collar" style="width: 100%;">
+              <button class="crystal-key key-sacred-media" id="btnVideoDedication" data-action="modal_dedication_video" style="width: 100%; height: 52px; font-size: 14px; font-family: 'Noto Serif TC', serif; font-weight: 700;">
+                <div class="crystal-lens-reflection"></div>
+                <span>迴向</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
     </div>
   </main>
 
-  <!-- 底部 Companion 8 欄磁吸自訂畫布容器 -->
-  <footer class="desk-footer deck-grid-container" id="deckGridContainer">
-    <!-- 行 1: 播控核心 -->
-    <button class="keycap-btn btn-play-pause" id="btnPlayPause" data-action="play_pause">▶</button>
-    <button class="keycap-btn btn-stop" id="btnStop" data-action="stop">⏹</button>
+  <!-- ========================================================================= -->
+  <!-- 模態視窗與抽屜組件 (QR Code, 設定艙, 隱形相容按鍵池)                        -->
+  <!-- ========================================================================= -->
 
-    <!-- 行 2: 精細秒數跳轉與倍速 -->
-    <button class="keycap-btn" id="btnRewind10" data-action="seek_bwd_10">⏪ 10s</button>
-    <button class="keycap-btn" id="btnRewind5" data-action="seek_bwd">⏪ 5s</button>
-    <button class="keycap-btn" id="btnForward5" data-action="seek_fwd">5s ⏩</button>
-    <button class="keycap-btn" id="btnForward10" data-action="seek_fwd_10">10s ⏩</button>
-    <button class="keycap-btn btn-rate" id="btnRate10" data-action="set_speed" data-value="1.0">1.0x</button>
-    <button class="keycap-btn btn-rate" id="btnRate125" data-action="set_speed" data-value="1.25">1.25x</button>
-    <button class="keycap-btn btn-rate" id="btnRate15" data-action="set_speed" data-value="1.5">1.5x</button>
-    <button class="keycap-btn" id="btnFullscreen" data-action="fullscreen">🖥️</button>
-
-    <!-- 行 3: 引文循環、講次導航與閱讀模式 -->
-    <button class="keycap-btn btn-quote" id="btnSeekQuote" data-action="toggle_quote">#引文</button>
-    <button class="keycap-btn btn-loop" id="btnLoopQuote" data-action="toggle_quote">🔁 引文</button>
-    <button class="keycap-btn btn-loop" id="btnLoopParagraph" data-action="loop_interval">🔁 段落</button>
-    <button class="keycap-btn" id="btnPrevLesson" data-action="prev_lecture">◀ 上講</button>
-    <button class="keycap-btn" id="btnNextLesson" data-action="next_lecture">下講 ▶</button>
-    <button class="keycap-btn active-deep" id="btnSpeechMode" data-action="toggle_speech_lead">🗣️ 播稿</button>
-    <button class="keycap-btn active-deep" id="btnScrollMode" data-action="toggle_scroll">📜 持續</button>
-
-    <!-- 行 3.5: 講師精準區段選單模組 Widget -->
-    <div class="interval-row int-theme-gold int-font-md" id="intervalRowWidget">
-      <div class="interval-field">
-        <span class="interval-tag">起</span>
-        <select class="interval-select" id="selectIntervalStart" title="播放起點秒數">
-          <option value="0">00:00 起點</option>
-        </select>
-      </div>
-      <span class="interval-arrow">➔</span>
-      <div class="interval-field">
-        <span class="interval-tag">訖</span>
-        <select class="interval-select" id="selectIntervalEnd" title="播放終點秒數">
-          <option value="0">--:-- 終點</option>
-        </select>
-      </div>
-      <button class="keycap-btn btn-interval" id="btnPlayInterval" data-action="play_interval_default">▶ 區間</button>
-      <button class="keycap-btn btn-interval" id="btnLoopInterval" data-action="loop_interval">🔁 區間</button>
-      <button class="keycap-btn btn-interval-stop" id="btnStopInterval" data-action="stop_interval" style="display: none;">⏹ 停</button>
-      <button class="int-ctrl-btn" id="btnIntervalColor" title="切換起訖淡雅半透明高亮色">🎨 色彩</button>
-      <button class="int-ctrl-btn" id="btnIntervalFontSize" title="單獨調整起訖顯示文字大小">🔤 尺寸</button>
-    </div>
-
-    <!-- 行 4: 前行影片彈窗與畫面視覺控制 -->
-    <button class="keycap-btn btn-video" id="btnVideoMigsema" data-action="modal_migtsema">密集嘛</button>
-    <button class="keycap-btn btn-video" id="btnVideoPrep" data-action="modal_prep_video">前行</button>
-    <button class="keycap-btn btn-video" id="btnVideoDedication" data-action="modal_dedication_video">迴向</button>
-    <button class="keycap-btn btn-close-video" id="btnCloseVideo" data-action="close_video">✕ 關片</button>
-    <button class="keycap-btn" id="btnThemeToggle" data-action="toggle_theme">🌓</button>
-    <button class="keycap-btn" id="btnFontLarger" data-action="adjust_font_size">🔤+</button>
-    <button class="keycap-btn" id="btnFontCycle" title="一鍵循環放映字級 (20px➔40px➔60px➔80px➔100px)">🔤 20px</button>
-    <button class="keycap-btn" id="btnFontSmaller" data-action="adjust_font_size">🔤-</button>
-  </footer>
-
-  <!-- QR Code 彈窗 Modal (支援 Firebase 雲端純掃碼與區域網路切換) -->
+  <!-- QR Code 彈窗 Modal -->
   <div class="qr-modal" id="qrModal">
     <div class="qr-card">
       <div class="qr-header-tabs">
@@ -141,7 +443,7 @@
     </div>
   </div>
 
-  <!-- ⚙️ 右側滑出半透明系統設定控制艙 -->
+  <!-- ⚙️ 系統設定控制艙 -->
   <div class="settings-backdrop" id="settingsBackdrop"></div>
   <div class="settings-drawer" id="settingsDrawer">
     <div class="settings-header">
@@ -157,7 +459,7 @@
         <div class="section-title">🎬 研討專用影片離線快取 (1080p 零延遲秒播)</div>
         <div class="section-notice">
           💡 <strong>影片播放說明</strong>：若直接從 YouTube 雲端串流，影片啟動時會有一瞬間出現 YouTube 官方紅色進度條與標題，影響現場莊嚴感。
-          建議點擊下方<strong>「一鍵自動下載」</strong>或將 3 支 MP4 檔案放入本機 <code>assets/videos/</code> 資料夾內，系統一偵測到本機檔案即會自動啟用 1080p 原生秒播（0 延遲、0 控制列、0 破綻）。
+          建議點擊下方<strong>「一鍵自動下載」</strong>或將 3 支 MP4 檔案放入本機 <code>assets/videos/</code> 資料夾內，系統一偵測到本機檔案即會自動啟用 1080p 原生秒播。
         </div>
         <div class="video-status-list" id="videoStatusList">
           <div class="video-status-loading">正在檢查本地影片狀態...</div>
@@ -194,8 +496,37 @@
     </div>
   </div>
 
-  <!-- 永久常駐 DOM 隱形暫存池 (防止隱藏按鈕時 DOM 節點被垃圾回收銷毀) -->
-  <div id="deckStashPool" style="display: none !important;"></div>
+  <!-- 抽屜式倉庫相容節點 (保證舊模組與腳本正常運行) -->
+  <div class="deck-drawer-container" id="deckDrawerContainer" style="display: none;">
+    <div class="drawer-header">
+      <div class="drawer-actions">
+        <select class="drawer-action-btn" id="selectDeckTemplate">
+          <option value="full">全功能導播模板</option>
+          <option value="minimal">研討極簡模板</option>
+        </select>
+        <button class="drawer-action-btn" id="btnResetLayout">↺ 恢復預設</button>
+        <button class="drawer-action-btn" id="btnExportLayout">📤 匯出</button>
+        <input type="file" id="fileImportLayout" accept=".json" style="display: none;">
+      </div>
+    </div>
+    <div class="drawer-list" id="deckDrawerList"></div>
+  </div>
+
+  <!-- 永久常駐相容按鍵池 (保證 E2E 測試與背景協議 100% 互通) -->
+  <div id="deckStashPool" style="display: none !important;">
+    <div id="intervalRowWidget" class="interval-row int-theme-gold int-font-md">
+      <button id="btnIntervalColor" class="int-ctrl-btn"></button>
+      <button id="btnIntervalFontSize" class="int-ctrl-btn"></button>
+    </div>
+    <button id="btnSeekQuote" data-action="toggle_quote"></button>
+    <button id="btnLoopQuote" data-action="toggle_loop_segment"></button>
+    <button id="btnCloseVideo" data-action="close_video"></button>
+    <button id="btnThemeToggle" data-action="toggle_theme">🌓</button>
+    <button id="btnFontLarger" data-action="adjust_font_size"></button>
+    <button id="btnFontSmaller" data-action="adjust_font_size"></button>
+    <button id="btnFontCycle"></button>
+    <button id="btnSkinToggle"></button>
+  </div>
 
   <!-- 引入無頭解耦核心引擎與視圖皮膚綁定器 -->
   <script type="module" src="/core/desk-controller.js"></script>

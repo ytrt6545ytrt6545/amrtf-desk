@@ -2907,13 +2907,424 @@ body.theme-light #btnVideoDedication {
   border-radius: 8px !important;
 }
 
-body.theme-light #btnVideoPrep:hover,
-body.theme-light #btnVideoMigsema:hover,
-body.theme-light #btnVideoDedication:hover {
-  box-shadow: 0 0 14px rgba(250, 204, 21, 0.5) !important;
   color: #451a03 !important;
   transform: translateY(-1px);
 }
+
+/* ==============================================================================
+ * 💎 STITCH 奢華雙皮膚設計系統 (Stitch Luxury Dual Skins: Dark & Light)
+ * 黑曜奢華夜態 (Moonlight Ocean) ⇄ 溫潤宣紙珠光晝態 (Warm Xuan Paper)
+ * ============================================================================== */
+
+/* 1. 主控艙基座與鉚釘 (Master Chassis & Rivets) */
+.stitch-master-chassis {
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
+  border-radius: 1.5rem;
+  padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 黑曜夜態基座 */
+[data-theme="dark"] .stitch-master-chassis,
+body.theme-dark .stitch-master-chassis {
+  background: linear-gradient(175deg, #131c2c 0%, #0d1422 55%, #080c15 100%);
+  box-shadow: 
+    0 25px 60px -15px rgba(0, 0, 0, 0.95),
+    0 10px 25px -5px rgba(0, 0, 0, 0.8),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 4px 0 rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(71, 85, 105, 0.45);
+}
+
+/* 宣紙明晝基座 */
+[data-theme="light"] .stitch-master-chassis,
+body.theme-light .stitch-master-chassis {
+  background: linear-gradient(175deg, #f5efe3 0%, #e9e1d2 60%, #ded4c2 100%);
+  box-shadow: 
+    0 24px 50px -10px rgba(78, 68, 52, 0.28),
+    0 10px 20px -5px rgba(90, 77, 60, 0.15),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px 0 rgba(140, 125, 100, 0.35);
+  border: 1px solid rgba(197, 184, 165, 0.7);
+}
+
+/* 精密硬體四角鉚釘 (Precision Corner Rivets) */
+.chassis-rivet {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  position: absolute;
+  z-index: 20;
+}
+.chassis-rivet::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 1.5px;
+  transform: translate(-50%, -50%) rotate(38deg);
+}
+
+[data-theme="dark"] .chassis-rivet,
+body.theme-dark .chassis-rivet {
+  background: radial-gradient(circle at 35% 35%, #64748b 0%, #334155 55%, #0f172a 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+[data-theme="dark"] .chassis-rivet::after,
+body.theme-dark .chassis-rivet::after {
+  background: #090d14;
+  box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="light"] .chassis-rivet,
+body.theme-light .chassis-rivet {
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #d8d0c0 55%, #a69b88 100%);
+  box-shadow: 0 1px 3px rgba(60, 50, 38, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+[data-theme="light"] .chassis-rivet::after,
+body.theme-light .chassis-rivet::after {
+  background: #716654;
+  box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* 2. 電鍍立體鍵領 (Chrome Key Collar) */
+.chrome-collar {
+  border-radius: 0.75rem;
+  padding: 2.5px;
+  display: inline-flex;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+[data-theme="dark"] .chrome-collar,
+body.theme-dark .chrome-collar {
+  background: linear-gradient(145deg, #2a374d 0%, #151f2e 40%, #223045 70%, #0e1520 100%);
+  box-shadow: 
+    0 3px 6px -1px rgba(0, 0, 0, 0.6),
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    inset 0 1px 1px rgba(255, 255, 255, 0.22);
+}
+[data-theme="light"] .chrome-collar,
+body.theme-light .chrome-collar {
+  background: linear-gradient(145deg, #ffffff 0%, #ded4c3 35%, #fbf8f1 65%, #bab09e 100%);
+  box-shadow: 
+    0 3px 6px -1px rgba(70, 58, 42, 0.22),
+    0 1px 2px rgba(60, 50, 38, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+/* 3. 內嵌次級儀表卡片 (Ocean / Xuan Inset Card) */
+.stitch-inset-card {
+  border-radius: 1rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+[data-theme="dark"] .stitch-inset-card,
+body.theme-dark .stitch-inset-card {
+  background: linear-gradient(180deg, #101826 0%, #0b111c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+[data-theme="light"] .stitch-inset-card,
+body.theme-light .stitch-inset-card {
+  background: linear-gradient(180deg, #fbf8f2 0%, #f4eee2 100%);
+  border: 1px solid rgba(197, 184, 165, 0.45);
+  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.9), 0 2px 6px rgba(78, 68, 52, 0.12);
+}
+
+/* 凹槽控制托盤 (Recess Control Tray) */
+.recess-tray {
+  border-radius: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+[data-theme="dark"] .recess-tray,
+body.theme-dark .recess-tray {
+  background: #080d15;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85);
+}
+[data-theme="light"] .recess-tray,
+body.theme-light .recess-tray {
+  background: #e9e1d2;
+  border: 1px solid rgba(197, 184, 165, 0.6);
+  box-shadow: inset 0 2px 4px rgba(78, 68, 52, 0.2);
+}
+
+/* 4. 水晶流體按鍵基底 (Crystal Liquid Glass Keycaps) */
+.crystal-key {
+  position: relative;
+  transition: all 0.14s cubic-bezier(0.2, 0.8, 0.25, 1);
+  transform: translateY(0);
+  user-select: none;
+  overflow: hidden;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.crystal-key:active,
+.crystal-key.is-activating {
+  transform: translateY(2px) scale(0.985);
+}
+[data-theme="dark"] .crystal-key:active,
+body.theme-dark .crystal-key:active {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8), inset 0 2px 5px rgba(0, 0, 0, 0.8) !important;
+}
+[data-theme="light"] .crystal-key:active,
+body.theme-light .crystal-key:active {
+  box-shadow: 0 1px 2px rgba(90, 77, 58, 0.25), inset 0 2px 5px rgba(90, 77, 58, 0.25) !important;
+}
+
+/* 頂部弧形高光鏡片 (Top Arc Specular Lens Reflection) */
+.crystal-lens-reflection {
+  position: absolute;
+  top: 1.5px;
+  left: 3px;
+  right: 3px;
+  height: 46%;
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 10;
+}
+[data-theme="dark"] .crystal-lens-reflection,
+body.theme-dark .crystal-lens-reflection {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.10) 50%, rgba(255, 255, 255, 0) 100%);
+}
+[data-theme="light"] .crystal-lens-reflection,
+body.theme-light .crystal-lens-reflection {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.45) 50%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* 5. 鍵帽顏色系列 (Keycap Skins) */
+
+/* (A) 自適應標準鍵 (Dark Glass in Dark / Ivory in Light) */
+.key-standard {
+  border-radius: 0.5rem;
+}
+[data-theme="dark"] .key-standard,
+body.theme-dark .key-standard {
+  background: linear-gradient(180deg, #1f2b3e 0%, #131c2b 52%, #0a0f18 100%);
+  box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.22), inset 0 -1px 2px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  color: #e2e8f0;
+}
+[data-theme="dark"] .key-standard:hover,
+body.theme-dark .key-standard:hover {
+  background: linear-gradient(180deg, #25334a 0%, #172234 52%, #0e1522 100%);
+  border-color: rgba(212, 175, 55, 0.4);
+  color: #ffffff;
+}
+
+[data-theme="light"] .key-standard,
+body.theme-light .key-standard {
+  background: linear-gradient(180deg, #ffffff 0%, #faf6ef 50%, #eee4d4 100%);
+  color: #2b241c;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 3px 8px -2px rgba(80, 68, 52, 0.25), inset 0 1px 2px rgba(255, 255, 255, 1), inset 0 -1px 2px rgba(160, 142, 118, 0.35);
+}
+[data-theme="light"] .key-standard:hover,
+body.theme-light .key-standard:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #fdfbf7 50%, #f4eee2 100%);
+  box-shadow: 0 4px 12px -2px rgba(80, 68, 52, 0.32);
+  color: #1a1a1a;
+}
+
+/* (B) 巨型金色核心播放鍵 (Massive 3D Gold Hero Play Key) */
+.key-gold-hero {
+  border-radius: 0.75rem;
+}
+[data-theme="dark"] .key-gold-hero,
+body.theme-dark .key-gold-hero {
+  background: linear-gradient(180deg, #ffe082 0%, #d4af37 42%, #997300 100%);
+  box-shadow: 
+    0 0 18px rgba(212, 175, 55, 0.45),
+    0 5px 14px rgba(0, 0, 0, 0.8),
+    inset 0 1px 2px rgba(255, 255, 255, 0.85),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 245, 195, 0.7);
+  color: #111417;
+}
+[data-theme="dark"] .key-gold-hero:hover,
+body.theme-dark .key-gold-hero:hover {
+  box-shadow: 
+    0 0 24px rgba(212, 175, 55, 0.6),
+    0 6px 16px rgba(0, 0, 0, 0.9),
+    inset 0 1px 2px rgba(255, 255, 255, 1);
+}
+
+[data-theme="light"] .key-gold-hero,
+body.theme-light .key-gold-hero {
+  background: linear-gradient(180deg, #fff9e6 0%, #fde68a 30%, #f59e0b 80%, #b45309 100%);
+  color: #382404;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 4px 14px rgba(217, 119, 6, 0.38),
+    inset 0 1px 3px rgba(255, 255, 255, 0.95),
+    inset 0 -2px 3px rgba(146, 64, 14, 0.55);
+}
+[data-theme="light"] .key-gold-hero:hover,
+body.theme-light .key-gold-hero:hover {
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.6), inset 0 1px 3px #fff;
+}
+
+/* (C) 暖金強調鍵 (Warm Gold Accent Key) */
+.key-gold-warm {
+  border-radius: 0.5rem;
+}
+[data-theme="dark"] .key-gold-warm,
+body.theme-dark .key-gold-warm {
+  background: linear-gradient(180deg, #3d3115 0%, #291f09 50%, #161003 100%);
+  color: #ffd875;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 235, 170, 0.3);
+}
+[data-theme="dark"] .key-gold-warm:hover,
+body.theme-dark .key-gold-warm:hover {
+  border-color: rgba(212, 175, 55, 0.75);
+  color: #fff;
+}
+
+[data-theme="light"] .key-gold-warm,
+body.theme-light .key-gold-warm {
+  background: linear-gradient(180deg, #ffffff 0%, #fbf3db 45%, #f4deb0 100%);
+  color: #5c410b;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 8px -2px rgba(180, 140, 54, 0.3), inset 0 1px 2px rgba(255, 255, 255, 1);
+}
+[data-theme="light"] .key-gold-warm:hover,
+body.theme-light .key-gold-warm:hover {
+  border-color: #d4af37;
+  color: #3d2c07;
+}
+
+/* (D) 紅寶石退出鍵 (Ruby Exit Key) */
+.key-ruby-glass {
+  border-radius: 0.5rem;
+}
+[data-theme="dark"] .key-ruby-glass,
+body.theme-dark .key-ruby-glass {
+  background: linear-gradient(180deg, #59161a 0%, #360b0e 52%, #1c0507 100%);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.8), 0 0 10px rgba(239, 68, 68, 0.25), inset 0 1px 1px rgba(255, 200, 200, 0.4);
+}
+[data-theme="dark"] .key-ruby-glass:hover,
+body.theme-dark .key-ruby-glass:hover {
+  border-color: rgba(248, 113, 113, 0.75);
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+}
+
+[data-theme="light"] .key-ruby-glass,
+body.theme-light .key-ruby-glass {
+  background: linear-gradient(180deg, #fff1f2 0%, #fecdd3 50%, #fda4af 100%);
+  color: #881337;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 6px -1px rgba(190, 18, 60, 0.25);
+}
+[data-theme="light"] .key-ruby-glass:hover,
+body.theme-light .key-ruby-glass:hover {
+  background: linear-gradient(180deg, #ffe4e6 0%, #fda4af 50%, #fb7185 100%);
+  color: #4c0519;
+}
+
+/* (E) 藍寶石／青瓷法會專用鍵 (Sacred Media Keys) */
+.key-sacred-media {
+  border-radius: 0.5rem;
+}
+[data-theme="dark"] .key-sacred-media,
+body.theme-dark .key-sacred-media {
+  background: linear-gradient(180deg, #163259 0%, #0e1e36 50%, #07101d 100%);
+  color: #bae6fd;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(186, 230, 253, 0.3);
+}
+[data-theme="dark"] .key-sacred-media:hover,
+body.theme-dark .key-sacred-media:hover {
+  border-color: rgba(56, 189, 248, 0.75);
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+}
+
+[data-theme="light"] .key-sacred-media,
+body.theme-light .key-sacred-media {
+  background: linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 45%, #99f6e4 80%, #2dd4bf 100%);
+  color: #115e59;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 8px -2px rgba(20, 184, 166, 0.3), inset 0 1px 2px #fff;
+}
+[data-theme="light"] .key-sacred-media:hover,
+body.theme-light .key-sacred-media:hover {
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.5);
+  color: #042f2e;
+}
+
+/* 6. AMRTF 水印防偽 (AMRTF Watermark) */
+.stitch-card-watermark {
+  position: relative;
+}
+.stitch-card-watermark::before {
+  content: 'AMRTF';
+  position: absolute;
+  right: 18px;
+  bottom: -6px;
+  font-family: 'Cinzel', serif;
+  font-size: 54px;
+  font-weight: 900;
+  pointer-events: none;
+  line-height: 1;
+  letter-spacing: 0.12em;
+}
+[data-theme="dark"] .stitch-card-watermark::before,
+body.theme-dark .stitch-card-watermark::before {
+  color: rgba(212, 175, 55, 0.05);
+}
+[data-theme="light"] .stitch-card-watermark::before,
+body.theme-light .stitch-card-watermark::before {
+  color: rgba(180, 140, 54, 0.08);
+}
+
+/* 7. 佈局格網與排版 (Layout Grid & Ergonomics) */
+.stitch-layout-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.stitch-transport-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0.25rem 0;
+}
+.stitch-loop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+.stitch-media-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
 
 
 

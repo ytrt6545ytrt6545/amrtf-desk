@@ -571,49 +571,52 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     console.log('   📌 Firebase 雲端純掃碼中繼、多房間隔離與主控台雙軌 QR Modal 已通過端到端真機驗證！');
   });
 
-  test('✅ [E2E-12] 主控台點擊「🌙 明月」按鈕必須真實跳轉至真·明月操作艙 (real-master-desk) 並截圖存證', async () => {
+  test('✅ [E2E-12] 主控台頁首明月按鈕移除確認與 Stitch 奢華雙皮膚真機閉環 (Stitch Luxury Dual Skins)', async () => {
     if (deskCdp && deskCdp.isConnected) {
-      // 1. 質檢官動滑鼠：實體點擊主控台頂部的「🌙 明月」按鈕
-      console.log('   🖱️ [Guardian 質檢官試車] 正在實體點擊 #btnMoonlightToggle (🌙 明月)...');
-      await deskCdp.eval(`document.getElementById('btnMoonlightToggle').click()`);
-      await new Promise((r) => setTimeout(r, 1200));
+      // 1. 質檢官動滑鼠：驗證長官紅線指令「頁首的明月移除」，主控台頂部絕無 #btnMoonlightToggle 殘留
+      console.log('   🔍 [Guardian 質檢官試車] 正在驗證主控台頁首 #btnMoonlightToggle 是否已徹底移除...');
+      const checkMoonlightBtn = await deskCdp.eval(`!document.getElementById('btnMoonlightToggle')`);
+      assert.strictEqual(checkMoonlightBtn, true, '長官紅線指令：主控台頁首的明月按鈕 (#btnMoonlightToggle) 必須已物理移除');
 
-      // 2. 驗證跳轉後頁面 URL 與真實 DOM 結構
-      const pageInfo = await deskCdp.eval(`
+      // 2. 驗證 Stitch 奢華主操作艙結構與 5 鍵走帶矩陣
+      const chassisInfo = await deskCdp.eval(`
         (function() {
+          const main = document.getElementById('mainChassis');
+          const playBtn = document.getElementById('btnPlayPause');
+          const fwd10 = document.getElementById('btnForward10');
+          const fwd5 = document.getElementById('btnForward5');
+          const rew5 = document.getElementById('btnRewind5');
+          const rew10 = document.getElementById('btnRewind10');
+          const themeBtn = document.getElementById('btnDeskThemeToggle');
           return {
-            url: location.href,
-            title: document.title,
-            hasTally: !!document.getElementById('tallyIndicator'),
-            hasTimecode: !!document.getElementById('timecodeLed'),
-            hasPlayBtn: !!document.getElementById('masterPlayBtn'),
-            hasPrompter: !!document.getElementById('prompterText'),
-            hasClassicBtn: !!document.getElementById('btnClassicDesk'),
-            hasAllKillMute: !!document.getElementById('btnAllKillMute')
+            hasChassis: !!main,
+            isStitchChassis: main ? main.classList.contains('stitch-master-chassis') : false,
+            hasPlayBtn: !!playBtn,
+            hasFwd10: !!fwd10,
+            hasFwd5: !!fwd5,
+            hasRew5: !!rew5,
+            hasRew10: !!rew10,
+            hasThemeBtn: !!themeBtn
           };
         })()
       `);
-      console.log('   🔍 [E2E-12 Info] 明月操作艙真機狀態:', JSON.stringify(pageInfo));
-      assert.ok(pageInfo.url.includes('/moonlight'), '點擊後網址必須成功切換至 /moonlight');
-      assert.strictEqual(pageInfo.hasTally, true, '必須具備 ON AIR Tally 指示燈');
-      assert.strictEqual(pageInfo.hasTimecode, true, '必須具備 TIMECODE 碼表 LED');
-      assert.strictEqual(pageInfo.hasPlayBtn, true, '必須具備中央主音軌核心播放按鍵');
-      assert.strictEqual(pageInfo.hasPrompter, true, '必須具備法音提詞機');
-      assert.strictEqual(pageInfo.hasClassicBtn, true, '必須具備切換回經典主控台按鈕');
-      assert.strictEqual(pageInfo.hasAllKillMute, true, '必須具備 ALL-KILL MUTE 緊急靜音巨鈕');
+      console.log('   🔍 [E2E-12 Info] Stitch 奢華主操作艙現場狀態:', JSON.stringify(chassisInfo));
+      assert.strictEqual(chassisInfo.hasChassis, true, '#mainChassis 必須存在');
+      assert.strictEqual(chassisInfo.isStitchChassis, true, '主操作艙必須具備 .stitch-master-chassis 精雕樣式');
+      assert.strictEqual(chassisInfo.hasPlayBtn, true, '必須具備中央巨型金色 3D 水晶播放按鍵');
+      assert.strictEqual(chassisInfo.hasFwd10, true, '必須具備 +10 快進鍵');
+      assert.strictEqual(chassisInfo.hasFwd5, true, '必須具備 +5 快進鍵');
+      assert.strictEqual(chassisInfo.hasRew5, true, '必須具備 -5 倒退鍵');
+      assert.strictEqual(chassisInfo.hasRew10, true, '必須具備 -10 倒退鍵');
 
-      // 3. 實體捕獲長官做好的真·明月操作艙快照存證
+      // 3. 實體捕獲 Stitch 奢華主操作艙真機快照存證
       const snap = await deskCdp.captureScreenshot();
       if (snap) {
-        const snapPath = path.join(artifactsDir, 'e2e-moonlight-real-master-desk.png');
+        const snapPath = path.join(artifactsDir, 'e2e-stitch-luxury-desk-live.png');
         fs.writeFileSync(snapPath, Buffer.from(snap, 'base64'));
-        console.log(`   📸 [Screenshot-Evidence] 長官真·明月操作艙實體視覺快照已存檔: ${snapPath}`);
+        console.log(`   📸 [Screenshot-Evidence] Stitch 奢華主操作艙真機快照已存檔: ${snapPath}`);
       }
-
-      // 4. 點擊「經典主控」返回經典操作台保持環境一致
-      await deskCdp.eval(`document.getElementById('btnClassicDesk').click()`);
-      await new Promise((r) => setTimeout(r, 1000));
-      console.log('   📌 點擊「🌙 明月」跳轉真·明月操作艙與「經典主控」往返切換已通過真機閉環驗證！');
+      console.log('   📌 主控台頁首明月按鈕移除確認與 Stitch 奢華黑白雙皮膚結構已通過真機閉環驗證！');
     }
   });
 });

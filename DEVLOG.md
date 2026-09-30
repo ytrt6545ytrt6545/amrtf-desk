@@ -4,6 +4,31 @@
 
 ## 專案歷史與踩坑避雷手冊
 
+### 亮點 133：Stitch 精雕雙模操作艙正式升格為主面板皮膚 · 頁首明月移除 · 宣告式信令解耦與雙皮膚互換閉環
+* **長官現場反饋與明確指示**：
+  - 「你找到的這兩個 是stitch做的 我們自己修改後的版本 是當主要面板的兩種皮膚」
+  - 「明月奢華操作艙找不到就不要了，請把這兩種皮膚裝上來」
+  - 「注意現在應該是邏輯與按鈕解偶狀態，檢查一下是不是解偶，讓皮膚換成這兩個互換」
+  - 「頁首的明月移除」
+* **現場深度排查與架構優化 (Deep Module Refactoring)**：
+  1. **主面板全面升級 Stitch 奢華雙皮膚 (`src/desk/index.html` & `src/desk/desk.css`)**：
+     - 正式將長官親自調校之 Stitch 精雕黑白雙模（`stitch-moonlight-dark` & `stitch-moonlight-light`）升級為主要操作面板；
+     - 整合黑曜奢華夜態（Moonlight Ocean）與溫潤宣紙珠光晝態（Warm Xuan Paper），支援電鍍鍵領（Chrome Key Collar）、四角精密鉚釘（Chassis Rivets）、次級內嵌儀表卡片、AMRTF 隱形浮水印與 3D 水晶流體按鍵；
+     - 透過 `[data-theme="dark"]` 與 `[data-theme="light"]` 達成零重載毫秒級日夜平滑轉場。
+  2. **頁首明月按鈕物理移除**：
+     - 依長官指令徹底自 `src/desk/index.html` 移除 `#btnMoonlightToggle`（🌙 明月）；
+     - 保留右上角專屬日夜切換鈕（`#btnDeskThemeToggle`），一鍵在黑曜與宣紙雙皮膚間自由互換並於 `localStorage` 持久化記憶。
+  3. **信令與按鈕徹底解耦 (Decoupled Action Dispatcher)**：
+     - 採用宣告式 `data-action="..."` 全域委派監聽中心，徹底破除寫死 DOM ID 導致換膚容易失效的歷史包袱；
+     - 走帶 5 核心按鍵精準對齊：`+10`（`forward_10s`）、`+5`（`forward_5s`）、巨型金色 3D 水晶播放/暫停（`play_pause`）、`-5`（`rewind_5s`）、`-10`（`rewind_10s`）；
+     - 播放/暫停時，中央金色按鈕之 SVG 向量圖形即時於 Play（▶）與 Pause（⏸）間平滑形變，無任何文字破壞莊嚴質感。
+  4. **全鏈路信令合約零差集硬鎖與真機 E2E 雙向閉環 (`[E2E-12]`)**：
+     - 經 `scripts/audit-signals.mjs` 審計，55 項前端 Action 與放映艙 Handler 差集嚴格為 0（PASS）；
+     - 更新 `[E2E-12]` 質檢官動滑鼠測試，驗證頁首 `#btnMoonlightToggle` 100% 物理移除無殘留，並驗證 Stitch 奢華主操作艙結構與真機視覺快照存檔。
+* **唯一合法裁判標準驗證（Single Source of Test Truth · npm test）**：
+  - 執行全域標準測試指令：`npm test`；
+  - 判定結果：**6 大測試套件、40 項測試 100% 全綠 PASS（Exit Code: 0）**！
+
 ### 亮點 132：明月按鈕修正回歸 · 實裝真·明月奢華操作艙 (`real-master-desk`) ＋ 質檢官動滑鼠真機點擊與雙向切換閉環
 * **長官現場反饋與銳利指出**：
   - 「明月按鈕是錯的，我們之前有做好一個，現在指向的不是那一個。」

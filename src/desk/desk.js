@@ -307,6 +307,124 @@
     });
   }
 
+  // 音訊滑桿手動跳轉
+  const audioSeekerEl = document.getElementById('audioSeeker');
+  if (audioSeekerEl) {
+    audioSeekerEl.addEventListener('change', () => {
+      sendCmd('seek_absolute', { seconds: parseFloat(audioSeekerEl.value) || 0 });
+    });
+  }
+
+  // 字級拉桿連動
+  const fontSizeSliderEl = document.getElementById('fontSizeSlider');
+  const fontScaleDisplayEl = document.getElementById('fontScaleDisplay');
+  if (fontSizeSliderEl) {
+    fontSizeSliderEl.addEventListener('input', () => {
+      const val = parseFloat(fontSizeSliderEl.value) || 16;
+      if (fontScaleDisplayEl) fontScaleDisplayEl.textContent = `A+ ${val.toFixed(1)}px`;
+      sendCmd('adjust_font_size', { value: val });
+    });
+  }
+
+  // ==============================================================================
+  // 🎛️ 全域無頭解耦信令委派中樞 (Decoupled Action Dispatcher)
+  // 不依賴寫死 DOM ID，所有帶有 data-action 屬性之組件均可直接觸發信令！
+  // ==============================================================================
+  document.addEventListener('click', (e) => {
+    const actionEl = e.target.closest('[data-action]');
+    if (!actionEl) return;
+    const action = actionEl.getAttribute('data-action');
+    if (!action) return;
+
+    actionEl.classList.add('is-activating');
+    setTimeout(() => actionEl.classList.remove('is-activating'), 150);
+
+    switch (action) {
+      case 'play_pause':
+      case 'toggle_play':
+        sendCmd('toggle_play');
+        break;
+      case 'forward_10s':
+      case 'seek_fwd_10':
+        sendCmd('forward_10s');
+        break;
+      case 'forward_5s':
+      case 'seek_fwd':
+        sendCmd('forward_5s');
+        break;
+      case 'rewind_5s':
+      case 'seek_bwd':
+        sendCmd('rewind_5s');
+        break;
+      case 'rewind_10s':
+      case 'seek_bwd_10':
+        sendCmd('rewind_10s');
+        break;
+      case 'restart':
+      case 'stop':
+        sendCmd('restart');
+        break;
+      case 'prev_lesson':
+      case 'prev_lecture':
+        sendCmd('prev_lesson');
+        break;
+      case 'next_lesson':
+      case 'next_lecture':
+        sendCmd('next_lesson');
+        break;
+      case 'reload_lesson':
+        sendCmd('goto_lesson', { lessonNumber: lessonBadge ? lessonBadge.textContent.replace(/\D/g, '') : '0567' });
+        break;
+      case 'toggle_speech_mode':
+      case 'toggle_speech_lead':
+        sendCmd('toggle_speech_mode');
+        break;
+      case 'cycle_scroll_mode':
+      case 'toggle_scroll':
+        sendCmd('cycle_scroll_mode');
+        break;
+      case 'fullscreen':
+      case 'toggle_fullscreen':
+        sendCmd('toggle_fullscreen');
+        break;
+      case 'toggle_theme':
+        sendCmd('set_theme');
+        break;
+      case 'modal_prep_video':
+        sendCmd('modal_prep_video');
+        break;
+      case 'modal_migtsema':
+        sendCmd('modal_migtsema');
+        break;
+      case 'modal_dedication_video':
+        sendCmd('modal_dedication_video');
+        break;
+      case 'close_video':
+        sendCmd('modal_close');
+        break;
+      case 'set_speed':
+        const r = parseFloat(actionEl.dataset.value || actionEl.textContent) || 1.0;
+        sendCmd('set_playback_rate', { rate: r });
+        break;
+      case 'loop_interval':
+      case 'play_interval':
+        const start = parseFloat(selectIntervalStart ? selectIntervalStart.value : 0) || 0;
+        const end = parseFloat(selectIntervalEnd ? selectIntervalEnd.value : 0) || 0;
+        if (end > start) {
+          sendCmd('play_interval', { start, end, loop: true });
+        } else {
+          sendCmd('loop_current_paragraph');
+        }
+        break;
+      case 'loop_current_paragraph':
+        sendCmd('loop_current_paragraph');
+        break;
+      case 'stop_interval':
+        sendCmd('stop_interval');
+        break;
+    }
+  });
+
   // 起訖單元淡雅透明色彩切換
   const btnIntervalColor = document.getElementById('btnIntervalColor');
   const intervalRowWidget = document.getElementById('intervalRowWidget');
@@ -862,29 +980,60 @@
       statusBadge.textContent = '● 放映艙未連線 (點擊重連)';
       statusBadge.className = 'status-badge disconnected';
       statusBadge.title = '放映艙 CDP 尚未連通，點擊嘗試手動重新連線';
-      btnPlayPause.textContent = '▶';
-      btnPlayPause.classList.remove('playing');
+      const playGlyph = document.getElementById('playGlyph');
+      if (playGlyph) {
+        playGlyph.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      } else if (btnPlayPause) {
+        btnPlayPause.textContent = '▶';
+      }
+      if (btnPlayPause) btnPlayPause.classList.remove('playing');
     } else if (isPlaying) {
-      btnPlayPause.textContent = '⏸';
-      btnPlayPause.classList.add('playing');
+      const playGlyph = document.getElementById('playGlyph');
+      if (playGlyph) {
+        playGlyph.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      } else if (btnPlayPause) {
+        btnPlayPause.textContent = '⏸';
+      }
+      if (btnPlayPause) btnPlayPause.classList.add('playing');
       statusBadge.textContent = '● LIVE';
       statusBadge.className = 'status-badge live';
       statusBadge.title = '放映艙播映中，連線同步正常';
     } else {
-      btnPlayPause.textContent = '▶';
-      btnPlayPause.classList.remove('playing');
+      const playGlyph = document.getElementById('playGlyph');
+      if (playGlyph) {
+        playGlyph.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      } else if (btnPlayPause) {
+        btnPlayPause.textContent = '▶';
+      }
+      if (btnPlayPause) btnPlayPause.classList.remove('playing');
       statusBadge.textContent = '● 已同步';
       statusBadge.className = 'status-badge ready';
       statusBadge.title = '放映艙連線正常已同步';
     }
 
     // 碼表與倍速
-    ledClock.textContent = (state.currentTimeStr || '00:00') + ' / ' + (state.totalTimeStr || '00:00');
+    if (ledClock) {
+      ledClock.textContent = (state.currentTimeStr || '00:00') + ' / ' + (state.totalTimeStr || '00:00');
+    }
+    const timeElapsed = document.getElementById('timeElapsed');
+    if (timeElapsed && state.currentTimeStr) {
+      timeElapsed.textContent = `已播 ${state.currentTimeStr}`;
+    }
+    const timeRemaining = document.getElementById('timeRemaining');
+    if (timeRemaining && state.totalTimeStr) {
+      timeRemaining.textContent = `剩餘 ${state.totalTimeStr}`;
+    }
+    const audioSeeker = document.getElementById('audioSeeker');
+    if (audioSeeker && state.currentTimeSec !== undefined) {
+      audioSeeker.value = state.currentTimeSec;
+      if (state.totalDurationSec) audioSeeker.max = state.totalDurationSec;
+    }
+
     if (state.playbackRate) {
       speedBadge.textContent = `${state.playbackRate}x`;
-      btnRate10.classList.toggle('active', state.playbackRate === 1.0);
-      btnRate125.classList.toggle('active', state.playbackRate === 1.25);
-      btnRate15.classList.toggle('active', state.playbackRate === 1.5);
+      if (btnRate10) btnRate10.classList.toggle('active', state.playbackRate === 1.0);
+      if (btnRate125) btnRate125.classList.toggle('active', state.playbackRate === 1.25);
+      if (btnRate15) btnRate15.classList.toggle('active', state.playbackRate === 1.5);
     }
 
     // 全螢幕狀態同步至設定艙
@@ -899,16 +1048,28 @@
       if (btnFontCycle) {
         btnFontCycle.textContent = `🔤 ${currentFontSize}px`;
       }
+      const fontScaleDisplay = document.getElementById('fontScaleDisplay');
+      if (fontScaleDisplay) {
+        fontScaleDisplay.textContent = `A+ ${Number(state.fontSize).toFixed(1)}px`;
+      }
+      const fontSizeSlider = document.getElementById('fontSizeSlider');
+      if (fontSizeSlider && Math.abs(parseFloat(fontSizeSlider.value) - state.fontSize) > 0.4) {
+        fontSizeSlider.value = state.fontSize;
+      }
     }
 
-    // 講次標題
+    // 講次標題與編號
     if (state.lessonNumber || state.lessonTitle) {
-      lessonBadge.textContent = state.lessonNumber ? `第 ${state.lessonNumber} 講` : state.lessonTitle;
+      const num = state.lessonNumber || (state.lessonTitle ? state.lessonTitle.replace(/\D/g, '') : '');
+      const padNum = /^\d+$/.test(num) ? num.padStart(4, '0') : num;
+      if (lessonBadge) lessonBadge.textContent = padNum ? `第 ${padNum} 講` : state.lessonTitle;
+      const quickNum = document.getElementById('lessonQuickNum');
+      if (quickNum && padNum) quickNum.textContent = padNum;
     }
 
     // 提詞機
     if (state.currentSubtitle && state.currentSubtitle.trim()) {
-      prompterText.textContent = state.currentSubtitle;
+      if (prompterText) prompterText.textContent = state.currentSubtitle;
     }
 
     // 捲動模式：狀態直接顯示於按鈕，手動為淡色，持續/區段為深色
