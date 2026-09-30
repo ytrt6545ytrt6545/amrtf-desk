@@ -58,27 +58,27 @@ describe('🌙 廣海明月 · Studio Control Desk 奢華操作艙功能與合�
   test('✅ [Moonlight-1] /moonlight 路由必須返回 HTTP 200 且包含正確頁面標題與暗色主題', async () => {
     const res = await fetchHttp(`http://127.0.0.1:${TEST_PORT}/moonlight`);
     assert.strictEqual(res.statusCode, 200, 'HTTP 狀態碼應為 200');
-    assert.ok(res.body.includes('廣海明月 · 大慈恩譯經基金會 Studio Control Desk'), '應包含廣海明月大慈恩主控艙標題');
+    assert.ok(res.body.includes('AMRTF Moonlight Ocean Studio Desk'), '應包含廣海明月夜海主控艙標題');
     assert.ok(res.body.includes('class="dark"'), '應預設載入 dark 暗色奢華風格');
-    assert.ok(res.body.includes('Clear Moonlight Great Ocean Broadcast Master Station'), '應包含英文字樣');
+    assert.ok(res.body.includes('廣海明月奢華操作艙'), '應包含廣海明月字樣');
   });
 
-  test('✅ [Moonlight-2] 頁面必須完整包含 32 鍵戰術矩陣 (Tactical Matrix 32 Channels)', async () => {
+  test('✅ [Moonlight-2] 頁面必須完整包含 24 欄廣播網格與專業狀態指標 (ON AIR / NDI / TIMECODE)', async () => {
     const res = await fetchHttp(`http://127.0.0.1:${TEST_PORT}/moonlight`);
-    assert.ok(res.body.includes('Broadcast Channel Matrix (32 Ch)'), '應包含 32 軌戰術矩陣標題');
-    assert.ok(res.body.includes('皈依頌'), '應包含第 1 軌皈依頌');
-    assert.ok(res.body.includes('淨口業真言'), '應包含第 32 軌淨口業真言');
-    assert.ok(res.body.includes('ch-card-1'), '應包含 ch-card-1 元素 ID');
-    assert.ok(res.body.includes('ch-card-32'), '應包含 ch-card-32 元素 ID');
+    assert.ok(res.body.includes('AMRTF TACTICAL DESK 24-COL'), '應包含 24 欄戰術操作艙宣告');
+    assert.ok(res.body.includes('ON AIR'), '應包含 ON AIR Tally 指示標記');
+    assert.ok(res.body.includes('NDI 1080p60 SYNC'), '應包含 NDI 廣播同步標記');
+    assert.ok(res.body.includes('id="timecodeLed"'), '應包含 TIMECODE 碼表 LED 元素 ID');
+    assert.ok(res.body.includes('id="tallyIndicator"'), '應包含 Tally 指示燈元素 ID');
   });
 
-  test('✅ [Moonlight-3] 必須具備雙向切換開關、即時字幕手抄稿卡片與音訊波形視覺化器', async () => {
+  test('✅ [Moonlight-3] 必須具備雙向切換開關、法音提詞機、主音軌示波器、VU 表與 ALL-KILL 靜音巨鍵', async () => {
     const res = await fetchHttp(`http://127.0.0.1:${TEST_PORT}/moonlight`);
-    assert.ok(res.body.includes('btnClassicDesk'), '應包含切換回經典主控台之按鈕');
-    assert.ok(res.body.includes('sub-zh-text'), '應包含即時經文/手抄稿字幕元素 ID');
-    assert.ok(res.body.includes('waveform-bars'), '應包含音訊波形律動容器 ID');
-    assert.ok(res.body.includes('elapsed-timer'), '應包含累計碼表計時器 ID');
-    assert.ok(res.body.includes('remaining-timer'), '應包含剩餘時間計時器 ID');
+    assert.ok(res.body.includes('id="btnClassicDesk"'), '應包含切換回經典主控台之按鈕');
+    assert.ok(res.body.includes('id="prompterText"'), '應包含即時法音提詞機文字元素 ID');
+    assert.ok(res.body.includes('id="masterPlayBtn"'), '應包含主音軌核心播放按鍵 ID');
+    assert.ok(res.body.includes('id="audioRange"'), '應包含進度尋軌滑桿元素 ID');
+    assert.ok(res.body.includes('id="btnAllKillMute"'), '應包含 ALL-KILL MUTE 緊急靜音紅按鈕 ID');
   });
 
   test('✅ [Moonlight-4] /moonlight.js 客戶端引擎必須成功載入且無語法錯誤', async () => {
@@ -87,5 +87,6 @@ describe('🌙 廣海明月 · Studio Control Desk 奢華操作艙功能與合�
     assert.ok(res.body.includes('Moonlight Client Engine'), '應包含客戶端引擎註解');
     assert.ok(res.body.includes('strikeMoonlightBell'), '應包含 528Hz 西藏銅鐘合成演算法');
     assert.ok(res.body.includes('connectWebSocket'), '應包含 WebSocket 全雙工連線邏輯');
+    assert.ok(res.body.includes('sendMoonlightCmd'), '應包含信令發送介面');
   });
 });

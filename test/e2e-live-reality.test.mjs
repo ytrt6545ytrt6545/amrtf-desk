@@ -570,5 +570,51 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
 
     console.log('   📌 Firebase 雲端純掃碼中繼、多房間隔離與主控台雙軌 QR Modal 已通過端到端真機驗證！');
   });
+
+  test('✅ [E2E-12] 主控台點擊「🌙 明月」按鈕必須真實跳轉至真·明月操作艙 (real-master-desk) 並截圖存證', async () => {
+    if (deskCdp && deskCdp.isConnected) {
+      // 1. 質檢官動滑鼠：實體點擊主控台頂部的「🌙 明月」按鈕
+      console.log('   🖱️ [Guardian 質檢官試車] 正在實體點擊 #btnMoonlightToggle (🌙 明月)...');
+      await deskCdp.eval(`document.getElementById('btnMoonlightToggle').click()`);
+      await new Promise((r) => setTimeout(r, 1200));
+
+      // 2. 驗證跳轉後頁面 URL 與真實 DOM 結構
+      const pageInfo = await deskCdp.eval(`
+        (function() {
+          return {
+            url: location.href,
+            title: document.title,
+            hasTally: !!document.getElementById('tallyIndicator'),
+            hasTimecode: !!document.getElementById('timecodeLed'),
+            hasPlayBtn: !!document.getElementById('masterPlayBtn'),
+            hasPrompter: !!document.getElementById('prompterText'),
+            hasClassicBtn: !!document.getElementById('btnClassicDesk'),
+            hasAllKillMute: !!document.getElementById('btnAllKillMute')
+          };
+        })()
+      `);
+      console.log('   🔍 [E2E-12 Info] 明月操作艙真機狀態:', JSON.stringify(pageInfo));
+      assert.ok(pageInfo.url.includes('/moonlight'), '點擊後網址必須成功切換至 /moonlight');
+      assert.strictEqual(pageInfo.hasTally, true, '必須具備 ON AIR Tally 指示燈');
+      assert.strictEqual(pageInfo.hasTimecode, true, '必須具備 TIMECODE 碼表 LED');
+      assert.strictEqual(pageInfo.hasPlayBtn, true, '必須具備中央主音軌核心播放按鍵');
+      assert.strictEqual(pageInfo.hasPrompter, true, '必須具備法音提詞機');
+      assert.strictEqual(pageInfo.hasClassicBtn, true, '必須具備切換回經典主控台按鈕');
+      assert.strictEqual(pageInfo.hasAllKillMute, true, '必須具備 ALL-KILL MUTE 緊急靜音巨鈕');
+
+      // 3. 實體捕獲長官做好的真·明月操作艙快照存證
+      const snap = await deskCdp.captureScreenshot();
+      if (snap) {
+        const snapPath = path.join(artifactsDir, 'e2e-moonlight-real-master-desk.png');
+        fs.writeFileSync(snapPath, Buffer.from(snap, 'base64'));
+        console.log(`   📸 [Screenshot-Evidence] 長官真·明月操作艙實體視覺快照已存檔: ${snapPath}`);
+      }
+
+      // 4. 點擊「經典主控」返回經典操作台保持環境一致
+      await deskCdp.eval(`document.getElementById('btnClassicDesk').click()`);
+      await new Promise((r) => setTimeout(r, 1000));
+      console.log('   📌 點擊「🌙 明月」跳轉真·明月操作艙與「經典主控」往返切換已通過真機閉環驗證！');
+    }
+  });
 });
 

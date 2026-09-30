@@ -4,6 +4,31 @@
 
 ## 專案歷史與踩坑避雷手冊
 
+### 亮點 132：明月按鈕修正回歸 · 實裝真·明月奢華操作艙 (`real-master-desk`) ＋ 質檢官動滑鼠真機點擊與雙向切換閉環
+* **長官現場反饋與銳利指出**：
+  - 「明月按鈕是錯的，我們之前有做好一個，現在指向的不是那一個。」
+  - 「將明月操作艙修正指向至長官做好的真·明月版本（real-master-desk）。」
+* **現場物證排查與深層避坑 (Root Cause Analysis)**：
+  - **先前盲區**：先前 `/moonlight` 路由回傳的是早期方案 B 的舊版 32 軌梵唄真言模板（`src/desk/moonlight.html`），非長官與助手精心打磨的導播台。
+  - **真機版本鎖定**：長官做好的「真·明月操作艙」為 `design/real-master-desk.html`，具備 ON AIR Tally 紅綠燈、NDI 1080p60 SYNC、TIMECODE 碼表、講次索引（第 0567 講）、法音提詞機、實時示波器／動態波形條、立體聲雙軌 VU 表、增益微調與巨型 ALL-KILL MUTE 緊急靜音紅鍵。
+* **深模組架構重構與信令接通**：
+  1. **頁面升級替換 (`src/desk/moonlight.html`)**：
+     - 正式將 `design/real-master-desk.html` 移轉升級為正式版 `moonlight.html`（舊版備份至 `moonlight-legacy-32ch.html`）；
+     - 解決小螢幕擠壓破版：強制鎖定 24 欄橫向廣播網格（7 + 11 + 6 欄），絕不在低解析度下垂直斷行擠壓；
+     - 修正 Google Fonts Material Symbols 連字號渲染，強制 `-webkit-font-feature-settings: 'liga'` 確保圖示完美無瑕。
+  2. **全雙工 WebSocket 信令與聲學引擎全面接通 (`src/desk/moonlight.js`)**：
+     - 雙向即時同步：講次跳轉（`goto_lesson`, `prev_lecture`, `next_lecture`）、時間進度尋軌（`seek`）、播控（`play_pause`, `stop`）、AB 區間循環、播稿/持續模式；
+     - 實體聲學合成：整合 528Hz 西藏清淨月光銅鐘真音（Web Audio API 四重金屬泛音演算法）；
+     - 動態 VU 表與波形模擬：隨播放狀態活躍跳動，暫停時自動衰減至 -∞ dB。
+  3. **質檢官動滑鼠改動導向驗收 (`[E2E-12]`)**：
+     - 新增 `[E2E-12]` 真機端到端測試，CDP 實機點擊主控台頂部 `#btnMoonlightToggle`（🌙 明月）；
+     - 斷言網址精確切換至 `/moonlight`，且真實 DOM 具備 Tally、Timecode、PlayBtn、Prompter、AllKillMute 等關鍵元件；
+     - 實體捕獲真機視覺快照存證：`test/artifacts/e2e-moonlight-real-master-desk.png`；
+     - 點擊「經典主控」安全返回經典雙視窗，往返流暢無阻。
+* **唯一合法裁判標準驗證（Single Source of Test Truth · npm test）**：
+  - 執行全域標準測試指令：`npm test`；
+  - 判定結果：**6 大測試套件、40 項測試 100% 全綠 PASS（Exit Code: 0）**！
+
 ### 亮點 131：AMRTF-Desk 四區塊精煉核心準則 (`PROJECT_RULES.md`) 與質檢官「改哪點哪」動態點擊驗收機制確立
 * **長官指示與需求核心**：
   - 規則檔不宜又臭又長，切分成 4 個核心區塊；
