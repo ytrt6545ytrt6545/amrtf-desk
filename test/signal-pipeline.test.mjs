@@ -73,12 +73,15 @@ describe('🛰️ AMRTF 全鏈路信令合約與穿透性端到端閉環測試',
     const auditScript = path.join(projectRoot, 'scripts', 'audit-signals.mjs');
     assert.ok(fs.existsSync(auditScript), 'audit-signals.mjs 必須存在');
 
-    // 讀取前端與後端檔案檢查
+    // 讀取前端與後端檔案檢查 (支援抽出至 public/remote.html 之架構)
+    const remoteHtmlPath = path.join(projectRoot, 'public', 'remote.html');
     const webRemoteContent = fs.readFileSync(path.join(projectRoot, 'src', 'server', 'web-remote.js'), 'utf8');
+    const remoteHtmlContent = fs.existsSync(remoteHtmlPath) ? fs.readFileSync(remoteHtmlPath, 'utf8') : '';
     const serverContent = fs.readFileSync(path.join(projectRoot, 'server.mjs'), 'utf8');
 
     // 驗證關鍵信令存在
-    assert.ok(webRemoteContent.includes("'goto_lesson'"), 'web-remote.js 必須包含 goto_lesson 信令');
+    const hasGotoLesson = webRemoteContent.includes("'goto_lesson'") || remoteHtmlContent.includes("'goto_lesson'");
+    assert.ok(hasGotoLesson, '前端遙控介面必須包含 goto_lesson 信令');
     assert.ok(serverContent.includes("cmd === 'goto_lesson'"), 'server.mjs 必須處理 goto_lesson');
     assert.ok(serverContent.includes("cmd === 'load_lecture'"), 'server.mjs 必須相容 load_lecture');
   });

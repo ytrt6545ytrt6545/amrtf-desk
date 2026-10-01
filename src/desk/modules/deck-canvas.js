@@ -177,21 +177,12 @@
   function setMode(mode) {
     currentMode = mode;
     const body = document.body;
-    const editToggleBtn = document.getElementById('btnEditLayoutToggle');
 
     if (mode === 'edit') {
       body.classList.add('mode-custom-editing');
-      if (editToggleBtn) {
-        editToggleBtn.innerHTML = '💾 完成儲存';
-        editToggleBtn.classList.add('active-editing');
-      }
       if (drawerContainer) drawerContainer.classList.add('show');
     } else {
       body.classList.remove('mode-custom-editing');
-      if (editToggleBtn) {
-        editToggleBtn.innerHTML = '🛠️ 編輯佈局';
-        editToggleBtn.classList.remove('active-editing');
-      }
       if (drawerContainer) drawerContainer.classList.remove('show');
       closeSizePicker();
       if (window.DeckStorage && currentLayout) {

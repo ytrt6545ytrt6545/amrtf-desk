@@ -557,7 +557,7 @@ const server = http.createServer((req, res) => {
 
   if (url === '/api/info') {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-    res.end(JSON.stringify({ lanIp: getLanIPv4(), port: 9998 }));
+    res.end(JSON.stringify({ lanIp: getLanIPv4(), port: 9998, latestCommand: latestDispatchedCommand }));
     return;
   }
 
@@ -659,11 +659,14 @@ function broadcastToDesk(state) {
   }
 }
 
+let latestDispatchedCommand = { cmd: '', params: {}, timestamp: 0 };
+
 // 4. 跨端信令調度中樞
 function dispatchCommand(cmd, params = {}) {
   const timestamp = new Date().toLocaleTimeString('zh-TW', { hour12: false });
   const paramStr = Object.keys(params).length > 0 ? JSON.stringify(params) : '(無參數)';
   console.log(`📡 [${timestamp} 實機信令哨兵] 收到指令: 【${cmd}】`, paramStr);
+  latestDispatchedCommand = { cmd, params, timestamp: Date.now() };
 
   // ✈️ 黑匣子日誌記錄器：同步寫入 logs/live-telemetry.log 供即時監聽分析
   try {
@@ -838,7 +841,8 @@ server.listen(9998, '0.0.0.0', async () => {
     '--no-default-browser-check',
     '--disable-background-mode',
     '--disable-features=msStartupBoost',
-    '--no-first-run'
+    '--no-first-run',
+    '--autoplay-policy=no-user-gesture-required'
   ], { detached: true, stdio: 'ignore' });
   deskProcess.unref();
 

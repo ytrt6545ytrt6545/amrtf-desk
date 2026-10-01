@@ -375,7 +375,7 @@
     const audio = getAudio();
     const currentTime = audio ? audio.currentTime : 0;
     const duration = audio && !isNaN(audio.duration) ? audio.duration : 0;
-    const isPlaying = audio ? !audio.paused && !audio.ended && audio.currentTime > 0 : false;
+    const isPlaying = audio ? !audio.paused && !audio.ended : false;
     const playbackRate = audio ? audio.playbackRate : 1.0;
 
     const isLight = document.body.classList.contains('amec_theme') ||
@@ -710,7 +710,17 @@
     // 3. 原生 HTML5 audio 備援
     const audio = getAudio();
     if (audio && audio.paused) {
-      audio.play().catch(() => {});
+      const playPromise = audio.play().catch((err) => {
+        console.error('[AMRTF-Desk] 播放失敗:', err.name, err.message);
+        showActionHud('▶️ 播放受阻: ' + (err.name === 'NotAllowedError' ? '請點擊視窗解除靜音限制' : err.message), 'error');
+        notifyStateUpdate();
+        return err;
+      });
+      window.__AMRTF_LAST_PLAY_PROMISE__ = playPromise;
+      playPromise.then((res) => {
+        delete window.__AMRTF_LAST_PLAY_PROMISE__;
+        notifyStateUpdate();
+      });
     }
   }
 
@@ -1158,6 +1168,8 @@
   window.__AMRTF_EXECUTE_COMMAND__ = function (rawCmd, params = {}) {
     const audio = getAudio();
     const cmd = COMMAND_NORMALIZE_MAP[rawCmd] || rawCmd;
+    window.__AMRTF_LAST_COMMAND__ = { cmd, rawCmd, params, timestamp: Date.now() };
+    window.__AMRTF_GET_LOOP_CONFIG__ = () => loopConfig;
 
     switch (cmd) {
       case 'toggle_play':
@@ -1388,10 +1400,12 @@
           const step = parseFloat(fontSlider.step) || 1;
           const currentSize = parseFloat(fontSlider.value) || 16;
 
-          if (typeof params.value === 'number') {
-            newSize = params.value;
+          if (params.value !== undefined && !isNaN(parseFloat(params.value))) {
+            newSize = parseFloat(params.value);
+          } else if (params.delta !== undefined && !isNaN(parseFloat(params.delta))) {
+            newSize = currentSize + parseFloat(params.delta);
           } else {
-            const delta = params.delta || (step * 1.5);
+            const delta = step * 1.5;
             newSize = currentSize + delta;
           }
 

@@ -23,6 +23,9 @@
 * **深模組與狀態單一真理（Simple Interface, Deep Implementation）**：
   * 全域狀態統一掛載於 Store 根節點，嚴禁散落局部 useState。
   * 所有硬體通訊包裝為極簡 Action 介面，內部封裝封包序列化、錯誤重試與隊列合併。
+* **介面與邏輯物理解耦鐵律（對標 ui-logic-decoupling.md）**：
+  * **View 層零業務邏輯**：HTML/DOM 監聽器僅做事件轉發（Action Dispatch）與純狀態渲染（$UI = f(State)$），嚴禁混入業務算術、倒數計時計算或網路通訊。
+  * **Logic 層零 DOM 依賴**：核心狀態機、OSC 協議包裝與信令客戶端強制為純 JavaScript 類別/函數，物理嚴禁引用 `document` / `window`，保證 100% 在 Headless Node.js 單元測試中秒級跑通。
 
 ---
 

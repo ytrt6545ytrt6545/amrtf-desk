@@ -77,7 +77,7 @@ async function runE2E() {
         mode: window.DeckCanvas.getMode(),
         hasAmberBorder: document.body.classList.contains('mode-custom-editing'),
         drawerShown: document.getElementById('deckDrawerContainer').classList.contains('show'),
-        toggleBtnText: document.getElementById('btnEditLayoutToggle').innerText
+        toggleBtnText: document.getElementById('btnEditLayoutToggle')?.innerText || ''
       };
     })()`,
     returnByValue: true

@@ -20,6 +20,7 @@ const projectRoot = path.resolve(__dirname, '..');
 // 檔案路徑清單
 const FILES = {
   webRemote: path.join(projectRoot, 'src', 'server', 'web-remote.js'),
+  remoteHtml: path.join(projectRoot, 'public', 'remote.html'),
   mobileDrawer: path.join(projectRoot, 'src', 'desk', 'modules', 'mobile-studio-drawer.js'),
   deskJs: path.join(projectRoot, 'src', 'desk', 'desk.js'),
   companionBridge: path.join(projectRoot, 'src', 'server', 'companion-bridge.js'),
@@ -64,8 +65,11 @@ function runAudit() {
   // 1. 抽取所有前端發送端的信令
   const senders = [];
 
-  // (1) web-remote.js 中的 sendCommand('...')
+  // (1) web-remote.js 與 public/remote.html 中的 sendCommand('...')
   senders.push(...extractSignalsWithLocation(FILES.webRemote, [
+    /sendCommand\(\s*['"]([^'"]+)['"]/g
+  ]));
+  senders.push(...extractSignalsWithLocation(FILES.remoteHtml, [
     /sendCommand\(\s*['"]([^'"]+)['"]/g
   ]));
 

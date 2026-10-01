@@ -4,6 +4,56 @@
 
 ## 專案歷史與踩坑避雷手冊
 
+### 亮點 135：長官最高指示「介面與程式邏輯一定要解耦」· 全域憲法定稿 · 0-DOM Headless 測試四重硬鎖閉環
+* **長官現場指導與嚴格要求**：
+  - 「我希望以後寫程式 介面與程式邏輯一定要解耦 你要如何才會做到」
+  - 「請開始動手」
+* **根本問題診斷與解耦戰略 (Separation of Concerns)**：
+  1. **病灶本質**：傳統前端開發極易將業務狀態計算、網路請求與計時器直接混雜在 DOM 點擊事件內，造成三大惡果：(1) 無瀏覽器無法做單元測試；(2) 微調 HTML/CSS 容易連帶破壞業務；(3) 邏輯無法跨端（CLI / Node / Flutter）複用。
+  2. **兩大陣營嚴禁越界**：
+     - **介面層 (View)**：純為狀態之投影（$UI = f(State)$），僅負責捕獲操作發射語意化 Action 與純狀態更新，嚴禁私藏業務狀態或進行複雜算術。
+     - **邏輯層 (Logic)**：純領域服務與無頭狀態機，物理嚴禁引用任何 DOM API（絕無 `document.*`、`window.*`、`HTMLElement`），保證可在純 Node.js 環境中無頭秒級跑測試。
+* **工程落地與四重硬鎖實裝 (Implementation & Artifacts)**：
+  1. **全域最高憲法寫入**：於 [AGENTS.md](file:///d:/AI-made/AGENTS.md) 與 [GEMINI.md](file:///d:/AI-made/GEMINI.md) 第 4 節正式增列「介面與邏輯絕對物理解耦鐵律」，並在第 5 節掛載指針矩陣；
+  2. **知識中樞專屬概念文件編譯**：建立 [ui-logic-decoupling.md](file:///d:/AI-made/knowledge-hub/concepts/ui-logic-decoupling.md)，並成功編譯全域索引地圖 [INDEX.md](file:///d:/AI-made/knowledge-hub/INDEX.md)（共 30 篇詞條）；
+  3. **專案執行準則同步**：更新 [PROJECT_RULES.md](file:///d:/AI-made/projects/amrtf-desk/PROJECT_RULES.md) 區塊 2 架構準則；
+  4. **全自動硬鎖測試套件沉澱**：編寫 [test/ui-logic-decoupling.test.mjs](file:///d:/AI-made/projects/amrtf-desk/test/ui-logic-decoupling.test.mjs)，包含 0-DOM 靜態代碼審查、純無頭 Node.js 隔離載入斷言與純狀態投影函數測試；
+  5. **標準裁判 Exit Code 0 驗收**：執行專案標準 `npm test`，全套件 7 大 Suite 48 項測試 100% 全綠通過（Exit Code 0）。
+
+### 亮點 134：播放失靈根本原因刨出 · 雙重觸發阻斷與 250ms 物理防抖 · 雙機雙核播放走帶四重硬鎖閉環 (`[E2E-13]`)
+* **長官現場反饋與銳利提問**：
+  - 「最重要的撥放 就有問題 怎麼會過測試呢 請找出原因 我是說沒測出問題的原因」
+  - 「如何讓測試正常化？這次質檢官請誰做的 antigravity還是open code？為什麼這些事 不能請open code做 非要自己做 我對你不信任了」
+  - 「允許 除錯交給 open code之後 還要試行 調整 如何除錯比較合理 有沒有缺工具 等等 先做再來調整」
+  - 「照上述步驟 1 與步驟 2 開始動手試行」
+* **特遣質檢官（OpenCode 4096）全鏈路紅隊審計與根本原因刨出 (Root Cause Analysis)**：
+  1. **播放失靈的根本原因（雙重觸發 Double-Fire）**：
+     - 在 `src/desk/index.html` 的中央播放按鍵帶有 `id="btnPlayPause"` 與 `data-action="play_pause"`；
+     - 歷史代碼在 `src/desk/desk.js` 中既保留了早期直接監聽 `btnPlayPause.addEventListener('click', () => sendCmd('toggle_play'))`，又在解耦委派中樞 `document.addEventListener('click', ...)` 綁定了 `case 'play_pause': sendCmd('toggle_play')`；
+     - 每次使用者點擊一次按鍵，瀏覽器在 1ms 內瞬間連續發射了兩次 `toggle_play`（Play ➔ Pause 立即撤回）；
+     - Chromium 核心直接拋出 `DOMException: The play() request was interrupted by a call to pause()`，而該報錯被 `amrtf-runtime.js` 中的 `.catch(() => {})` 靜音吞噬，造成前端看似有按、後端看似有收，但音訊根本沒放！
+  2. **測試為什麼沒測出來的盲點根因（Mock 假象與開環盲審）**：
+     - 先前的 audit 腳本僅以「是否有 WS COMMAND 信號送出」作為測試判決標準，完全沒有檢驗放映艙 `<audio>` 的 `paused` 狀態，更沒有檢驗走帶時間差（$\Delta t > 0$）與主控台圖示實質形變（$\Delta \text{SVG} \neq 0$）；
+     - 典型的「開環跑分自嗨」，導致嚴重的實體功能失效被綠燈掩蓋。
+* **深模組實裝與防禦性試行調整 (Engineering Implementation)**：
+  1. **發射端徹底拔除重複監聽與 250ms 物理防抖硬鎖 (`src/desk/desk.js`)**：
+     - 徹底拔除 `btnPlayPause` 等實體按鍵的直接 `addEventListener('click')`，全數收斂至宣告式 `[data-action]` 委派中樞；
+     - 在 `sendCmd` 注入 250ms 物理防抖硬鎖，同一切換型信令（`toggle_play`, `restart`, `cycle_scroll_mode` 等）在 250ms 內連續重複進來時一律硬阻斷，徹底杜絕硬體連擊與雙重觸發。
+  2. **執行端播放判定修復與錯誤透明化 (`src/injected/amrtf-runtime.js`)**：
+     - 修正 `isPlaying` 判定，移除錯誤的 `&& audio.currentTime > 0` 條件，使 00:00 初始起點播放能立即被正確感知；
+     - `doPlay()` 拋棄靜默吞錯，遭遇播放異常時自動發布 `playError` 廣播並立即排程同步狀態；
+     - 加強 `adjust_font_size` 參數型別解析防禦性，確保指定 `value` 永遠優先於增量 `delta`。
+  3. **雙機雙核真機播放走帶四重硬鎖閉環 (`test/e2e-live-reality.test.mjs` - `[E2E-13]`)**：
+     - 建立真實雙向 CDP 閉環硬斷言：
+       1. 主控台 CDP 點擊 `#btnPlayPause`；
+       2. 放映艙真機實體斷言：`audio.paused === false` 且音訊時間真實遞增（現場實測 `currentTime: 0.027294s`，$\Delta t > 0$）；
+       3. 主控台 DOM 實體形變斷言：`#playGlyph` 必須切換為雙豎線 Pause SVG（`hasPauseSvg: true`，$\Delta \neq 0$），狀態燈必須帶有 `.live` class；
+       4. 再次點擊 `#btnPlayPause`，放映艙實體斷言：`audio.paused === true`，主控台 `#playGlyph` 切回 Play 三角形 SVG。
+* **唯一合法裁判標準驗證（Single Source of Test Truth · npm test）**：
+  - 執行全域標準測試指令：`npm test`；
+  - 判定結果：**6 大測試套件、41 項測試 100% 全綠 PASS（Exit Code: 0，耗時 30.2 秒）**！
+
+
 ### 亮點 133：Stitch 精雕雙模操作艙正式升格為主面板皮膚 · 頁首明月移除 · 宣告式信令解耦與雙皮膚互換閉環
 * **長官現場反饋與明確指示**：
   - 「你找到的這兩個 是stitch做的 我們自己修改後的版本 是當主要面板的兩種皮膚」
@@ -1074,3 +1124,30 @@
   4. **實機真實物證驗證**：
      - 在第 0566 講實機測試，開機自律哨精準啟動 `checked: true`；
      - 發送 `toggle_speech_mode` 精準切換為 `checked: false`；再次點擊精準切換回 `checked: true`，100% 完全恢復正常！
+
+---
+
+### 亮點 101：全系統 36 顆實體按鍵 Live Reality 真機物理硬鎖全面覆蓋、Guardian 質檢官紅隊極限抓蟲退回與深度自癒閉環（通過終審）
+* **研發背景與長官審查**：
+  - 長官提問：「每一個按鈕，質檢官 (open code) 都按過記錄過嗎？所以每一個按紐都正常嗎？」
+  - Antigravity 首席架構師誠實呈報：否！先前只有 10 顆核心按鈕衝破 CDP 真機點擊與 DOM 形變硬鎖，其餘 26 顆按鈕僅具備 AST 信號靜態契約測試。長官即刻指示「同意」全面補齊物理硬鎖並由特遣質檢官獨立盲測。
+* **深模組架構擴充與現場阻礙突破**：
+  1. **可尋軌音訊 Fixture 演進**：Chromium 對 Web Audio Live Stream 禁止變更 `currentTime`，改於記憶體 2ms 內動態編碼 600 秒 8000Hz 8-bit mono WAV Blob URL，賦予放映艙完整可尋軌能力；
+  2. **信號快照秒級取證中樞**：在 `server.mjs` 新增 `latestDispatchedCommand` 快照並於 `/api/info` 開放，徹底解決導航跳轉時頁面沖刷放映艙記憶之物證斷層；
+  3. **實裝 E2E-14 ~ E2E-17 四組真機物理硬鎖**：
+     - `[E2E-14]`：走帶矩陣 (+10s/+5s/-5s/-10s/急煞歸零) 與三段倍速 (1.25x/1.5x/1.0x)；
+     - `[E2E-15]`：講次導航 (上一講/下一講/重載本講)；
+     - `[E2E-16]`：研討區間循環、段落微循環與釋放循環；
+     - `[E2E-17]`：法會影音三巨鍵 (前行/密集嘛/迴向)、全螢幕特權切換與 Mini 視窗折疊；
+* **Guardian 質檢官首輪極限抓蟲（果斷退回）**：
+  - Guardian 執行 6 次獨立測試，抓出 3 次失敗（失敗率 50%），果斷判定「❌ 有條件退回」：
+    1. **P0 700ms 盲猜競態**：`E2E-13` 用固定 700ms sleep 猜時機，遇系統負載時主控台 `#playGlyph` 尚未變為雙豎線即斷言導致報紅；
+    2. **P0 靜默跳過假綠**：CDP 未連線時測試直接 `return`，被 node:test 誤判為 pass；
+    3. **P1 死代碼殘留**：`desk.js` 與 `deck-canvas.js` 仍留存已廢棄之 `#btnEditLayoutToggle` 宣告；
+* **深模組全面重構與自癒閉環**：
+  1. **輪詢機制消滅競態**：引入 `waitForCondition(evalFn, 5000, 100)`，回授一抵達立即放行，徹底消滅盲猜 sleep；
+  2. **物理硬斷言防假綠**：在 `before()` 嚴格執行 `assert.ok(screenConnected)` 與 `assert.ok(deskConnected)`，連線失敗立即全域報紅停機；
+  3. **死代碼零容忍清洗**：全樹徹底清除 `#btnEditLayoutToggle` 殘留與測試地雷；
+* **Guardian 第二輪盲測終審裁決**：
+  - Guardian 再次以獨立 Session 深入檢驗，45/45 全量測試全綠，Exit Code 0，耗時 30.8 秒；
+  - 簽署最終戰報：**「✅ 通過（Pass）— 前輪退回之 P0 與 P1 缺陷已實質修復，本專案具備可交付之確定性」**！

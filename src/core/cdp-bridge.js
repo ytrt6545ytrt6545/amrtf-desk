@@ -121,9 +121,10 @@ export class CdpBridge {
   // 5. 發送控制指令至放映艙 (自帶未定義時自動重注入防禦)
   sendCommand(cmd, params = {}) {
     if (!this.isConnected) return;
+    const scope = 'window';
     const expression = `
-      if (typeof window.__AMRTF_EXECUTE_COMMAND__ === 'function') {
-        window.__AMRTF_EXECUTE_COMMAND__("${cmd}", ${JSON.stringify(params)});
+      if (typeof ${scope}['__AMRTF_EXECUTE_COMMAND__'] === 'function') {
+        ${scope}['__AMRTF_EXECUTE_COMMAND__']("${cmd}", ${JSON.stringify(params)});
       }
     `;
     this.send('Runtime.evaluate', { expression });

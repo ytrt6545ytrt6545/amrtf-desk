@@ -33,7 +33,17 @@ function fetchHttp(url, options = {}) {
   });
 }
 
-describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢驗', { timeout: 35000 }, () => {
+async function waitForCondition(evalFn, maxWaitMs = 5000, intervalMs = 100) {
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    const res = await evalFn();
+    if (res) return res;
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  return await evalFn();
+}
+
+describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢驗', { timeout: 90000 }, () => {
   let serverProcess = null;
   let screenCdp = null;
   let deskCdp = null;
@@ -81,9 +91,16 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
 
     const screenConnected = await screenCdp.connect(20);
     console.log(`[E2E] 放映艙 CDP 連線: ${screenConnected ? '✅ 成功' : '⚠️ 逾時'}`);
+    assert.ok(screenConnected, '放映艙 CDP 必須成功連線 (Port 9222)');
 
     const deskConnected = await deskCdp.connect(20);
     console.log(`[E2E] 主控台 CDP 連線: ${deskConnected ? '✅ 成功' : '⚠️ 逾時'}`);
+    assert.ok(deskConnected, '主控台 CDP 必須成功連線 (Port 9223)');
+
+    if (deskConnected) {
+      await deskCdp.send('Page.reload');
+      await new Promise((r) => setTimeout(r, 1200));
+    }
   });
 
   after(async () => {
@@ -618,6 +635,295 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
       }
       console.log('   📌 主控台頁首明月按鈕移除確認與 Stitch 奢華黑白雙皮膚結構已通過真機閉環驗證！');
     }
+  });
+
+  test('✅ [E2E-13] 雙機雙核真機播放與走帶硬鎖閉環 (Dual-Node Live Reality Playback Quad-Lock)', async () => {
+    if (!deskCdp || !deskCdp.isConnected || !screenCdp || !screenCdp.isConnected) {
+      console.log('   ⚠️ 雙機 CDP 未全數掛載，跳過實體播放硬鎖測試');
+      return;
+    }
+
+    // 0. 確保放映艙具備可播放之音訊環境
+    const audioReady = await screenCdp.eval(`
+      (function() {
+        let a = document.querySelector('audio');
+        if (!a) {
+          a = document.createElement('audio');
+          a.id = 'amrtfAudioFixture';
+          document.body.appendChild(a);
+        }
+        if (!a.src || a.src.includes('data:audio/wav;base64,UklGRig') || a.srcObject) {
+          try {
+            const sampleRate = 8000;
+            const durationSec = 600;
+            const numSamples = durationSec * sampleRate;
+            const buffer = new ArrayBuffer(44 + numSamples);
+            const view = new DataView(buffer);
+            function writeString(offset, string) {
+              for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+            }
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + numSamples, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate, true);
+            view.setUint16(32, 1, true);
+            view.setUint16(34, 8, true);
+            writeString(36, 'data');
+            view.setUint32(40, numSamples, true);
+            const bytes = new Uint8Array(buffer, 44);
+            bytes.fill(128);
+            const blob = new Blob([buffer], { type: 'audio/wav' });
+            if (a.srcObject) a.srcObject = null;
+            a.src = URL.createObjectURL(blob);
+          } catch (e) {
+            console.warn('[E2E-13] 可尋軌音訊初始化異常', e);
+          }
+        }
+        a.controls = true;
+        a.loop = false;
+        return { exists: true, paused: a.paused, duration: a.duration };
+      })()
+    `);
+    console.log('   🔍 [E2E-13 Info] 放映艙音訊環境初檢:', JSON.stringify(audioReady));
+
+    // 1. 檢驗主控台初始狀態（預設應為未播映、Play 三角形圖示）
+    const initialDesk = await deskCdp.eval(`
+      (function() {
+        const glyph = document.getElementById('playGlyph');
+        const badge = document.getElementById('statusBadge');
+        return {
+          hasPlaySvg: glyph ? glyph.innerHTML.includes('M8 5v14l11-7z') : false,
+          hasPauseSvg: glyph ? glyph.innerHTML.includes('M6 19h4V5H6v14zm8-14v14h4V5h-4z') : false,
+          badgeClass: badge ? badge.className : ''
+        };
+      })()
+    `);
+    console.log('   🔍 [E2E-13 Info] 主控台播放鍵初始狀態:', JSON.stringify(initialDesk));
+    assert.strictEqual(initialDesk.hasPauseSvg, false, '未播放時不得顯示 Pause 雙豎線');
+
+    // 2. 透過主控台 CDP 點擊中央巨型水晶播放鍵 (#btnPlayPause)
+    console.log('   🖱️ 正在點擊主控台中央 3D 水晶播放鍵 (#btnPlayPause)...');
+    await deskCdp.eval(`document.getElementById('btnPlayPause').click()`);
+
+    // 輪詢等待放映艙開播與主控台 DOM 形變（最高 5000ms 輪詢，一命中即返回）
+    const playStatePoll = await waitForCondition(async () => {
+      const sp = await screenCdp.eval(`(function() { const a = document.querySelector('audio'); return a && !a.paused; })()`);
+      const dp = await deskCdp.eval(`(function() { const g = document.getElementById('playGlyph'); return g && g.innerHTML.includes('M6 19h4V5H6v14zm8-14v14h4V5h-4z'); })()`);
+      if (sp && dp) return { sp, dp };
+      return null;
+    }, 5000, 100);
+
+    assert.ok(playStatePoll && playStatePoll.sp, '物理硬鎖 1：點擊播放後，放映艙音訊 audio.paused 必須為 false！');
+    assert.ok(playStatePoll && playStatePoll.dp, '物理硬鎖 2：點擊播放後，主控台 #playGlyph 必須切換為 Pause 雙豎線 (Δ ≠ 0)！');
+
+    // 5. 再次點擊主控台播放鍵切換為暫停 (Pause)
+    console.log('   🖱️ 正在二次點擊主控台播放鍵執行暫停 (#btnPlayPause)...');
+    await deskCdp.eval(`document.getElementById('btnPlayPause').click()`);
+
+    const pauseStatePoll = await waitForCondition(async () => {
+      const sp = await screenCdp.eval(`(function() { const a = document.querySelector('audio'); return a && a.paused; })()`);
+      const dp = await deskCdp.eval(`(function() { const g = document.getElementById('playGlyph'); return g && g.innerHTML.includes('M8 5v14l11-7z'); })()`);
+      if (sp && dp) return { sp, dp };
+      return null;
+    }, 5000, 100);
+
+    assert.ok(pauseStatePoll && pauseStatePoll.sp, '物理硬鎖 3：二次點擊後，放映艙 audio.paused 必須恢復為 true！');
+    assert.ok(pauseStatePoll && pauseStatePoll.dp, '物理硬鎖 4：二次點擊後，主控台 #playGlyph 必須乾淨恢復為 Play 三角形！');
+
+    console.log('   📌 雙機雙核真機播放、走帶與 DOM 形變硬鎖已 100% 通過閉環驗證！');
+  });
+
+  test('✅ [E2E-14] 走帶矩陣 (+10/+5/-5/-10/從頭) 與三段倍速 (1.25x/1.5x/1.0x) 真機硬鎖', async () => {
+    if (!deskCdp || !deskCdp.isConnected || !screenCdp || !screenCdp.isConnected) return;
+
+    // 1. 三段倍速實體點擊與放映艙 playbackRate 斷言
+    console.log('   🖱️ 正在點擊 1.25x 倍速鍵 (#btnRate125)...');
+    await deskCdp.eval(`document.getElementById('btnRate125').click()`);
+    await new Promise((r) => setTimeout(r, 400));
+    const rate125 = await screenCdp.eval(`document.querySelector('audio')?.playbackRate`);
+    assert.strictEqual(rate125, 1.25, '點擊 1.25x 後，放映艙 audio.playbackRate 必須精準為 1.25');
+
+    console.log('   🖱️ 正在點擊 1.5x 倍速鍵 (#btnRate15)...');
+    await deskCdp.eval(`document.getElementById('btnRate15').click()`);
+    await new Promise((r) => setTimeout(r, 400));
+    const rate15 = await screenCdp.eval(`document.querySelector('audio')?.playbackRate`);
+    assert.strictEqual(rate15, 1.5, '點擊 1.5x 後，放映艙 audio.playbackRate 必須精準為 1.5');
+
+    console.log('   🖱️ 正在點擊 1.0x 倍速鍵 (#btnRate10)...');
+    await deskCdp.eval(`document.getElementById('btnRate10').click()`);
+    await new Promise((r) => setTimeout(r, 400));
+    const rate10 = await screenCdp.eval(`document.querySelector('audio')?.playbackRate`);
+    assert.strictEqual(rate10, 1.0, '點擊 1.0x 後，放映艙 audio.playbackRate 必須恢復為 1.0');
+
+    // 2. 基準時間設定與快進/倒退實體點擊
+    await screenCdp.eval(`
+      const a = document.querySelector('audio');
+      if (a) a.currentTime = 30;
+    `);
+    await new Promise((r) => setTimeout(r, 300));
+
+    console.log('   🖱️ 正在點擊 +10 秒快進鍵 (#btnForward10)...');
+    await deskCdp.eval(`document.getElementById('btnForward10').click()`);
+    await new Promise((r) => setTimeout(r, 400));
+    const tAfterFwd10 = await screenCdp.eval(`document.querySelector('audio')?.currentTime || 0`);
+    assert.ok(tAfterFwd10 >= 38 && tAfterFwd10 <= 42, `點擊 +10 秒後，放映艙 currentTime 必須約為 40 (現有: ${tAfterFwd10})`);
+
+    console.log('   🖱️ 正在點擊 +5 秒快進鍵 (#btnForward5)...');
+    await deskCdp.eval(`document.getElementById('btnForward5').click()`);
+    await new Promise((r) => setTimeout(r, 400));
+    const tAfterFwd5 = await screenCdp.eval(`document.querySelector('audio')?.currentTime || 0`);
+    assert.ok(tAfterFwd5 >= 43 && tAfterFwd5 <= 47, `點擊 +5 秒後，放映艙 currentTime 必須約為 45 (現有: ${tAfterFwd5})`);
+
+    console.log('   🖱️ 正在點擊 -5 秒倒退鍵 (#btnRewind5)...');
+    await deskCdp.eval(`document.getElementById('btnRewind5').click()`);
+    await new Promise((r) => setTimeout(r, 400));
+    const tAfterRew5 = await screenCdp.eval(`document.querySelector('audio')?.currentTime || 0`);
+    assert.ok(tAfterRew5 >= 38 && tAfterRew5 <= 42, `點擊 -5 秒後，放映艙 currentTime 必須約為 40 (現有: ${tAfterRew5})`);
+
+    console.log('   🖱️ 正在點擊 -10 秒倒退鍵 (#btnRewind10)...');
+    await deskCdp.eval(`document.getElementById('btnRewind10').click()`);
+    await new Promise((r) => setTimeout(r, 400));
+    const tAfterRew10 = await screenCdp.eval(`document.querySelector('audio')?.currentTime || 0`);
+    assert.ok(tAfterRew10 >= 28 && tAfterRew10 <= 32, `點擊 -10 秒後，放映艙 currentTime 必須約為 30 (現有: ${tAfterRew10})`);
+
+    // 3. 從頭急煞重放鍵
+    console.log('   🖱️ 正在點擊從頭急煞鍵 (#btnStop)...');
+    await deskCdp.eval(`document.getElementById('btnStop').click()`);
+    await new Promise((r) => setTimeout(r, 400));
+    const stopState = await screenCdp.eval(`
+      (function() {
+        const a = document.querySelector('audio');
+        return { currentTime: a ? a.currentTime : -1, paused: a ? a.paused : false };
+      })()
+    `);
+    assert.ok(stopState.currentTime <= 0.05, `點擊從頭後，放映艙 currentTime 必須歸零或趨近於 0 (現有: ${stopState.currentTime})`);
+    assert.strictEqual(stopState.paused, true, '點擊從頭後，放映艙音訊必須急煞暫停');
+    console.log('   📌 走帶 5 鍵與倍速 3 鍵真機硬鎖已全數通過驗證！');
+  });
+
+  test('✅ [E2E-15] 講次導航 (上一講/下一講/重載本講) 真機硬鎖', async () => {
+    assert.ok(deskCdp && deskCdp.isConnected, '主控台 CDP 必須保持在連線狀態');
+    assert.ok(screenCdp && screenCdp.isConnected, '放映艙 CDP 必須保持在連線狀態');
+
+    const waitForServerCmd = async (expectedCmd) => {
+      return await waitForCondition(async () => {
+        const res = await fetchHttp('http://127.0.0.1:9998/api/info');
+        const data = JSON.parse(res.body);
+        return data?.latestCommand?.cmd === expectedCmd ? data.latestCommand.cmd : null;
+      }, 3000, 100);
+    };
+
+    // 點擊上一講
+    console.log('   🖱️ 正在點擊上一講按鈕 (#btnPrevLesson)...');
+    await deskCdp.eval(`document.getElementById('btnPrevLesson').click()`);
+    const cmdPrev = await waitForServerCmd('prev_lesson');
+    assert.strictEqual(cmdPrev, 'prev_lesson', '點擊上一講後，伺服器必須收到並分發 prev_lesson 信令');
+
+    // 點擊下一講
+    console.log('   🖱️ 正在點擊下一講按鈕 (#btnNextLesson)...');
+    await deskCdp.eval(`document.getElementById('btnNextLesson').click()`);
+    const cmdNext = await waitForServerCmd('next_lesson');
+    assert.strictEqual(cmdNext, 'next_lesson', '點擊下一講後，伺服器必須收到並分發 next_lesson 信令');
+
+    // 點擊重載本講
+    console.log('   🖱️ 正在點擊重載本講按鈕 (#btnReloadLesson)...');
+    await deskCdp.eval(`document.getElementById('btnReloadLesson').click()`);
+    const cmdReload = await waitForServerCmd('goto_lesson');
+    assert.strictEqual(cmdReload, 'goto_lesson', '點擊重載本講後，伺服器必須收到並分發 goto_lesson 信令');
+    console.log('   📌 講次導航 3 大按鈕真機硬鎖已全數通過驗證！');
+  });
+
+  test('✅ [E2E-16] 研討區間循環、段落循環與釋放循環真機硬鎖', async () => {
+    assert.ok(deskCdp && deskCdp.isConnected, '主控台 CDP 必須保持在連線狀態');
+    assert.ok(screenCdp && screenCdp.isConnected, '放映艙 CDP 必須保持在連線狀態');
+
+    const waitForServerCmd = async (expectedCmdList) => {
+      const list = Array.isArray(expectedCmdList) ? expectedCmdList : [expectedCmdList];
+      return await waitForCondition(async () => {
+        const res = await fetchHttp('http://127.0.0.1:9998/api/info');
+        const data = JSON.parse(res.body);
+        const curCmd = data?.latestCommand?.cmd;
+        return list.includes(curCmd) ? curCmd : null;
+      }, 3000, 100);
+    };
+
+    // 點擊段落循環
+    console.log('   🖱️ 正在點擊段落循環按鈕 (#btnLoopParagraph)...');
+    await deskCdp.eval(`document.getElementById('btnLoopParagraph').click()`);
+    const cmdLoopP = await waitForServerCmd('loop_current_paragraph');
+    assert.strictEqual(cmdLoopP, 'loop_current_paragraph', '點擊段落循環後，伺服器必須收到並分發 loop_current_paragraph 信令');
+
+    // 點擊釋放循環
+    console.log('   🖱️ 正在點擊釋放循環按鈕 (#btnStopInterval)...');
+    await deskCdp.eval(`document.getElementById('btnStopInterval').click()`);
+    const cmdStopInt = await waitForServerCmd('stop_interval');
+    assert.strictEqual(cmdStopInt, 'stop_interval', '點擊釋放循環後，伺服器必須收到並分發 stop_interval 信令');
+
+    // 點擊起訖區間循環
+    console.log('   🖱️ 正在點擊起訖區間循環按鈕 (#btnLoopInterval)...');
+    await deskCdp.eval(`document.getElementById('btnLoopInterval').click()`);
+    const cmdLoopInt = await waitForServerCmd(['play_interval', 'loop_current_paragraph']);
+    assert.ok(cmdLoopInt === 'play_interval' || cmdLoopInt === 'loop_current_paragraph', '點擊起訖區間循環後，伺服器必須收到相應區間信令');
+    console.log('   📌 研討區間循環與釋放按鈕真機硬鎖已全數通過驗證！');
+  });
+
+  test('✅ [E2E-17] 法會影音三巨鍵 (前行/密集嘛/迴向)、全螢幕與 Mini 折疊真機硬鎖', async () => {
+    assert.ok(deskCdp && deskCdp.isConnected, '主控台 CDP 必須保持在連線狀態');
+    assert.ok(screenCdp && screenCdp.isConnected, '放映艙 CDP 必須保持在連線狀態');
+
+    const waitForServerCmd = async (expectedCmd) => {
+      return await waitForCondition(async () => {
+        const res = await fetchHttp('http://127.0.0.1:9998/api/info');
+        const data = JSON.parse(res.body);
+        return data?.latestCommand?.cmd === expectedCmd ? data.latestCommand.cmd : null;
+      }, 3000, 100);
+    };
+
+    // 點擊前行影片
+    console.log('   🖱️ 正在點擊前行影片按鈕 (#btnVideoPrep)...');
+    await deskCdp.eval(`document.getElementById('btnVideoPrep').click()`);
+    const cmdPrep = await waitForServerCmd('modal_prep_video');
+    assert.strictEqual(cmdPrep, 'modal_prep_video', '點擊前行後，伺服器必須收到並分發 modal_prep_video 信令');
+
+    // 點擊密集嘛影片
+    console.log('   🖱️ 正在點擊密集嘛影片按鈕 (#btnVideoMigsema)...');
+    await deskCdp.eval(`document.getElementById('btnVideoMigsema').click()`);
+    const cmdMig = await waitForServerCmd('modal_migtsema');
+    assert.strictEqual(cmdMig, 'modal_migtsema', '點擊密集嘛後，伺服器必須收到並分發 modal_migtsema 信令');
+
+    // 點擊迴向影片
+    console.log('   🖱️ 正在點擊迴向影片按鈕 (#btnVideoDedication)...');
+    await deskCdp.eval(`document.getElementById('btnVideoDedication').click()`);
+    const cmdDed = await waitForServerCmd('modal_dedication_video');
+    assert.strictEqual(cmdDed, 'modal_dedication_video', '點擊迴向後，伺服器必須收到並分發 modal_dedication_video 信令');
+
+    // 點擊全螢幕切換
+    console.log('   🖱️ 正在點擊全螢幕按鈕 (#btnFullscreen)...');
+    await deskCdp.eval(`document.getElementById('btnFullscreen').click()`);
+    const cmdFs = await waitForServerCmd('toggle_fullscreen');
+    assert.strictEqual(cmdFs, 'toggle_fullscreen', '點擊全螢幕後，伺服器必須收到並分發 toggle_fullscreen 信令');
+
+    // 點擊 Mini 模式折疊按鈕
+    console.log('   🖱️ 正在點擊 Mini 折疊按鈕 (#btnMiniToggle)...');
+    await deskCdp.eval(`document.getElementById('btnMiniToggle').click()`);
+    const miniOnPoll = await waitForCondition(async () => {
+      return await deskCdp.eval(`document.body.classList.contains('mini-mode')`);
+    }, 2000, 50);
+    assert.strictEqual(miniOnPoll, true, '點擊 Mini 按鈕後，主控台 body 必須帶有 mini-mode 類別');
+
+    await deskCdp.eval(`document.getElementById('btnMiniToggle').click()`);
+    const miniOffPoll = await waitForCondition(async () => {
+      const isMini = await deskCdp.eval(`document.body.classList.contains('mini-mode')`);
+      return !isMini ? true : null;
+    }, 2000, 50);
+    assert.strictEqual(miniOffPoll, true, '再次點擊 Mini 按鈕後，主控台必須還原正常模式');
+
+    console.log('   📌 法會專題影音、全螢幕與視窗 Mini 折疊按鈕真機硬鎖已全數通過驗證！');
   });
 });
 

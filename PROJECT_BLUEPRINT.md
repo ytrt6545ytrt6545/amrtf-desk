@@ -110,6 +110,19 @@ graph LR
   - **全雙工信令全面貫通**：全鍵盤控制與 528Hz 西藏清淨銅鐘真實響應；
   - **質檢官動滑鼠 E2E 閉環**：新增 `[E2E-12]` 實體點擊跳轉驗證與截圖存證，全域 `npm test` 40 項全綠。
 
+
+- [x] **全系統 36 顆實體按鍵 Live Reality 真機物理硬鎖全面覆蓋與 Guardian 質檢官終審通過閉環 (亮點 101)**：
+  - **36 顆按鍵全量 CDP 實體點擊**：徹底消滅僅憑 AST 靜態合約的假象，將剩餘 26 顆按鍵全數實裝真機硬鎖 (E2E-14 ~ E2E-17)；
+  - **可尋軌音訊與信號快照**：記憶體 2ms 生成 10 分鐘 seekable WAV Blob URL，提供走帶與快進倒退真實物理驗證；
+  - **消滅時序競態與假 pass**：以 `waitForCondition` 輪詢取代固定 sleep，強制連線斷言杜絕靜默 return；
+  - **Guardian 質檢官盲測終審**：紅隊第一輪果斷退回，修復後第二輪複驗 45/45 全綠，Exit Code 0 簽署 PASS 通過！
+- [x] **介面與邏輯絕對物理解耦鐵律確立與四重硬鎖自動化測試閉環 (亮點 120)**：
+  - **全域憲法與知識中樞定稿**：將「介面與邏輯絕對物理解耦鐵律」寫入 `AGENTS.md` / `GEMINI.md`，建立 `knowledge-hub/concepts/ui-logic-decoupling.md` 詞條並完成 30 篇索引編譯；
+  - **View/Logic 物理界線確立**：View 層僅負責事件拋出與狀態純投影 ($UI = f(State)$)，Logic 層強制為純無頭領域服務（零 DOM 依賴）；
+  - **0-DOM 靜態審查與無頭隔離硬鎖**：新增 `test/ui-logic-decoupling.test.mjs`，物理審查排除 DOM 越界引用，並斷言純 Node.js 環境無頭執行；
+  - **code-inspector 質檢系統初征與五燈獎全綠**：完成 `web-remote.js` 視圖解耦（獨立抽離 `public/remote.html`）、`cdp-bridge.js` 與 `desk-controller.js` 作用域解耦，五大常識審查 100% 通過；
+  - **唯一合法裁判標準驗證**：標準 `npm test` 7 大測試套件 48 項測試 100% 全綠通過（Exit Code 0）。
+
 ---
 
 ## 四、 規格文件與架構檔案清單 (Documentation)

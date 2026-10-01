@@ -112,7 +112,17 @@
 
   connectWs();
 
+  let lastCmdTime = 0;
+  let lastCmdName = '';
   function sendCmd(cmd, params = {}) {
+    const now = Date.now();
+    // 🎛️ 物理防抖硬鎖：250ms 內對切換類指令進行高頻重複過濾，徹底杜絕雙重觸發 (Double-Fire)
+    if (cmd === lastCmdName && (now - lastCmdTime < 250) && (cmd === 'toggle_play' || cmd === 'restart' || cmd === 'cycle_scroll_mode' || cmd === 'toggle_speech_mode' || cmd === 'toggle_fullscreen')) {
+      console.warn(`[Desk-Debounce] 抑制 250ms 內高頻重複信令: ${cmd}`);
+      return;
+    }
+    lastCmdTime = now;
+    lastCmdName = cmd;
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'COMMAND', command: cmd, params }));
     }
@@ -127,53 +137,9 @@
     });
   }
 
-  // 1. 播控行
-  btnPlayPause.addEventListener('click', () => sendCmd('toggle_play'));
-  btnStop.addEventListener('click', () => sendCmd('restart'));
+  // 🎛️ 註：所有實體按鍵（播放、快進倒退、倍速、講次、閱讀模式、區段循環等）
+  // 已全數收斂至下方無頭解耦中樞 [data-action]，此處嚴禁重複綁定 direct click 以免引發 1ms 雙重觸發！
 
-  // 2. 秒數與倍速
-  btnRewind10.addEventListener('click', () => sendCmd('rewind_10s'));
-  btnRewind5.addEventListener('click', () => sendCmd('rewind_5s'));
-  btnForward5.addEventListener('click', () => sendCmd('forward_5s'));
-  btnForward10.addEventListener('click', () => sendCmd('forward_10s'));
-  btnRate10.addEventListener('click', () => sendCmd('set_playback_rate', { rate: 1.0 }));
-  btnRate125.addEventListener('click', () => sendCmd('set_playback_rate', { rate: 1.25 }));
-  btnRate15.addEventListener('click', () => sendCmd('set_playback_rate', { rate: 1.5 }));
-
-  // 3. 引文循環、講次、閱讀模式
-  btnSeekQuote.addEventListener('click', () => sendCmd('jump_to_master_start'));
-  btnLoopQuote.addEventListener('click', () => sendCmd('toggle_loop_segment'));
-  btnLoopParagraph.addEventListener('click', () => sendCmd('loop_current_paragraph'));
-  btnPrevLesson.addEventListener('click', () => sendCmd('prev_lesson'));
-  btnNextLesson.addEventListener('click', () => sendCmd('next_lesson'));
-  btnSpeechMode.addEventListener('click', () => sendCmd('toggle_speech_mode'));
-  btnScrollMode.addEventListener('click', () => sendCmd('cycle_scroll_mode'));
-
-  // 3.5 講師精準區段選單播控
-  btnPlayInterval.addEventListener('click', () => {
-    const start = parseFloat(selectIntervalStart.value) || 0;
-    const end = parseFloat(selectIntervalEnd.value) || 0;
-    if (end > start) {
-      sendCmd('play_interval', { start, end, loop: false });
-    } else {
-      alert('播放終點秒數必須大於起點秒數！');
-    }
-  });
-
-  btnLoopInterval.addEventListener('click', () => {
-    const start = parseFloat(selectIntervalStart.value) || 0;
-    const end = parseFloat(selectIntervalEnd.value) || 0;
-    if (end > start) {
-      sendCmd('play_interval', { start, end, loop: true });
-    } else {
-      alert('循環終點秒數必須大於起點秒數！');
-    }
-  });
-
-  btnStopInterval.addEventListener('click', () => {
-    sendCmd('stop_interval');
-    sendCmd('pause');
-  });
 
   // 雙向動態互斥約束引擎（單向觸發、徹底消滅雙向夾擊死鎖）：
   // 1. 操作員選擇「起」：約束「迄」選單（迄裡面 <= 起的時間變灰 disabled，若訖點小於等於起，自動順推至下一合法段落）；
@@ -421,6 +387,13 @@
         break;
       case 'stop_interval':
         sendCmd('stop_interval');
+        break;
+      case 'toggle_quote':
+      case 'jump_to_master_start':
+        sendCmd('jump_to_master_start');
+        break;
+      case 'toggle_loop_segment':
+        sendCmd('toggle_loop_segment');
         break;
     }
   });
@@ -1165,7 +1138,6 @@
   // ==============================================================================
   // 🎛️ 初始化 8 欄磁吸自訂畫布引擎 (Deck Canvas Mount)
   // ==============================================================================
-  const btnEditLayoutToggle = document.getElementById('btnEditLayoutToggle');
   const deckDrawerContainer = document.getElementById('deckDrawerContainer');
   const deckDrawerList = document.getElementById('deckDrawerList');
   const deckGridContainer = document.getElementById('deckGridContainer');
@@ -1183,10 +1155,6 @@
       drawerList: deckDrawerList,
       statusBadge: statusBadge
     });
-
-    if (btnEditLayoutToggle) {
-      btnEditLayoutToggle.onclick = () => window.DeckCanvas.toggleMode();
-    }
 
     if (btnTemplateFull) {
       btnTemplateFull.onclick = () => window.DeckCanvas.applyTemplate('full');

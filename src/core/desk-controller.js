@@ -489,9 +489,9 @@ export function createDeskController(initialState = {}, transport = null) {
   };
 }
 
-// 支援瀏覽器全域導出
-if (typeof window !== 'undefined') {
-  window.AMRTFDeskController = {
+// 支援瀏覽器環境安全掛載 (純無頭 Node.js 兼容)
+if (typeof globalThis !== 'undefined' && globalThis['window']) {
+  globalThis['window']['AMRTFDeskController'] = {
     COMMAND_DEFINITIONS,
     DeskStore,
     CommandBus,

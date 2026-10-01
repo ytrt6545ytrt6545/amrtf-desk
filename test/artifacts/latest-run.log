@@ -1,0 +1,256 @@
+
+> amrtf-desk@1.2.0 test
+> node scripts/audit-signals.mjs && node --test --test-concurrency=1 test/*.test.mjs
+
+================================================================
+🛰️ 正在執行【真信號全鏈路 · 前端發送 ⟷ 後端/放映艙分發】差集硬鎖審計
+================================================================
+
+📡 [前端掃描] 於前端原始碼共捕獲 55 種發送信令 (來自 90 處實體呼叫點)。
+
+🛡️ [接收端掃描] 捕獲支援清單:
+   - server.mjs (中樞攔截): 6 個 [reconnect_screen, goto_lesson, load_lecture, toggle_fullscreen, fullscreen, FULLSCREEN]
+   - amrtf-runtime.js (放映艙): 79 個
+
+| 發送信令 (Client Action) | 接收處理端 (Receiver) | 呼叫點次數 | 判定 |
+| :--- | :--- | :---: | :---: |
+| `adjust_font_size` | amrtf-runtime.js | 4 | ✅ PASS |
+| `close_video` | amrtf-runtime.js | 1 | ✅ PASS |
+| `cycle_scroll_mode` | amrtf-runtime.js | 1 | ✅ PASS |
+| `forward_10s` | amrtf-runtime.js | 2 | ✅ PASS |
+| `forward_5s` | amrtf-runtime.js | 1 | ✅ PASS |
+| `fullscreen` | server.mjs | 1 | ✅ PASS |
+| `FULLSCREEN` | server.mjs | 1 | ✅ PASS |
+| `goto_lesson` | server.mjs | 4 | ✅ PASS |
+| `jump_to_master_start` | amrtf-runtime.js | 1 | ✅ PASS |
+| `loop_current_paragraph` | amrtf-runtime.js | 2 | ✅ PASS |
+| `loop_interval` | amrtf-runtime.js | 1 | ✅ PASS |
+| `LOOP_INTERVAL` | amrtf-runtime.js | 1 | ✅ PASS |
+| `modal_close` | amrtf-runtime.js | 2 | ✅ PASS |
+| `modal_dedication_video` | amrtf-runtime.js | 3 | ✅ PASS |
+| `modal_migtsema` | amrtf-runtime.js | 3 | ✅ PASS |
+| `modal_prep_video` | amrtf-runtime.js | 3 | ✅ PASS |
+| `next_lecture` | amrtf-runtime.js | 2 | ✅ PASS |
+| `NEXT_LECTURE` | amrtf-runtime.js | 1 | ✅ PASS |
+| `next_lesson` | amrtf-runtime.js | 1 | ✅ PASS |
+| `pause` | amrtf-runtime.js | 2 | ✅ PASS |
+| `play` | amrtf-runtime.js | 1 | ✅ PASS |
+| `play_interval` | amrtf-runtime.js | 6 | ✅ PASS |
+| `play_interval_default` | amrtf-runtime.js | 1 | ✅ PASS |
+| `prev_lecture` | amrtf-runtime.js | 2 | ✅ PASS |
+| `PREV_LECTURE` | amrtf-runtime.js | 1 | ✅ PASS |
+| `prev_lesson` | amrtf-runtime.js | 1 | ✅ PASS |
+| `reconnect_screen` | server.mjs | 1 | ✅ PASS |
+| `restart` | amrtf-runtime.js | 2 | ✅ PASS |
+| `rewind_10s` | amrtf-runtime.js | 2 | ✅ PASS |
+| `rewind_5s` | amrtf-runtime.js | 1 | ✅ PASS |
+| `seek_absolute` | amrtf-runtime.js | 1 | ✅ PASS |
+| `SEEK_BACKWARD` | amrtf-runtime.js | 1 | ✅ PASS |
+| `seek_bwd` | amrtf-runtime.js | 1 | ✅ PASS |
+| `SEEK_FORWARD` | amrtf-runtime.js | 1 | ✅ PASS |
+| `seek_fwd` | amrtf-runtime.js | 1 | ✅ PASS |
+| `seek_quote` | amrtf-runtime.js | 1 | ✅ PASS |
+| `set_playback_rate` | amrtf-runtime.js | 1 | ✅ PASS |
+| `set_theme` | amrtf-runtime.js | 2 | ✅ PASS |
+| `stop` | amrtf-runtime.js | 1 | ✅ PASS |
+| `STOP` | amrtf-runtime.js | 1 | ✅ PASS |
+| `stop_interval` | amrtf-runtime.js | 4 | ✅ PASS |
+| `toggle_fullscreen` | server.mjs | 4 | ✅ PASS |
+| `toggle_loop_segment` | amrtf-runtime.js | 1 | ✅ PASS |
+| `toggle_play` | amrtf-runtime.js | 2 | ✅ PASS |
+| `TOGGLE_PLAY` | amrtf-runtime.js | 1 | ✅ PASS |
+| `toggle_quote` | amrtf-runtime.js | 1 | ✅ PASS |
+| `TOGGLE_QUOTE` | amrtf-runtime.js | 1 | ✅ PASS |
+| `toggle_scroll` | amrtf-runtime.js | 1 | ✅ PASS |
+| `toggle_scroll_mode` | amrtf-runtime.js | 1 | ✅ PASS |
+| `TOGGLE_SCROLL_MODE` | amrtf-runtime.js | 1 | ✅ PASS |
+| `toggle_speech_lead` | amrtf-runtime.js | 2 | ✅ PASS |
+| `TOGGLE_SPEECH_LEAD` | amrtf-runtime.js | 1 | ✅ PASS |
+| `toggle_speech_mode` | amrtf-runtime.js | 1 | ✅ PASS |
+| `toggle_theme` | amrtf-runtime.js | 2 | ✅ PASS |
+| `TOGGLE_THEME` | amrtf-runtime.js | 1 | ✅ PASS |
+
+🔍 [深度合約檢查] 正在驗證講次跳轉關鍵鏈路...
+   ✅ goto_lesson / load_lecture 雙協議在 server.mjs 完全具備且對齊！
+
+----------------------------------------------------------------
+🎉 [AUDIT ALL PASS] 靜態審計通過！前端共 55 種信令 100% 存在真實處理端，差集為 0！
+----------------------------------------------------------------
+
+[STATE DIFF] toggle_theme: Before=dark ➔ After=light
+[STATE DIFF] toggle_speech_lead: Before=false ➔ After=true
+[STATE DIFF] toggle_scroll_mode: Before=0 ➔ After=1
+[STATE DIFF] play_interval: Before={"enabled":false,"start":0,"end":0} ➔ After={"enabled":true,"start":10,"end":50}
+▶ 🛰️ 放映艙核心指令狀態差分 (State Diff) 驗證
+  ✔ ✅ [State Diff] toggle_theme 必須造成主題狀態實質反轉 (dark ➔ light ➔ dark) (1.5507ms)
+  ✔ ✅ [State Diff] toggle_speech_lead 必須造成播稿提詞開關實質突變 (0.2946ms)
+  ✔ ✅ [State Diff] toggle_scroll_mode 必須造成滾動輪播實質遞增 (0.2583ms)
+  ✔ ✅ [State Diff] play_interval 必須激活區間狀態並設定時間範圍 (0.3548ms)
+  ✔ 🚨 [Loud Failure] 未知指令必須立刻拋出 REJECT 例外，絕不靜音吞噬 (0.5366ms)
+✔ 🛰️ 放映艙核心指令狀態差分 (State Diff) 驗證 (5.2402ms)
+[CommandBus] ⚠️ 命令異常: Error: [CommandBus] ❌ 拒絕未註冊之命令 ID: 'malicious_attack_inject'
+    at CommandBus.dispatch (file:///D:/AI-made/projects/amrtf-desk/src/core/desk-controller.js:180:19)
+    at TestContext.<anonymous> (file:///D:/AI-made/projects/amrtf-desk/test/desk-controller.test.mjs:143:22)
+    at Test.runInAsyncScope (node:async_hooks:227:14)
+    at Test.run (node:internal/test_runner/test:1382:25)
+    at Test.start (node:internal/test_runner/test:1242:17)
+    at node:internal/test_runner/test:1867:71
+    at node:internal/per_context/primordials:504:82
+    at new Promise (<anonymous>)
+    at new SafePromise (node:internal/per_context/primordials:478:3)
+    at node:internal/per_context/primordials:504:9
+▶ 🎛️ AMRTF 無頭控制核心與視圖皮膚解耦架構檢驗
+  ✔ ✅ [Command-1] 靜態白名單硬鎖：合法命令順暢派發，未知惡意字串物理阻斷 (3.1958ms)
+[CommandBus] ⚠️ 命令異常: Error: [CommandBus] ⏱️ 命令 'stop' (tx_1790765835648_2) 逾時無回應，已觸發安全狀態回滾
+    at CommandBus.handleTimeout (file:///D:/AI-made/projects/amrtf-desk/src/core/desk-controller.js:264:20)
+    at Timeout._onTimeout (file:///D:/AI-made/projects/amrtf-desk/src/core/desk-controller.js:202:14)
+    at listOnTimeout (node:internal/timers:635:17)
+    at process.processTimers (node:internal/timers:571:7)
+  ✔ ✅ [Command-2] 兩階段狀態確認 (Two-Phase Commit) 與逾時自動回滾 (Rollback) (86.4125ms)
+  ✔ ✅ [Command-3] 高頻盲按防抖 (Debounce Throttling)：連續狂按僅允許首發穿透 (0.5224ms)
+  ✔ ✅ [View-1] 宣告式視圖皮膚綁定 (Declarative Binding)：點擊按鈕自動派發並切換樣式 (1.4806ms)
+  ✔ ✅ [Skin-1] 自由換膚與生命週期安全清理 (Teardown Protocol)：換膚時 100% 註銷舊監聽器 (0.3662ms)
+✔ 🎛️ AMRTF 無頭控制核心與視圖皮膚解耦架構檢驗 (93.6087ms)
+[CommandBus] ⚠️ 命令異常: Error: [CommandBus] ⏱️ 命令 'play' (tx_1790765835645_1) 逾時無回應，已觸發安全狀態回滾
+    at CommandBus.handleTimeout (file:///D:/AI-made/projects/amrtf-desk/src/core/desk-controller.js:264:20)
+    at Timeout._onTimeout (file:///D:/AI-made/projects/amrtf-desk/src/core/desk-controller.js:202:14)
+    at listOnTimeout (node:internal/timers:635:17)
+    at process.processTimers (node:internal/timers:571:7)
+[CommandBus] ⚠️ 命令異常: Error: [CommandBus] ⏱️ 命令 'seek_fwd' (tx_1790765835735_1) 逾時無回應，已觸發安全狀態回滾
+    at CommandBus.handleTimeout (file:///D:/AI-made/projects/amrtf-desk/src/core/desk-controller.js:264:20)
+    at Timeout._onTimeout (file:///D:/AI-made/projects/amrtf-desk/src/core/desk-controller.js:202:14)
+    at listOnTimeout (node:internal/timers:635:17)
+    at process.processTimers (node:internal/timers:571:7)
+[E2E] 正在啟動真實 server.mjs 伺服器...
+[E2E-Log] 伺服器主程序已響應就緒信號
+[E2E] 正在掛載 CDP 雙向通訊管道...
+[CDP-Bridge] 已成功掛載至放映艙 Chromium 內核
+[E2E] 放映艙 CDP 連線: ✅ 成功
+[CDP-Bridge] 已成功掛載至放映艙 Chromium 內核
+[E2E] 主控台 CDP 連線: ✅ 成功
+▶ 🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢驗
+  ✔ ✅ [E2E-1] HTTP 核心路由必須返回 HTTP 200 (主控台/手機端/API) (12.0281ms)
+   📌 現場捕獲真實視窗: [PID 9696 HWND:3607064 "�s������0567�@�ѻD���Ѫk �V �j�O��Ķ�g����|"], [PID 19656 HWND:4983596 ""]
+  ✔ ✅ [E2E-2] Windows 實體視窗存在性與渲染幾何閉環 (CDP 幾何 > 0 且真實渲染) (2089.8836ms)
+  ✔ ✅ [E2E-3] 主控台全域按鈕字體放縮 (100% ➔ 125% ➔ 150%) 必須實質突變 DOM (112.7375ms)
+  ✔ ✅ [E2E-4] 起訖單元獨立尺寸與 4 款淡雅半透明高亮切換 (17.3696ms)
+   📸 [Screenshot-Evidence] 設定艙滑出視覺快照已存檔: D:\AI-made\projects\amrtf-desk\test\artifacts\e2e-settings-drawer-live.png
+  ✔ ✅ [E2E-5] 右側滑出設定艙開啟與關閉 (Settings Drawer Interaction) (1285.3061ms)
+   🔍 [E2E-6 Info] adjust_font_size 19 後狀態: {"exists":true,"val":19,"hasOverride":false}
+   🔍 [E2E-6 Info] 增量微調 +1.5px 取證: {"exists":true,"before":19,"after":20.5}
+   📸 [Screenshot-Evidence] 放映艙官方原生字級排版真機快照已存檔: D:\AI-made\projects\amrtf-desk\test\artifacts\e2e-screen-large-font-live.png
+   📌 放映艙官方原生字級 (10~22px) 精準連動已通過驗證！
+  ✔ ✅ [E2E-6] 放映艙官方原生字級拉桿 (10~22px) 精準連動與雙向真實反映驗證 (3005.8677ms)
+   📸 [Screenshot-Evidence] 主控台真機視覺快照已存檔: D:\AI-made\projects\amrtf-desk\test\artifacts\e2e-desk-live.png
+  ✔ ✅ [E2E-7] 實體捕獲主控台視覺截圖物證 (Screenshot Truth) (169.6948ms)
+   🔍 [E2E-8 Info] 官方播稿模式現場狀態: {"exists":true,"checked":true,"bound":true,"hasLrc":false}
+   ℹ️ 本講次官方尚未發布 LRC 播稿字幕，大慈恩官方原生物理禁止開啟播稿，符合現場客觀真機行為
+  ✔ ✅ [E2E-8] 官方播稿模式 (Speech Mode) 載入檢查開啟與雙向真實反映閉環驗證 (5.1608ms)
+   🔍 [E2E-9 Info] 初始大慈恩宣紙明亮風格現場狀態: {"existsDeskBtn":true,"existsScreenThemeBtn":true,"screenThemeBtnText":"🌓","hasLightClass":true,"dataTheme":"light","btnText":"🌞","savedTheme":"light","bgColor":"rgba(248, 246, 240, 0.953)"}
+   🔍 [E2E-9 Info] 切換為玄木暗黑風格狀態: {"hasDarkClass":true,"dataTheme":"dark","btnText":"🌙","savedTheme":"dark","bgColor":"rgba(248, 246, 240, 0.004)"}
+   📸 [Screenshot-Evidence] 大慈恩玄木暗黑真機快照已存檔: D:\AI-made\projects\amrtf-desk\test\artifacts\e2e-desk-dark-theme-live.png
+   🔍 [E2E-9 Info] 二次切換恢復宣紙明亮風格狀態: {"hasLightClass":true,"dataTheme":"light","btnText":"🌞","savedTheme":"light","bgColor":"rgb(248, 246, 240)"}
+   📸 [Screenshot-Evidence] 大慈恩宣紙明亮真機快照已存檔: D:\AI-made\projects\amrtf-desk\test\artifacts\e2e-desk-light-theme-live.png
+   📌 大慈恩明暗雙風格切換、LocalStorage 持久化與色彩突變已通過真機閉環驗證！
+  ✔ ✅ [E2E-9] 主控台大慈恩明亮/暗黑雙風格實質切換與持久化閉環 (Theme Diff & Persistence) (1615.7919ms)
+   🔍 [E2E-10 Info] 設定艙版本與更新狀態: {"hasBadge":true,"badgeText":"v1.2.0","hasTag":true,"tagText":"✅ 已是最新版本","hasCheckBtn":true}
+   🔍 [E2E-10 Info] 更新說明區塊真實狀態: {"titleText":"更新說明","syncBtnText":"⚡ 同步","hasBody":true}
+   📸 [Screenshot-Evidence] 設定艙更新說明真機快照已存檔: D:\AI-made\projects\amrtf-desk\test\artifacts\e2e-settings-update-notes-live.png
+   📌 系統版本號與更新檢測介面已通過端到端驗證！
+  ✔ ✅ [E2E-10] 系統版本號展示與自動更新偵測 API 閉環驗證 (1418.9108ms)
+   🔍 [E2E-11 Info] 主控台 QR Modal 狀態: {"isOpen":true,"isCloudTabActive":true,"hasLanTab":true,"badgeText":"房間：ROOM-LZK9","urlText":"https://my-amrtf.web.app/?room=ROOM-LZK9&token=90wZNsjTqBztVs_N5v0cbgHVqEBXVaPt"}
+   📌 Firebase 雲端純掃碼中繼、多房間隔離與主控台雙軌 QR Modal 已通過端到端真機驗證！
+   🔍 [Guardian 質檢官試車] 正在驗證主控台頁首 #btnMoonlightToggle 是否已徹底移除...
+  ✔ ✅ [E2E-11] Firebase 雲端純掃碼中繼 API、SPA 靜態託管與主控台雙軌 QR Modal 端到端驗證 (699.0819ms)
+   🔍 [E2E-12 Info] Stitch 奢華主操作艙現場狀態: {"hasChassis":true,"isStitchChassis":true,"hasPlayBtn":true,"hasFwd10":true,"hasFwd5":true,"hasRew5":true,"hasRew10":true,"hasThemeBtn":true}
+   📸 [Screenshot-Evidence] Stitch 奢華主操作艙真機快照已存檔: D:\AI-made\projects\amrtf-desk\test\artifacts\e2e-stitch-luxury-desk-live.png
+   📌 主控台頁首明月按鈕移除確認與 Stitch 奢華黑白雙皮膚結構已通過真機閉環驗證！
+  ✔ ✅ [E2E-12] 主控台頁首明月按鈕移除確認與 Stitch 奢華雙皮膚真機閉環 (Stitch Luxury Dual Skins) (142.5949ms)
+   🔍 [E2E-13 Info] 放映艙音訊環境初檢: {"exists":true,"paused":true,"duration":525}
+   🔍 [E2E-13 Info] 主控台播放鍵初始狀態: {"hasPlaySvg":true,"hasPauseSvg":false,"badgeClass":"status-badge ready"}
+   🖱️ 正在點擊主控台中央 3D 水晶播放鍵 (#btnPlayPause)...
+   🖱️ 正在二次點擊主控台播放鍵執行暫停 (#btnPlayPause)...
+   📌 雙機雙核真機播放、走帶與 DOM 形變硬鎖已 100% 通過閉環驗證！
+   🖱️ 正在點擊 1.25x 倍速鍵 (#btnRate125)...
+  ✔ ✅ [E2E-13] 雙機雙核真機播放與走帶硬鎖閉環 (Dual-Node Live Reality Playback Quad-Lock) (793.2146ms)
+   🖱️ 正在點擊 1.5x 倍速鍵 (#btnRate15)...
+   🖱️ 正在點擊 1.0x 倍速鍵 (#btnRate10)...
+   🖱️ 正在點擊 +10 秒快進鍵 (#btnForward10)...
+   🖱️ 正在點擊 +5 秒快進鍵 (#btnForward5)...
+   🖱️ 正在點擊 -5 秒倒退鍵 (#btnRewind5)...
+   🖱️ 正在點擊 -10 秒倒退鍵 (#btnRewind10)...
+   🖱️ 正在點擊從頭急煞鍵 (#btnStop)...
+   📌 走帶 5 鍵與倍速 3 鍵真機硬鎖已全數通過驗證！
+   🖱️ 正在點擊上一講按鈕 (#btnPrevLesson)...
+  ✔ ✅ [E2E-14] 走帶矩陣 (+10/+5/-5/-10/從頭) 與三段倍速 (1.25x/1.5x/1.0x) 真機硬鎖 (3606.6513ms)
+   🖱️ 正在點擊下一講按鈕 (#btnNextLesson)...
+   🖱️ 正在點擊重載本講按鈕 (#btnReloadLesson)...
+   📌 講次導航 3 大按鈕真機硬鎖已全數通過驗證！
+   🖱️ 正在點擊段落循環按鈕 (#btnLoopParagraph)...
+  ✔ ✅ [E2E-15] 講次導航 (上一講/下一講/重載本講) 真機硬鎖 (171.1467ms)
+   🖱️ 正在點擊釋放循環按鈕 (#btnStopInterval)...
+   🖱️ 正在點擊起訖區間循環按鈕 (#btnLoopInterval)...
+   📌 研討區間循環與釋放按鈕真機硬鎖已全數通過驗證！
+   🖱️ 正在點擊前行影片按鈕 (#btnVideoPrep)...
+  ✔ ✅ [E2E-16] 研討區間循環、段落循環與釋放循環真機硬鎖 (108.2428ms)
+   🖱️ 正在點擊密集嘛影片按鈕 (#btnVideoMigsema)...
+   🖱️ 正在點擊迴向影片按鈕 (#btnVideoDedication)...
+   🖱️ 正在點擊全螢幕按鈕 (#btnFullscreen)...
+   🖱️ 正在點擊 Mini 折疊按鈕 (#btnMiniToggle)...
+   📌 法會專題影音、全螢幕與視窗 Mini 折疊按鈕真機硬鎖已全數通過驗證！
+[E2E] 測試結束，執行全域安全退出...
+  ✔ ✅ [E2E-17] 法會影音三巨鍵 (前行/密集嘛/迴向)、全螢幕與 Mini 折疊真機硬鎖 (119.9981ms)
+✔ 🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢驗 (22888.2014ms)
+☁️ [Firebase-Relay] 雲端中繼模組已初始化
+   └─ 房間識別 (Room ID): ROOM-QX7S
+   └─ 安全金鑰 (Token): LrfY_vGIPkP2Mint0gyhVrAzB8y0rA8c
+   └─ 純掃碼直通 URL: https://my-amrtf.web.app/?room=ROOM-QX7S&token=LrfY_vGIPkP2Mint0gyhVrAzB8y0rA8c
+☁️ [Firebase-Relay] 雲端中繼模組已初始化
+   └─ 房間識別 (Room ID): ROOM-NL3Z
+   └─ 安全金鑰 (Token): Q_4llT1LuftDJiri8BvouW3lF5RXFn4a
+   └─ 純掃碼直通 URL: https://my-amrtf.web.app/?room=ROOM-NL3Z&token=Q_4llT1LuftDJiri8BvouW3lF5RXFn4a
+☁️ [Firebase-Relay] 雲端中繼模組已初始化
+   └─ 房間識別 (Room ID): ROOM-5PXA
+   └─ 安全金鑰 (Token): dI2aIOOkPA8nJjEGKKH3MXLkuFugdoPs
+   └─ 純掃碼直通 URL: https://my-amrtf.web.app/?room=ROOM-5PXA&token=dI2aIOOkPA8nJjEGKKH3MXLkuFugdoPs
+🔒 [Firebase-Relay] 拒絕未經授權之信令: room=ROOM-0001
+🔒 [Firebase-Relay] 拒絕未經授權之信令: room=ROOM-0050
+🔒 [Firebase-Relay] 拒絕未經授權之信令: room=ROOM-0050
+☁️ [Firebase-Relay] 雲端中繼模組已初始化
+   └─ 房間識別 (Room ID): ROOM-4YQM
+   └─ 安全金鑰 (Token): 0lcpvShtC1lSimIkr_JtbyHHlYiL1UzD
+   └─ 純掃碼直通 URL: https://my-amrtf.web.app/?room=ROOM-4YQM&token=0lcpvShtC1lSimIkr_JtbyHHlYiL1UzD
+✔ ☁️ [Firebase-Relay] 32 碼密碼學安全 Token 生成與隨機性驗證 (4.1457ms)
+✔ ☁️ [Firebase-Relay] 8 碼人眼可辨識 Room ID 生成格式 (0.5758ms)
+✔ ☁️ [Firebase-Relay] 100 間研討教室多租戶物理隔離驗證 (絕不串台) (2.3453ms)
+🧹 [Firebase-Relay] 房間 ROOM-4YQM 已安全銷毀 (Zero-Garbage)
+✔ ☁️ [Firebase-Relay] 狀態快照更新與房間安全自毀 (Zero-Garbage) (553.6224ms)
+▶ 🌙 廣海明月 · Studio Control Desk 奢華操作艙功能與合約驗證
+  ✔ ✅ [Moonlight-1] /moonlight 路由必須返回 HTTP 200 且包含正確頁面標題與暗色主題 (27.9763ms)
+  ✔ ✅ [Moonlight-2] 頁面必須完整包含 24 欄廣播網格與專業狀態指標 (ON AIR / NDI / TIMECODE) (2.4892ms)
+  ✔ ✅ [Moonlight-3] 必須具備雙向切換開關、法音提詞機、主音軌示波器、VU 表與 ALL-KILL 靜音巨鍵 (1.9869ms)
+  ✔ ✅ [Moonlight-4] /moonlight.js 客戶端引擎必須成功載入且無語法錯誤 (28.3586ms)
+✔ 🌙 廣海明月 · Studio Control Desk 奢華操作艙功能與合約驗證 (79.0948ms)
+[WebRemote] 行動遙控網頁服務已啟動：http://100.87.123.122:9991
+▶ 🛰️ AMRTF 全鏈路信令合約與穿透性端到端閉環測試
+  ✔ ✅ [合約硬鎖] 靜態審計差集必須為 0 (所有前端 Action 均有實體處理器) (23.1627ms)
+  ✔ ✅ [端到端信號] 發送 goto_lesson (504) 必須穿透 WebSocket 並解析為 0504 導航網址 (205.6996ms)
+  ✔ ✅ [端到端信號] 發送相容協定 load_lecture ({ lesson: 504 }) 同樣必須正確解析為 0504 (206.8178ms)
+  ✔ ✅ [邊界防呆] 各種位數講次 (3, 566, 0003) 均能標準化為 4 位數字 (445.414ms)
+  ✔ ✅ [全鍵盤穿透] ARSENAL_CATALOG 中所有按鈕 action 必須能順暢穿透 WebSocket (507.9814ms)
+  ✔ ✅ [區間控制] play_interval 帶起訖時間必須原樣無損傳遞至分發中心 (206.6679ms)
+  ✔ ✅ [全域乾淨關閉] 伺服器必須具備雙向連鎖關閉與進程特徵滅殺防護 (26.251ms)
+✔ 🛰️ AMRTF 全鏈路信令合約與穿透性端到端閉環測試 (2360.4465ms)
+▶ 🎬 VideoManager 離線影片管理器單元測試
+  ✔ ✅ 應包含大慈恩研討專用 3 支影片定義 (prep, migtsema, dedication) (1.1182ms)
+  ✔ ✅ 狀態輸出應包含儲存路徑與工具狀態 (0.3682ms)
+  ✔ ✅ 各影片狀態應包含存在性與檔案大小欄位 (0.3731ms)
+✔ 🎬 VideoManager 離線影片管理器單元測試 (2.9957ms)
+ℹ tests 45
+ℹ suites 6
+ℹ pass 45
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30174.0979
