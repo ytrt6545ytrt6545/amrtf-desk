@@ -49,11 +49,22 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
   let deskCdp = null;
 
   before(async () => {
-    // 0. 清理佔用進程
+    // 0. 清理佔用進程與殘留埠口 (9998, 9222, 9223)
     try {
       execSync('node scratch/clean-proc.mjs', { cwd: projectRoot, stdio: 'ignore' });
     } catch (e) {}
-    await new Promise((r) => setTimeout(r, 600));
+    for (const port of [9998, 9222, 9223]) {
+      try {
+        const netstat = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf8' });
+        netstat.split('\n').forEach(l => {
+          const p = l.trim().split(/\s+/).pop();
+          if (p && p !== '0' && p !== process.pid.toString()) {
+            try { execSync(`taskkill /F /PID ${p} /T`, { stdio: 'ignore' }); } catch (err) {}
+          }
+        });
+      } catch (e) {}
+    }
+    await new Promise((r) => setTimeout(r, 800));
 
     // 1. 啟動真實 server.mjs
     console.log('[E2E] 正在啟動真實 server.mjs 伺服器...');
@@ -159,33 +170,53 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     } catch (e) {}
   });
 
-  test('✅ [E2E-3] 主控台全域按鈕字體放縮 (100% ➔ 125% ➔ 150%) 必須實質突變 DOM', async () => {
+  test('✅ [E2E-3] 主控台全域按鈕字體放縮 (100% ➔ 125% ➔ 150%) 必須實質突變 DOM 與按鈕計算字級', async () => {
     if (!deskCdp || !deskCdp.isConnected) {
       console.log('   ⚠️ 主控台 CDP 未掛載，降級以靜態檢查執行');
       return;
     }
-    // 確保基準點為預設 100%
-    await deskCdp.eval(`
-      localStorage.removeItem('amrtf_btn_scale');
-      document.body.classList.remove('btn-scale-125', 'btn-scale-150', 'btn-scale-175', 'btn-scale-200');
-    `);
+    // 確保基準點為預設 100%：清空儲存並重新載入，消除任何先前的污染
+    await deskCdp.eval(`localStorage.removeItem('amrtf_btn_scale');`);
+    await deskCdp.send('Page.reload');
+    await new Promise((r) => setTimeout(r, 1000));
+
+    const initialSize = await deskCdp.eval(`parseFloat(window.getComputedStyle(document.getElementById('btnPrevLesson')).fontSize)`);
+    const initialBodyClass = await deskCdp.eval(`document.body.className`);
+    console.log('   🔍 [E2E-3 Clean 100% Baseline]', { initialSize, initialBodyClass });
 
     // 透過 CDP 觸發 #btnScaleToggle 點擊 (100% ➔ 125%)
     await deskCdp.eval(`document.getElementById('btnScaleToggle').click()`);
+    await new Promise((r) => setTimeout(r, 100));
     const after125 = await deskCdp.eval(`document.body.className`);
+    const size125 = await deskCdp.eval(`parseFloat(window.getComputedStyle(document.getElementById('btnPrevLesson')).fontSize)`);
+    console.log('   🔍 [E2E-3 After 125%]', { size125, after125 });
     assert.ok(after125.includes('btn-scale-125'), '點擊一次後 body 必須包含 btn-scale-125 樣式');
+    assert.ok(size125 >= 14 && size125 > initialSize, `125% 字體大小 (${size125}px) 必須大於 100% (${initialSize}px)`);
 
     // (125% ➔ 150%)
     await deskCdp.eval(`document.getElementById('btnScaleToggle').click()`);
+    await new Promise((r) => setTimeout(r, 100));
     const after150 = await deskCdp.eval(`document.body.className`);
+    const size150 = await deskCdp.eval(`parseFloat(window.getComputedStyle(document.getElementById('btnPrevLesson')).fontSize)`);
+    console.log('   🔍 [E2E-3 After 150%]', { size150, after150 });
     assert.ok(after150.includes('btn-scale-150'), '點擊兩次後 body 必須包含 btn-scale-150 樣式');
+    assert.ok(size150 >= 17 && size150 > size125, `150% 字體大小 (${size150}px) 必須大於 125% (${size125}px)`);
+
+    // 檢查走帶按鈕文字亦同步放大
+    const fwd10Size = await deskCdp.eval(`parseFloat(window.getComputedStyle(document.getElementById('btnForward10')).fontSize)`);
+    assert.ok(fwd10Size >= 22, `走帶按鍵文字在 150% 下必須達到 22px 以上 (實測: ${fwd10Size}px)`);
 
     // 恢復 100% (循環點擊至回到預設)
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 5; i++) {
+      const hasScale = await deskCdp.eval(`Array.from(document.body.classList).some(c => c.startsWith('btn-scale-'))`);
+      if (!hasScale) break;
       await deskCdp.eval(`document.getElementById('btnScaleToggle').click()`);
+      await new Promise((r) => setTimeout(r, 80));
     }
     const afterReset = await deskCdp.eval(`document.body.className`);
-    assert.ok(!afterReset.includes('btn-scale-125') && !afterReset.includes('btn-scale-150'), '循環點擊後恢復預設');
+    assert.ok(!afterReset.includes('btn-scale-125') && !afterReset.includes('btn-scale-150') && !afterReset.includes('btn-scale-200'), '循環點擊後恢復預設');
+    const resetSize = await deskCdp.eval(`parseFloat(window.getComputedStyle(document.getElementById('btnPrevLesson')).fontSize)`);
+    assert.strictEqual(Math.round(resetSize), Math.round(initialSize), '恢復 100% 後字體大小必須還原');
   });
 
   test('✅ [E2E-4] 起訖單元獨立尺寸與 4 款淡雅半透明高亮切換', async () => {

@@ -122,6 +122,11 @@ graph LR
   - **0-DOM 靜態審查與無頭隔離硬鎖**：新增 `test/ui-logic-decoupling.test.mjs`，物理審查排除 DOM 越界引用，並斷言純 Node.js 環境無頭執行；
   - **code-inspector 質檢系統初征與五燈獎全綠**：完成 `web-remote.js` 視圖解耦（獨立抽離 `public/remote.html`）、`cdp-bridge.js` 與 `desk-controller.js` 作用域解耦，五大常識審查 100% 通過；
   - **唯一合法裁判標準驗證**：標準 `npm test` 7 大測試套件 48 項測試 100% 全綠通過（Exit Code 0）。
+- [x] **主控台全域按鈕字體比例切換實質放大（方向 A）· 廢除無效選擇器 · CSS 括號平衡與 Live Reality E2E 四重硬鎖全綠閉環 (亮點 136)**：
+  - **根本病因刨出**：舊選擇器脫節（`.keycap-btn` vs `.crystal-key`）與非法複合後代否定選擇器（`:not(#intervalRowWidget *)`）導致規則被 Chromium 靜音廢棄；
+  - **標準 CSS 串疊架構 (Cascade Override)**：全面覆蓋 `.crystal-key`, `.crystal-key span`, `.keycap-btn`，並在下方由 `body[class*="btn-scale-"] #intervalRowWidget ...` 固定字級保護起訖區域；
+  - **CSS 語法破洞修復**：徹底修平 `desk.css` 784 行與 2994 行游離大括號破洞；
+  - **真機硬鎖與唯一合法裁判全綠**：實裝 `[E2E-3]` 實質階梯字級斷言（100% ➔ 125% ➔ 150% ➔ 100%），專案標準 `npm test` 7 大套件、48 項測試 100% 全綠通過（Exit Code: 0）。
 
 ---
 

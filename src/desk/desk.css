@@ -779,7 +779,6 @@ body.mini-mode .giant-row {
   background: var(--btn-default-bg);
   color: var(--gold-accent);
   border: 1px solid var(--gold-accent);
-}
   white-space: nowrap;
 }
 
@@ -1900,136 +1899,218 @@ body.mode-custom-editing .cell-handle-resize {
    🌟 電腦版主控台：全域按鈕字體比例放大 (100% / 125% / 150% / 175% / 200%)
    【長官鐵律】：全域按鈕比例只對「起訖以外」的按鈕作用，起訖區域保持精密操作尺寸
    ============================================================================== */
-/* 🔒 起訖區域保護：排除於全域按鈕放大之外，由起訖專屬「🔤 尺寸」獨立調控 */
-body[class*="btn-scale-"] #intervalRowWidget,
-body[class*="btn-scale-"] #intervalRowWidget .keycap-btn,
-body[class*="btn-scale-"] #intervalRowWidget .interval-select,
-body[class*="btn-scale-"] #intervalRowWidget .interval-tag,
-body[class*="btn-scale-"] #intervalRowWidget .int-ctrl-btn {
-  /* 保持既有字級，不被全域比例放大干擾 */
-}
 
 /* 🚀 125% (含 120%) 放大 */
-body.btn-scale-125 .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-120 .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-125 .deck-grid-cell > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-120 .deck-grid-cell > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-125 .crystal-key,
+body.btn-scale-125 .crystal-key span,
+body.btn-scale-120 .crystal-key,
+body.btn-scale-120 .crystal-key span,
+body.btn-scale-125 .keycap-btn,
+body.btn-scale-120 .keycap-btn,
+body.btn-scale-125 .deck-grid-cell > .keycap-btn,
+body.btn-scale-120 .deck-grid-cell > .keycap-btn {
   font-size: 15px !important;
   font-weight: 800 !important;
 }
-body.btn-scale-125 .deck-grid-cell.sz-1x1 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-120 .deck-grid-cell.sz-1x1 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-125 .stitch-transport-grid .crystal-key,
+body.btn-scale-125 .stitch-transport-grid .crystal-key span,
+body.btn-scale-120 .stitch-transport-grid .crystal-key,
+body.btn-scale-120 .stitch-transport-grid .crystal-key span {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+}
+body.btn-scale-125 #playGlyph,
+body.btn-scale-120 #playGlyph {
+  width: 44px !important;
+  height: 44px !important;
+}
+body.btn-scale-125 .key-sacred-media,
+body.btn-scale-125 .key-sacred-media span,
+body.btn-scale-120 .key-sacred-media,
+body.btn-scale-120 .key-sacred-media span {
+  font-size: 17.5px !important;
+  font-weight: 800 !important;
+}
+body.btn-scale-125 .deck-grid-cell.sz-1x1 > .keycap-btn,
+body.btn-scale-120 .deck-grid-cell.sz-1x1 > .keycap-btn {
   font-size: 13.5px !important;
   font-weight: 800 !important;
 }
-body.btn-scale-125 .deck-grid-cell.sz-2x1 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-120 .deck-grid-cell.sz-2x1 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-125 .deck-grid-cell.sz-2x1 > .keycap-btn,
+body.btn-scale-120 .deck-grid-cell.sz-2x1 > .keycap-btn {
   font-size: 16px !important;
   font-weight: 800 !important;
 }
-body.btn-scale-125 .deck-grid-cell.sz-2x2 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-120 .deck-grid-cell.sz-2x2 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-125 .deck-grid-cell.sz-2x2 > .keycap-btn,
+body.btn-scale-120 .deck-grid-cell.sz-2x2 > .keycap-btn {
   font-size: 20px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-125 .deck-grid-cell.sz-4x1 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-120 .deck-grid-cell.sz-4x1 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-125 .deck-grid-cell.sz-4x1 > .keycap-btn,
+body.btn-scale-120 .deck-grid-cell.sz-4x1 > .keycap-btn {
   font-size: 18.5px !important;
   font-weight: 800 !important;
 }
-body.btn-scale-125 .deck-grid-cell.sz-4x2 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-120 .deck-grid-cell.sz-4x2 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-125 .deck-grid-cell.sz-4x2 > .keycap-btn,
+body.btn-scale-120 .deck-grid-cell.sz-4x2 > .keycap-btn {
   font-size: 32px !important;
   font-weight: 900 !important;
 }
 
 /* 🔥 150% (含 140%) 放大 */
-body.btn-scale-150 .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-140 .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-150 .deck-grid-cell > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-140 .deck-grid-cell > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-150 .crystal-key,
+body.btn-scale-150 .crystal-key span,
+body.btn-scale-140 .crystal-key,
+body.btn-scale-140 .crystal-key span,
+body.btn-scale-150 .keycap-btn,
+body.btn-scale-140 .keycap-btn,
+body.btn-scale-150 .deck-grid-cell > .keycap-btn,
+body.btn-scale-140 .deck-grid-cell > .keycap-btn {
   font-size: 18px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-150 .deck-grid-cell.sz-1x1 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-140 .deck-grid-cell.sz-1x1 > .keycap-btn:not(#intervalRowWidget *) {
-  font-size: 16px !important;
-  font-weight: 900 !important;
-}
-body.btn-scale-150 .deck-grid-cell.sz-2x1 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-140 .deck-grid-cell.sz-2x1 > .keycap-btn:not(#intervalRowWidget *) {
-  font-size: 19px !important;
-  font-weight: 900 !important;
-}
-body.btn-scale-150 .deck-grid-cell.sz-2x2 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-140 .deck-grid-cell.sz-2x2 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-150 .stitch-transport-grid .crystal-key,
+body.btn-scale-150 .stitch-transport-grid .crystal-key span,
+body.btn-scale-140 .stitch-transport-grid .crystal-key,
+body.btn-scale-140 .stitch-transport-grid .crystal-key span {
   font-size: 24px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-150 .deck-grid-cell.sz-4x1 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-140 .deck-grid-cell.sz-4x1 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-150 #playGlyph,
+body.btn-scale-140 #playGlyph {
+  width: 50px !important;
+  height: 50px !important;
+}
+body.btn-scale-150 .key-sacred-media,
+body.btn-scale-150 .key-sacred-media span,
+body.btn-scale-140 .key-sacred-media,
+body.btn-scale-140 .key-sacred-media span {
+  font-size: 21px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-150 .deck-grid-cell.sz-1x1 > .keycap-btn,
+body.btn-scale-140 .deck-grid-cell.sz-1x1 > .keycap-btn {
+  font-size: 16px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-150 .deck-grid-cell.sz-2x1 > .keycap-btn,
+body.btn-scale-140 .deck-grid-cell.sz-2x1 > .keycap-btn {
+  font-size: 19px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-150 .deck-grid-cell.sz-2x2 > .keycap-btn,
+body.btn-scale-140 .deck-grid-cell.sz-2x2 > .keycap-btn {
+  font-size: 24px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-150 .deck-grid-cell.sz-4x1 > .keycap-btn,
+body.btn-scale-140 .deck-grid-cell.sz-4x1 > .keycap-btn {
   font-size: 22px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-150 .deck-grid-cell.sz-4x2 > .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-140 .deck-grid-cell.sz-4x2 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-150 .deck-grid-cell.sz-4x2 > .keycap-btn,
+body.btn-scale-140 .deck-grid-cell.sz-4x2 > .keycap-btn {
   font-size: 38px !important;
   font-weight: 900 !important;
 }
 
 /* ⚡ 175% 放大：特大按鈕字體 */
-body.btn-scale-175 .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-175 .deck-grid-cell > .keycap-btn:not(#intervalRowWidget *) {
-  font-size: 20px !important;
+body.btn-scale-175 .crystal-key,
+body.btn-scale-175 .crystal-key span,
+body.btn-scale-175 .keycap-btn,
+body.btn-scale-175 .deck-grid-cell > .keycap-btn {
+  font-size: 21px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-175 .deck-grid-cell.sz-1x1 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-175 .stitch-transport-grid .crystal-key,
+body.btn-scale-175 .stitch-transport-grid .crystal-key span {
+  font-size: 28px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-175 #playGlyph {
+  width: 58px !important;
+  height: 58px !important;
+}
+body.btn-scale-175 .key-sacred-media,
+body.btn-scale-175 .key-sacred-media span {
+  font-size: 24px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-175 .deck-grid-cell.sz-1x1 > .keycap-btn {
   font-size: 17px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-175 .deck-grid-cell.sz-2x1 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-175 .deck-grid-cell.sz-2x1 > .keycap-btn {
   font-size: 22px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-175 .deck-grid-cell.sz-2x2 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-175 .deck-grid-cell.sz-2x2 > .keycap-btn {
   font-size: 27px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-175 .deck-grid-cell.sz-4x1 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-175 .deck-grid-cell.sz-4x1 > .keycap-btn {
   font-size: 25px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-175 .deck-grid-cell.sz-4x2 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-175 .deck-grid-cell.sz-4x2 > .keycap-btn {
   font-size: 44px !important;
   font-weight: 900 !important;
 }
 
 /* 💥 200% 放大：極致巨幅大字模式 (起訖以外全面極限展示) */
-body.btn-scale-200 .keycap-btn:not(#intervalRowWidget *),
-body.btn-scale-200 .deck-grid-cell > .keycap-btn:not(#intervalRowWidget *) {
-  font-size: 22px !important;
+body.btn-scale-200 .crystal-key,
+body.btn-scale-200 .crystal-key span,
+body.btn-scale-200 .keycap-btn,
+body.btn-scale-200 .deck-grid-cell > .keycap-btn {
+  font-size: 24px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-200 .deck-grid-cell.sz-1x1 > .keycap-btn:not(#intervalRowWidget *) {
-  font-size: 18.5px !important;
+body.btn-scale-200 .stitch-transport-grid .crystal-key,
+body.btn-scale-200 .stitch-transport-grid .crystal-key span {
+  font-size: 32px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-200 .deck-grid-cell.sz-2x1 > .keycap-btn:not(#intervalRowWidget *) {
-  font-size: 25px !important;
-  font-weight: 900 !important;
+body.btn-scale-200 #playGlyph {
+  width: 66px !important;
+  height: 66px !important;
 }
-body.btn-scale-200 .deck-grid-cell.sz-2x2 > .keycap-btn:not(#intervalRowWidget *) {
-  font-size: 30px !important;
-  font-weight: 900 !important;
-}
-body.btn-scale-200 .deck-grid-cell.sz-4x1 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-200 .key-sacred-media,
+body.btn-scale-200 .key-sacred-media span {
   font-size: 28px !important;
   font-weight: 900 !important;
 }
-body.btn-scale-200 .deck-grid-cell.sz-4x2 > .keycap-btn:not(#intervalRowWidget *) {
+body.btn-scale-200 .deck-grid-cell.sz-1x1 > .keycap-btn {
+  font-size: 18.5px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-200 .deck-grid-cell.sz-2x1 > .keycap-btn {
+  font-size: 25px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-200 .deck-grid-cell.sz-2x2 > .keycap-btn {
+  font-size: 30px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-200 .deck-grid-cell.sz-4x1 > .keycap-btn {
+  font-size: 28px !important;
+  font-weight: 900 !important;
+}
+body.btn-scale-200 .deck-grid-cell.sz-4x2 > .keycap-btn {
   font-size: 50px !important;
   font-weight: 900 !important;
   letter-spacing: 2px !important;
+}
+
+/* 🔒 起訖區域保護：排除於全域按鈕放大之外，起訖區域維持精密操作尺寸或由自身字級獨立調控 */
+body[class*="btn-scale-"] #intervalRowWidget .crystal-key,
+body[class*="btn-scale-"] #intervalRowWidget .crystal-key span,
+body[class*="btn-scale-"] #intervalRowWidget .keycap-btn,
+body[class*="btn-scale-"] #intervalRowWidget .keycap-btn span,
+body[class*="btn-scale-"] #intervalRowWidget .interval-select,
+body[class*="btn-scale-"] #intervalRowWidget .interval-tag,
+body[class*="btn-scale-"] #intervalRowWidget .int-ctrl-btn {
+  font-size: 12px !important;
+  font-weight: 600 !important;
 }
 
 /* ==============================================================================
@@ -2907,6 +2988,9 @@ body.theme-light #btnVideoDedication {
   border-radius: 8px !important;
 }
 
+body.theme-light #btnVideoPrep:hover,
+body.theme-light #btnVideoMigsema:hover,
+body.theme-light #btnVideoDedication:hover {
   color: #451a03 !important;
   transform: translateY(-1px);
 }
