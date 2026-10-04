@@ -10,7 +10,8 @@
     "test": "node scripts/audit-signals.mjs && node --test --test-concurrency=1 test/*.test.mjs",
     "audit": "node scripts/audit-signals.mjs",
     "build": "npx @yao-pkg/pkg server.mjs --targets node20-win-x64 --output dist/AMRTF-Desk.exe",
-    "package:portable": "node scripts/build-portable.mjs"
+    "package:portable": "node scripts/build-portable.mjs",
+    "release": "node scripts/publish-release.mjs"
   },
   "pkg": {
     "assets": [
