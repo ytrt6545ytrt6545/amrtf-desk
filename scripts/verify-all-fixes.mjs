@@ -67,18 +67,17 @@ console.log('📌 檢驗項目 1: 配合大慈恩官方原生安全範圍 (13~22
 console.log('');
 
 // -----------------------------------------------------------------------------
-// 測試 2: 電腦版全域比例支援至 200% (起訖以外放大，起訖模組保護)
+// 測試 2: 電腦版全域比例支援至 150% (長官指定上限，起訖以外放大，起訖模組保護)
 // -----------------------------------------------------------------------------
-console.log('📌 檢驗項目 2: 電腦版全域按鈕比例 100%~200% 覆蓋');
+console.log('📌 檢驗項目 2: 電腦版全域按鈕比例 100%~150% 覆蓋');
 {
   const deskJs = fs.readFileSync(path.join(rootDir, 'src/desk/desk.js'), 'utf8');
-  assert(deskJs.includes("'btn-scale-200'"), 'desk.js SCALE_CLASSES 包含 btn-scale-200');
-  assert(deskJs.includes("'🔤 200%'"), 'desk.js SCALE_LABELS 包含 🔤 200%');
+  assert(deskJs.includes("'btn-scale-150'"), 'desk.js SCALE_CLASSES 包含 btn-scale-150');
+  assert(deskJs.includes("'🔤 150%'"), 'desk.js SCALE_LABELS 包含 🔤 150%');
 
   const deskCss = fs.readFileSync(path.join(rootDir, 'src/desk/desk.css'), 'utf8');
   assert(deskCss.includes(':not(#intervalRowWidget *)'), 'desk.css 具備 :not(#intervalRowWidget *) 排除起訖');
-  assert(deskCss.includes('body.btn-scale-200 .deck-grid-cell.sz-4x2 > .keycap-btn:not(#intervalRowWidget *)'), 'desk.css 覆蓋 200% 模式 4x2 按鈕');
-  assert(deskCss.includes('font-size: 50px !important;'), 'desk.css 200% 模式 4x2 巨型按鈕字級達 50px');
+  assert(deskCss.includes('body.btn-scale-150 .deck-grid-cell.sz-4x2 > .keycap-btn'), 'desk.css 覆蓋 150% 模式 4x2 按鈕');
   assert(deskCss.includes('body[class*="btn-scale-"] #intervalRowWidget'), 'desk.css 具備通配起訖保護塊');
 }
 

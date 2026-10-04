@@ -18,7 +18,8 @@
   const speedBadge = document.getElementById('speedBadge');
   const prompterText = document.getElementById('prompterText');
 
-  // 按鈕
+  // 按鈕與防抖哨兵
+  let lastPlayPauseClickTime = 0;
   const btnPlayPause = document.getElementById('btnPlayPause');
   const btnStop = document.getElementById('btnStop');
   const btnRewind10 = document.getElementById('btnRewind10');
@@ -36,11 +37,20 @@
   const btnNextLesson = document.getElementById('btnNextLesson');
   const btnSpeechMode = document.getElementById('btnSpeechMode');
   const btnScrollMode = document.getElementById('btnScrollMode');
+  const btnScrollManual = document.getElementById('btnScrollManual');
+  const btnScrollContinuous = document.getElementById('btnScrollContinuous');
+  const btnScrollSection = document.getElementById('btnScrollSection');
 
   const btnVideoMigsema = document.getElementById('btnVideoMigsema');
   const btnVideoPrep = document.getElementById('btnVideoPrep');
   const btnVideoDedication = document.getElementById('btnVideoDedication');
   const btnCloseVideo = document.getElementById('btnCloseVideo');
+  const btnStopVideo = document.getElementById('btnStopVideo');
+
+  const btnVolumeMute = document.getElementById('btnVolumeMute');
+  const volumeSlider = document.getElementById('volumeSlider');
+  const volumeValue = document.getElementById('volumeValue');
+  const volumeIcon = document.getElementById('volumeIcon');
   const btnThemeToggle = document.getElementById('btnThemeToggle');
   const btnDeskThemeToggle = document.getElementById('btnDeskThemeToggle');
   const updateBadgeDot = document.getElementById('updateBadgeDot');
@@ -116,9 +126,9 @@
   let lastCmdName = '';
   function sendCmd(cmd, params = {}) {
     const now = Date.now();
-    // 🎛️ 物理防抖硬鎖：250ms 內對切換類指令進行高頻重複過濾，徹底杜絕雙重觸發 (Double-Fire)
-    if (cmd === lastCmdName && (now - lastCmdTime < 250) && (cmd === 'toggle_play' || cmd === 'restart' || cmd === 'cycle_scroll_mode' || cmd === 'toggle_speech_mode' || cmd === 'toggle_fullscreen')) {
-      console.warn(`[Desk-Debounce] 抑制 250ms 內高頻重複信令: ${cmd}`);
+    // 🎛️ 物理防抖硬鎖：80ms 內對高頻微抖動進行過濾，杜絕機械雙重擊發，同時絕不吞噬操作員正常快速連按
+    if (cmd === lastCmdName && (now - lastCmdTime < 80) && (cmd === 'restart' || cmd === 'cycle_scroll_mode' || cmd === 'toggle_speech_mode' || cmd === 'toggle_fullscreen')) {
+      console.warn(`[Desk-Debounce] 抑制 80ms 內高頻重複信令: ${cmd}`);
       return;
     }
     lastCmdTime = now;
@@ -203,48 +213,113 @@
     updateIntervalOptionsConstraints('end');
   });
 
-  // 4. 影片彈窗與視覺控制
-  btnVideoMigsema.addEventListener('click', () => sendCmd('modal_migtsema'));
-  btnVideoPrep.addEventListener('click', () => sendCmd('modal_prep_video'));
-  btnVideoDedication.addEventListener('click', () => sendCmd('modal_dedication_video'));
-  btnCloseVideo.addEventListener('click', () => sendCmd('modal_close'));
+  // 4. 影片彈窗與視覺控制 (切換新影片前強制急煞上一部影片，徹底消滅聲音疊加)
+  function playVideoExclusive(cmdName) {
+    sendCmd('stop_video');
+    setTimeout(() => sendCmd(cmdName), 30);
+  }
+
+  if (btnVideoMigsema) btnVideoMigsema.addEventListener('click', () => playVideoExclusive('modal_migtsema'));
+  if (btnVideoPrep) btnVideoPrep.addEventListener('click', () => playVideoExclusive('modal_prep_video'));
+  if (btnVideoDedication) btnVideoDedication.addEventListener('click', () => playVideoExclusive('modal_dedication_video'));
+  if (btnCloseVideo) btnCloseVideo.addEventListener('click', () => sendCmd('modal_close'));
+  if (btnStopVideo) btnStopVideo.addEventListener('click', () => sendCmd('stop_video'));
+
+  // 5. 捲動模式三聯分段按鍵切換 (手動 / 持續 / 區段 隨選即切，純文字無圖)
+  function updateScrollModeButtons(mode) {
+    const m = parseInt(mode, 10);
+    if (btnScrollManual) btnScrollManual.classList.toggle('active', m === 0);
+    if (btnScrollContinuous) btnScrollContinuous.classList.toggle('active', m === 1);
+    if (btnScrollSection) btnScrollSection.classList.toggle('active', m === 2);
+  }
+
+  if (btnScrollManual) {
+    btnScrollManual.addEventListener('click', () => {
+      updateScrollModeButtons(0);
+      sendCmd('set_scroll_mode', { mode: '0' });
+    });
+  }
+  if (btnScrollContinuous) {
+    btnScrollContinuous.addEventListener('click', () => {
+      updateScrollModeButtons(1);
+      sendCmd('set_scroll_mode', { mode: '1' });
+    });
+  }
+  if (btnScrollSection) {
+    btnScrollSection.addEventListener('click', () => {
+      updateScrollModeButtons(2);
+      sendCmd('set_scroll_mode', { mode: '2' });
+    });
+  }
+
+  // 6. 方案 A 網頁音量控制 (走帶倍速旁精巧滑桿 ＋ 靜音切換 ＋ 數值反饋 ＋ LocalStorage 記憶)
+  function updateVolumeUI(vol, muted) {
+    const v = Math.round(vol);
+    if (volumeSlider) volumeSlider.value = v;
+    if (volumeValue) volumeValue.textContent = `${v}%`;
+    if (volumeIcon) {
+      if (muted || v === 0) {
+        volumeIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+      } else {
+        volumeIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+      }
+    }
+  }
+
+  if (volumeSlider) {
+    const savedVol = localStorage.getItem('amrtf_desk_volume') || '100';
+    volumeSlider.value = savedVol;
+    if (volumeValue) volumeValue.textContent = `${savedVol}%`;
+    const onVolumeChange = (e) => {
+      const v = parseInt(e.target.value, 10);
+      if (volumeValue) volumeValue.textContent = `${v}%`;
+      localStorage.setItem('amrtf_desk_volume', String(v));
+      sendCmd('set_volume', { volume: v });
+    };
+    volumeSlider.addEventListener('input', onVolumeChange);
+    volumeSlider.addEventListener('change', onVolumeChange);
+  }
+
+  if (btnVolumeMute) {
+    btnVolumeMute.addEventListener('click', () => sendCmd('toggle_mute'));
+  }
   // ==============================================================================
   // 🌞 / 🌙 大慈恩明暗雙風格主題切換模組 (Parchment Light / Zen Dark)
   // ==============================================================================
   const THEME_STORAGE_KEY = 'amrtf_theme';
 
   function getSavedTheme() {
-    return localStorage.getItem(THEME_STORAGE_KEY) || 'light'; // 長官指定：預設宣紙明亮風格
+    return 'dark'; // 長官指定（選項 A）：徹底取消宣紙明亮皮膚，全域統一鎖定曜石玄木曜金尊榮深色風格
   }
 
   function applyTheme(theme) {
-    const isDark = theme === 'dark';
-    document.body.classList.remove('theme-light', 'theme-dark');
-    document.body.classList.add(isDark ? 'theme-dark' : 'theme-light');
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
+    // 永遠強制曜石玄木深色風格
+    document.body.classList.remove('theme-light');
+    document.body.classList.add('theme-dark');
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem(THEME_STORAGE_KEY, 'dark');
 
     if (btnDeskThemeToggle) {
-      btnDeskThemeToggle.textContent = isDark ? '🌙' : '🌞';
-      btnDeskThemeToggle.title = isDark ? '目前為主控台玄木暗黑風格（點擊切換為宣紙明亮）' : '目前為主控台宣紙明亮風格（點擊切換為玄木暗黑）';
+      btnDeskThemeToggle.textContent = '🌙';
+      btnDeskThemeToggle.title = '目前為主控台曜石玄木曜金深色風格 (已鎖定)';
+      btnDeskThemeToggle.style.display = 'none'; // 隱藏日夜切換鈕
     }
   }
 
   function toggleTheme() {
-    const currentTheme = getSavedTheme();
-    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    applyTheme(nextTheme);
+    // 選項 A 鎖定深色風格，保持相容性空操作
+    applyTheme('dark');
   }
 
-  // 頂部按鈕專責控制主控台自身明暗風格
+  // 頂部按鈕專責控制主控台自身明暗風格（選項 A 鎖定深色）
   if (btnDeskThemeToggle) {
     btnDeskThemeToggle.addEventListener('click', toggleTheme);
   }
   window.applyTheme = applyTheme;
   window.toggleTheme = toggleTheme;
 
-  // 立即套用保存的主題或預設宣紙明亮風格
-  applyTheme(getSavedTheme());
+  // 立即套用曜石玄木深色風格
+  applyTheme('dark');
 
   // 🌓 下方鍵盤矩陣按鈕 100% 恢復崇高使命：精準控制大慈恩放映端手抄稿深淺色！
   if (btnThemeToggle) {
@@ -273,11 +348,52 @@
     });
   }
 
-  // 音訊滑桿手動跳轉
+  function formatTime(seconds) {
+    if (isNaN(seconds) || seconds < 0) return '00:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  // 音訊滑桿實時雙向跳轉與預覽連動 (長官指定：進度條實時雙向連動)
+  let isSeekingAudio = false;
   const audioSeekerEl = document.getElementById('audioSeeker');
   if (audioSeekerEl) {
+    audioSeekerEl.addEventListener('input', () => {
+      isSeekingAudio = true;
+      const targetSec = parseFloat(audioSeekerEl.value) || 0;
+      if (ledClock) {
+        const dur = parseFloat(audioSeekerEl.max) || 0;
+        ledClock.textContent = `${formatTime(targetSec)} / ${formatTime(dur)}`;
+      }
+    });
     audioSeekerEl.addEventListener('change', () => {
-      sendCmd('seek_absolute', { seconds: parseFloat(audioSeekerEl.value) || 0 });
+      isSeekingAudio = false;
+      const targetSec = parseFloat(audioSeekerEl.value) || 0;
+      sendCmd('seek_absolute', { seconds: targetSec });
+    });
+  }
+
+  // 放映端手抄稿深淺色雙聯分段按鍵 (長官指定：比照手動/持續/區間相同模式，實時反映真實情況)
+  const btnScreenDark = document.getElementById('btnScreenDark');
+  const btnScreenLight = document.getElementById('btnScreenLight');
+
+  function updateScreenThemeButtons(theme) {
+    const isDark = theme !== 'light'; // 預設黑曜深色
+    if (btnScreenDark) btnScreenDark.classList.toggle('active', isDark);
+    if (btnScreenLight) btnScreenLight.classList.toggle('active', !isDark);
+  }
+
+  if (btnScreenDark) {
+    btnScreenDark.addEventListener('click', () => {
+      sendCmd('set_theme', { theme: 'dark' });
+      updateScreenThemeButtons('dark');
+    });
+  }
+  if (btnScreenLight) {
+    btnScreenLight.addEventListener('click', () => {
+      sendCmd('set_theme', { theme: 'light' });
+      updateScreenThemeButtons('light');
     });
   }
 
@@ -307,9 +423,21 @@
 
     switch (action) {
       case 'play_pause':
-      case 'toggle_play':
+      case 'toggle_play': {
+        const isCurrentlyPlaying = btnPlayPause && btnPlayPause.classList.contains('playing');
+        const nextPlaying = !isCurrentlyPlaying;
+        if (btnPlayPause) btnPlayPause.classList.toggle('playing', nextPlaying);
+        const glyph = document.getElementById('playGlyph');
+        if (glyph) {
+          glyph.innerHTML = nextPlaying ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+        }
+        const loopParagraphLabel = document.getElementById('loopParagraphLabel');
+        if (loopParagraphLabel) {
+          loopParagraphLabel.textContent = nextPlaying ? '⏸ 暫停' : '▶ 播放';
+        }
         sendCmd('toggle_play');
         break;
+      }
       case 'forward_10s':
       case 'seek_fwd_10':
         sendCmd('forward_10s');
@@ -343,10 +471,17 @@
         break;
       case 'toggle_speech_mode':
       case 'toggle_speech_lead':
+        isSpeechMode = !isSpeechMode;
+        if (btnSpeechMode) btnSpeechMode.classList.toggle('active', isSpeechMode);
         sendCmd('toggle_speech_mode');
         break;
       case 'cycle_scroll_mode':
       case 'toggle_scroll':
+        currentScrollMode = (currentScrollMode + 1) % scrollLabels.length;
+        if (btnScrollMode) {
+          btnScrollMode.textContent = `📜 ${scrollLabels[currentScrollMode]}`;
+          btnScrollMode.classList.toggle('active', currentScrollMode > 0);
+        }
         sendCmd('cycle_scroll_mode');
         break;
       case 'fullscreen':
@@ -354,24 +489,50 @@
         sendCmd('toggle_fullscreen');
         break;
       case 'toggle_theme':
-        sendCmd('set_theme');
+      case 'set_theme': {
+        const targetTheme = actionEl ? actionEl.getAttribute('data-theme') : null;
+        if (targetTheme) {
+          sendCmd('set_theme', { theme: targetTheme });
+          updateScreenThemeButtons(targetTheme);
+        } else {
+          sendCmd('set_theme');
+        }
         break;
+      }
       case 'modal_prep_video':
-        sendCmd('modal_prep_video');
+        sendCmd('stop_video');
+        setTimeout(() => sendCmd('modal_prep_video'), 30);
         break;
       case 'modal_migtsema':
-        sendCmd('modal_migtsema');
+        sendCmd('stop_video');
+        setTimeout(() => sendCmd('modal_migtsema'), 30);
         break;
       case 'modal_dedication_video':
-        sendCmd('modal_dedication_video');
+        sendCmd('stop_video');
+        setTimeout(() => sendCmd('modal_dedication_video'), 30);
         break;
+      case 'stop_video':
       case 'close_video':
-        sendCmd('modal_close');
+        sendCmd('stop_video');
         break;
-      case 'set_speed':
+      case 'set_scroll_mode': {
+        const mode = actionEl.getAttribute('data-mode') || '0';
+        updateScrollModeButtons(mode);
+        sendCmd('set_scroll_mode', { mode });
+        break;
+      }
+      case 'toggle_mute':
+        sendCmd('toggle_mute');
+        break;
+      case 'set_speed': {
         const r = parseFloat(actionEl.dataset.value || actionEl.textContent) || 1.0;
         sendCmd('set_playback_rate', { rate: r });
+        document.querySelectorAll('.rate-btn').forEach(btn => {
+          const v = parseFloat(btn.dataset.value || btn.textContent) || 1.0;
+          btn.classList.toggle('active', Math.abs(v - r) < 0.05);
+        });
         break;
+      }
       case 'loop_interval':
       case 'play_interval':
         const start = parseFloat(selectIntervalStart ? selectIntervalStart.value : 0) || 0;
@@ -441,10 +602,10 @@
     });
   }
 
-  // 全域按鈕字體比例放大 (100% / 125% / 150% / 175% / 200%)
+  // 全域按鈕字體比例放大 (100% / 125% / 150%) - 長官指定上限 150%
   const btnScaleToggle = document.getElementById('btnScaleToggle');
-  const SCALE_CLASSES = ['', 'btn-scale-125', 'btn-scale-150', 'btn-scale-175', 'btn-scale-200'];
-  const SCALE_LABELS = ['🔤 100%', '🔤 125%', '🔤 150%', '🔤 175%', '🔤 200%'];
+  const SCALE_CLASSES = ['', 'btn-scale-125', 'btn-scale-150'];
+  const SCALE_LABELS = ['🔤 100%', '🔤 125%', '🔤 150%'];
   let currentScaleIdx = 0;
   const savedScale = localStorage.getItem('amrtf_btn_scale') || '';
   if (savedScale) {
@@ -463,9 +624,9 @@
       let curIdx = SCALE_CLASSES.indexOf(curCls);
       if (curIdx < 0) curIdx = 0;
 
-      // 清除所有可能的全域比例 class
+      // 清除所有可能的全域比例 class (含歷史 175%, 200%)
       SCALE_CLASSES.forEach(cls => { if (cls) document.body.classList.remove(cls); });
-      document.body.classList.remove('btn-scale-120', 'btn-scale-140');
+      document.body.classList.remove('btn-scale-120', 'btn-scale-140', 'btn-scale-175', 'btn-scale-200');
 
       currentScaleIdx = (curIdx + 1) % SCALE_CLASSES.length;
       const nextCls = SCALE_CLASSES[currentScaleIdx];
@@ -651,6 +812,11 @@
   // ==============================================================================
   // 📦 系統版本檢測與自動更新管理 (GitHub 遠端聯動與熱更新)
   // ==============================================================================
+  const syncProgressContainer = document.getElementById('syncProgressContainer');
+  const syncProgressStatus = document.getElementById('syncProgressStatus');
+  const syncProgressPercent = document.getElementById('syncProgressPercent');
+  const syncProgressFill = document.getElementById('syncProgressFill');
+
   let isCheckingUpdate = false;
 
   async function checkSystemUpdate(isManual = false) {
@@ -670,16 +836,15 @@
         currentVersionBadge.textContent = `v${data.currentVersion || '1.0.0'}`;
       }
 
+      // 更新說明已依長官指示去除，永遠維持隱藏
+      if (updateNotesContainer) updateNotesContainer.style.display = 'none';
+
       if (data.hasUpdate) {
         // 發現新版本！
         if (updateBadgeDot) updateBadgeDot.style.display = 'block';
         if (versionStatusTag) {
           versionStatusTag.textContent = `🎉 發現新版 v${data.latestVersion}`;
           versionStatusTag.classList.add('has-update');
-        }
-        if (updateNotesContainer && updateNotesBody) {
-          updateNotesContainer.style.display = 'block';
-          updateNotesBody.textContent = data.releaseNotes || '無更新備註';
         }
         if (data.isGitRepo) {
           if (btnApplyUpdate) {
@@ -695,7 +860,7 @@
           }
         }
         if (isManual) {
-          alert(`🎉 發現新版本 v${data.latestVersion}！\n\n更新亮點：\n${data.releaseNotes || '請查看下方更新說明面板'}`);
+          alert(`🎉 發現新版本 v${data.latestVersion}！\n\n點擊下方「⚡ 同步」即可自動更新。`);
         }
       } else {
         // 已是最新或離線
@@ -703,10 +868,6 @@
         if (versionStatusTag) {
           versionStatusTag.textContent = data.offline ? '⚠️ 現場離線 (無外網)' : '✅ 已是最新版本';
           versionStatusTag.classList.remove('has-update');
-        }
-        if (updateNotesContainer && updateNotesBody) {
-          updateNotesContainer.style.display = 'block';
-          updateNotesBody.textContent = data.releaseNotes || '當前版本已是最新穩定版。';
         }
         if (data.isGitRepo && btnApplyUpdate) {
           btnApplyUpdate.style.display = 'inline-block';
@@ -716,7 +877,7 @@
         }
         if (btnDownloadRelease) btnDownloadRelease.style.display = 'none';
         if (isManual) {
-          alert(data.offline ? '⚠️ 目前處於現場離線模式，無法連線至 GitHub 伺服器。' : `✅ 目前已是最新版本 (v${data.currentVersion})！\n\n詳細版本更新說明已在下方展開。`);
+          alert(data.offline ? '⚠️ 目前處於現場離線模式，無法連線至 GitHub 伺服器。' : `✅ 目前已是最新版本 (v${data.currentVersion})！`);
         }
       }
     } catch (err) {
@@ -731,18 +892,50 @@
   }
 
   async function applySystemUpdate() {
-    if (!confirm('確定要執行同步嗎？\n系統將自動自 GitHub 拉取最新程式碼。')) return;
+    if (!confirm('確定要執行同步嗎？\n系統將自動自 GitHub 拉取最新程式碼並更新資產。')) return;
     if (btnApplyUpdate) {
       btnApplyUpdate.disabled = true;
-      btnApplyUpdate.textContent = '⏳ 正在同步代碼...';
+      btnApplyUpdate.textContent = '⏳ 正在同步...';
     }
+
+    // 啟動流暢同步進度條
+    if (syncProgressContainer) syncProgressContainer.style.display = 'block';
+    let currentPct = 10;
+    const updateProgressUI = (pct, text) => {
+      if (syncProgressFill) syncProgressFill.style.width = `${pct}%`;
+      if (syncProgressPercent) syncProgressPercent.textContent = `${pct}%`;
+      if (syncProgressStatus) syncProgressStatus.textContent = text;
+    };
+
+    updateProgressUI(15, '⏳ 正在連線雲端倉庫...');
+
+    const timer = setInterval(() => {
+      if (currentPct < 85) {
+        currentPct += Math.floor(Math.random() * 12) + 5;
+        if (currentPct > 85) currentPct = 85;
+        const text = currentPct < 50 ? '⏳ 正在拉取最新代碼與資源...' : '⏳ 正在校驗並替換本機資產...';
+        updateProgressUI(currentPct, text);
+      }
+    }, 200);
+
     try {
       const res = await fetch('/api/system/apply-update', { method: 'POST' });
       const data = await res.json();
+      clearInterval(timer);
+
       if (!data || !data.ok) throw new Error(data.message || '更新失敗');
-      alert(data.message || '更新完成！請重啟系統以生效。');
-      checkSystemUpdate(false);
+
+      // 達到 100% 成功
+      updateProgressUI(100, '🎉 同步成功！資產已更新完畢');
+
+      setTimeout(() => {
+        alert(data.message || '🎉 同步成功！即將重新載入主控台...');
+        location.reload();
+      }, 800);
     } catch (err) {
+      clearInterval(timer);
+      updateProgressUI(currentPct, `❌ 同步失敗: ${err.message}`);
+      if (syncProgressFill) syncProgressFill.style.background = '#ef4444';
       alert('更新失敗: ' + err.message);
     } finally {
       if (btnApplyUpdate) {
@@ -968,6 +1161,8 @@
         btnPlayPause.textContent = '⏸';
       }
       if (btnPlayPause) btnPlayPause.classList.add('playing');
+      const loopParagraphLabel = document.getElementById('loopParagraphLabel');
+      if (loopParagraphLabel) loopParagraphLabel.textContent = '⏸ 暫停';
       statusBadge.textContent = '● LIVE';
       statusBadge.className = 'status-badge live';
       statusBadge.title = '放映艙播映中，連線同步正常';
@@ -979,6 +1174,8 @@
         btnPlayPause.textContent = '▶';
       }
       if (btnPlayPause) btnPlayPause.classList.remove('playing');
+      const loopParagraphLabel = document.getElementById('loopParagraphLabel');
+      if (loopParagraphLabel) loopParagraphLabel.textContent = '▶ 播放';
       statusBadge.textContent = '● 已同步';
       statusBadge.className = 'status-badge ready';
       statusBadge.title = '放映艙連線正常已同步';
@@ -996,17 +1193,26 @@
     if (timeRemaining && state.totalTimeStr) {
       timeRemaining.textContent = `剩餘 ${state.totalTimeStr}`;
     }
+    // 進度條實時雙向連動 (支援 state.currentTime 與相容 state.currentTimeSec)
     const audioSeeker = document.getElementById('audioSeeker');
-    if (audioSeeker && state.currentTimeSec !== undefined) {
-      audioSeeker.value = state.currentTimeSec;
-      if (state.totalDurationSec) audioSeeker.max = state.totalDurationSec;
+    const curSec = state.currentTime !== undefined ? state.currentTime : state.currentTimeSec;
+    const durSec = state.duration !== undefined ? state.duration : state.totalDurationSec;
+    if (audioSeeker) {
+      if (durSec !== undefined && durSec > 0) {
+        audioSeeker.max = durSec;
+      }
+      if (curSec !== undefined && !isSeekingAudio) {
+        audioSeeker.value = curSec;
+      }
     }
 
     if (state.playbackRate) {
       speedBadge.textContent = `${state.playbackRate}x`;
-      if (btnRate10) btnRate10.classList.toggle('active', state.playbackRate === 1.0);
-      if (btnRate125) btnRate125.classList.toggle('active', state.playbackRate === 1.25);
-      if (btnRate15) btnRate15.classList.toggle('active', state.playbackRate === 1.5);
+      const curRate = parseFloat(state.playbackRate) || 1.0;
+      document.querySelectorAll('.rate-btn').forEach(btn => {
+        const v = parseFloat(btn.dataset.value || btn.textContent) || 1.0;
+        btn.classList.toggle('active', Math.abs(v - curRate) < 0.05);
+      });
     }
 
     // 全螢幕狀態同步至設定艙
@@ -1045,21 +1251,33 @@
       if (prompterText) prompterText.textContent = state.currentSubtitle;
     }
 
-    // 捲動模式：狀態直接顯示於按鈕，手動為淡色，持續/區段為深色
+    // 捲動模式：如實同步手動、持續、區段三鍵高亮
     if (state.scrollMode !== undefined) {
       currentScrollMode = state.scrollMode;
-      const label = state.scrollModeLabel || scrollLabels[currentScrollMode] || '手動';
-      btnScrollMode.textContent = `📜 ${label}`;
-      const isManual = currentScrollMode === 0;
-      btnScrollMode.classList.toggle('active-deep', !isManual);
-      btnScrollMode.classList.toggle('idle-light', isManual);
+      updateScrollModeButtons(currentScrollMode);
+      if (btnScrollMode) {
+        const label = state.scrollModeLabel || scrollLabels[currentScrollMode] || '手動';
+        btnScrollMode.textContent = `📜 ${label}`;
+        const isManual = currentScrollMode === 0;
+        btnScrollMode.classList.toggle('active', !isManual);
+      }
     }
 
-    // 播稿模式：ON 為深色，OFF 為淺色；若無 LRC 則標註提示
+    // 方案 A 音量狀態雙向同步 (支援外部或手機端調節時同步主控台)
+    if (state.volume !== undefined) {
+      updateVolumeUI(state.volume, !!state.muted);
+    }
+
+    // 放映端手抄稿深淺色狀態實時同步 (長官指定：採手動/持續/區間相同模式，實時反映真實情況)
+    if (state.theme !== undefined) {
+      updateScreenThemeButtons(state.theme);
+    }
+
+    // 播稿模式：長官指定：啟動時要亮，沒有啟動不亮
     isSpeechMode = !!state.speechMode;
     const hasLrc = state.hasLrc !== undefined ? !!state.hasLrc : true;
-    btnSpeechMode.classList.toggle('active-deep', isSpeechMode);
-    btnSpeechMode.classList.toggle('idle-light', !isSpeechMode);
+    btnSpeechMode.classList.toggle('active', isSpeechMode);
+    btnSpeechMode.classList.remove('active-deep', 'idle-light');
     if (!hasLrc) {
       btnSpeechMode.title = '⚠️ 本講次大慈恩官網無逐字字幕 (LRC) 播稿資訊';
       btnSpeechMode.style.opacity = '0.65';
@@ -1074,12 +1292,14 @@
     btnLoopQuote.classList.toggle('active', isLoopQuote);
     btnLoopParagraph.classList.toggle('active', isLoopParagraph);
 
-    // 區段播映狀態反饋
+    // 區段播映狀態反饋 (長官指定：釋放循環按鈕三等分常駐，未激活時暗淡，激活時發光亮紅，絕不露空底槽)
     if (state.interval) {
       const isIntervalActive = !!state.interval.enabled;
       btnPlayInterval.classList.toggle('active', isIntervalActive && !state.interval.loop);
       btnLoopInterval.classList.toggle('active', isIntervalActive && !!state.interval.loop);
-      btnStopInterval.style.display = isIntervalActive ? 'inline-block' : 'none';
+      btnStopInterval.style.display = 'block';
+      btnStopInterval.classList.toggle('active-live', isIntervalActive);
+      btnStopInterval.classList.toggle('idle-disabled', !isIntervalActive);
     }
 
     // 動態填充手抄稿各段秒數下拉選單 (供講師隨選指定起訖)

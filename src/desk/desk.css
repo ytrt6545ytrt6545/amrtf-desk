@@ -209,10 +209,50 @@ body.desk-body,
 body.desk-body {
   background-color: var(--bg-base);
   color: var(--text-primary);
-  height: 100vh;
+  min-height: 100vh;
+  height: auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+}
+
+/* 💎 奢華流體微型滾動條 (Luxury Chassis Scrollbar) */
+body.desk-body::-webkit-scrollbar {
+  width: 7px;
+}
+body.desk-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+}
+body.desk-body::-webkit-scrollbar-thumb {
+  background: rgba(184, 134, 11, 0.45);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+body.desk-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 169, 60, 0.75);
+}
+
+/* 🔒 講次切換導航按鈕橫向防折行硬鎖 (絕不變直排與擠壓變形) */
+#btnPrevLesson,
+#btnNextLesson,
+#btnToggleDeckMode,
+#btnReloadLesson {
+  font-size: 12px;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#btnPrevLesson span,
+#btnNextLesson span,
+#btnToggleDeckMode span,
+#btnReloadLesson span {
+  white-space: nowrap !important;
+  display: inline-block !important;
 }
 
 /* 頂部工具列 */
@@ -754,21 +794,62 @@ body.mini-mode .giant-row {
 
 .interval-select {
   flex: 1;
-  height: 28px;
-  background: var(--interval-select-bg);
-  color: var(--interval-select-text);
-  border: 1px solid var(--interval-select-border);
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 0 4px;
+  height: 32px;
+  background: rgba(15, 23, 42, 0.6) !important;
+  color: #ffd875 !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  border-radius: 6px;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  font-family: 'JetBrains Mono', 'Noto Serif TC', monospace !important;
+  padding: 0 8px;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.interval-select:focus {
-  border-color: var(--gold-accent);
+.interval-select:focus,
+.interval-select:hover {
+  border-color: #ffd875 !important;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+.interval-select option {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  font-family: 'JetBrains Mono', 'Noto Serif TC', monospace !important;
+  padding: 8px 12px !important;
+}
+
+.interval-select option:checked {
+  background-color: #1e293b !important;
+  color: #ffd875 !important;
+  font-weight: 800 !important;
+}
+
+/* 🗣️ 播稿模式曜金流體高光 (長官指定：啟動時要亮，沒有啟動不亮) */
+#btnSpeechMode.active {
+  background: linear-gradient(135deg, #ffd875 0%, #e5a93c 100%) !important;
+  color: #1a1614 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 14px rgba(229, 169, 60, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid #ffd875 !important;
+}
+#btnSpeechMode.active span {
+  color: #1a1614 !important;
+}
+
+/* 📜 捲動模式面板反饋 (手動為沉著暗黑，持續/區段為微亮選中態) */
+#btnScrollMode {
+  transition: all 0.2s ease;
+}
+#btnScrollMode.active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(229, 169, 60, 0.15) 100%) !important;
+  color: #ffd875 !important;
+  border: 1px solid rgba(212, 175, 55, 0.5) !important;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important;
 }
 
 .btn-interval {
@@ -1901,6 +1982,10 @@ body.mode-custom-editing .cell-handle-resize {
    ============================================================================== */
 
 /* 🚀 125% (含 120%) 放大 */
+body.btn-scale-125 #btnPrevLesson,
+body.btn-scale-125 #btnNextLesson,
+body.btn-scale-120 #btnPrevLesson,
+body.btn-scale-120 #btnNextLesson,
 body.btn-scale-125 .crystal-key,
 body.btn-scale-125 .crystal-key span,
 body.btn-scale-120 .crystal-key,
@@ -1958,6 +2043,10 @@ body.btn-scale-120 .deck-grid-cell.sz-4x2 > .keycap-btn {
 }
 
 /* 🔥 150% (含 140%) 放大 */
+body.btn-scale-150 #btnPrevLesson,
+body.btn-scale-150 #btnNextLesson,
+body.btn-scale-140 #btnPrevLesson,
+body.btn-scale-140 #btnNextLesson,
 body.btn-scale-150 .crystal-key,
 body.btn-scale-150 .crystal-key span,
 body.btn-scale-140 .crystal-key,
@@ -2543,29 +2632,52 @@ body[class*="btn-scale-"] #intervalRowWidget .int-ctrl-btn {
 }
 
 .update-notes-container {
-  margin-top: 10px;
+  display: none !important;
+}
+
+/* ⚡ 同步與資產下載進度條樣式 (極致奢華曜金流體) */
+.sync-progress-container {
+  margin-top: 12px;
   padding-top: 10px;
   border-top: 1px dashed var(--border-color);
 }
 
-.update-notes-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--gold-accent);
+.sync-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 6px;
+  font-size: 12px;
 }
 
-.update-notes-body {
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text-primary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  padding: 8px 12px;
-  border-radius: 6px;
-  white-space: pre-wrap;
-  max-height: 160px;
-  overflow-y: auto;
+.sync-progress-status {
+  font-weight: 700;
+  color: var(--gold-accent);
+}
+
+.sync-progress-percent {
+  font-family: monospace;
+  font-weight: 800;
+  color: #10b981;
+}
+
+.sync-progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.sync-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #d4af37, #f59e0b, #10b981);
+  border-radius: 4px;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
 }
 
 .version-action-row {
@@ -2628,9 +2740,10 @@ body.btn-scale-150 .settings-drawer {
 .mock-interval-select option:disabled,
 .mobile-select option:disabled,
 select option:disabled {
-  color: #64748b !important;
-  background-color: #0b0f19 !important;
+  color: #94a3b8 !important;
+  background-color: #030712 !important;
   text-decoration: line-through;
+  opacity: 0.65;
 }
 
 /* 📖 手機模擬器講次直通艙 Modal 樣式 */
@@ -3003,12 +3116,12 @@ body.theme-light #btnVideoDedication:hover {
 /* 1. 主控艙基座與鉚釘 (Master Chassis & Rivets) */
 .stitch-master-chassis {
   width: 100%;
-  max-width: 650px;
+  max-width: 680px;
   margin: 0 auto;
   border-radius: 1.5rem;
   padding: 1.25rem;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   box-sizing: border-box;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -3359,6 +3472,38 @@ body.theme-light .key-sacred-media:hover {
   color: #042f2e;
 }
 
+/* (F) 倍速切換水晶鍵專用狀態 (Rate Crystal Key) */
+.rate-btn {
+  background: linear-gradient(180deg, #1f2b3e 0%, #131c2b 52%, #0a0f18 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+[data-theme="light"] .rate-btn,
+body.theme-light .rate-btn {
+  background: linear-gradient(180deg, #ffffff 0%, #ede8de 52%, #ded7c8 100%);
+  border: 1px solid rgba(180, 165, 140, 0.35);
+  color: #554433;
+}
+.rate-btn.active,
+[data-theme="dark"] .rate-btn.active,
+body.theme-dark .rate-btn.active {
+  background: linear-gradient(180deg, #ffe082 0%, #d4af37 42%, #997300 100%) !important;
+  color: #111417 !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(255, 245, 195, 0.9) !important;
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.9) !important;
+}
+[data-theme="light"] .rate-btn.active,
+body.theme-light .rate-btn.active {
+  background: linear-gradient(180deg, #fff9e6 0%, #fde68a 30%, #f59e0b 80%, #b45309 100%) !important;
+  color: #2b1802 !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5), inset 0 1px 2px #fff !important;
+}
+
 /* 6. AMRTF 水印防偽 (AMRTF Watermark) */
 .stitch-card-watermark {
   position: relative;
@@ -3405,8 +3550,159 @@ body.theme-light .stitch-card-watermark::before {
 }
 .stitch-media-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.6rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+/* 停止影片按鍵 (警示深紅晶透質感) */
+.key-stop-media {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.25)) !important;
+  border: 1px solid rgba(239, 68, 68, 0.45) !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.key-stop-media:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(185, 28, 28, 0.4)) !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+.key-stop-media:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* 捲動模式三聯分段按鍵樣式 (手動 / 持續 / 區段) */
+.scroll-mode-tray {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+}
+
+.scroll-mode-btn {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #94a3b8 !important;
+  cursor: pointer;
+  transition: all 0.2s ease !important;
+}
+
+.scroll-mode-btn:hover {
+  color: #f1f5f9 !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.scroll-mode-btn.active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.35), rgba(245, 158, 11, 0.2)) !important;
+  border: 1px solid rgba(212, 175, 55, 0.7) !important;
+  color: #ffd875 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 方案 A 網頁音量控制組件樣式 */
+.volume-control-tray {
+  background: rgba(15, 23, 42, 0.55) !important;
+  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  border-radius: 9999px !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+.volume-control-tray:hover {
+  border-color: rgba(212, 175, 55, 0.5) !important;
+}
+
+.volume-control-tray input[type="range"] {
+  accent-color: #ffd875;
+}
+
+/* 次級走帶行 (已播/從頭/剩餘/倍速/音量) 永不折行，150% 字號下緊湊排列 */
+.stitch-sub-transport-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: nowrap !important;
+  gap: 6px !important;
+  width: 100% !important;
+}
+
+body.btn-scale-150 .stitch-sub-transport-row,
+body.btn-scale-140 .stitch-sub-transport-row {
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+}
+
+body.btn-scale-150 .stitch-sub-transport-row .rate-btn,
+body.btn-scale-140 .stitch-sub-transport-row .rate-btn {
+  font-size: 11px !important;
+  padding: 3px 6px !important;
+}
+
+body.btn-scale-150 .stitch-sub-transport-row #btnStop,
+body.btn-scale-140 .stitch-sub-transport-row #btnStop {
+  font-size: 11px !important;
+  padding: 3px 6px !important;
+}
+
+/* 放映端深淺色雙聯分段按鍵樣式 (深色 / 淺色) 比照手動/持續/區段模式 */
+.screen-theme-tray {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+}
+
+.screen-theme-btn {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #94a3b8 !important;
+  cursor: pointer;
+  transition: all 0.2s ease !important;
+}
+
+.screen-theme-btn:hover {
+  color: #f1f5f9 !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.screen-theme-btn.active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.35), rgba(245, 158, 11, 0.2)) !important;
+  border: 1px solid rgba(212, 175, 55, 0.7) !important;
+  color: #ffd875 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
+}
+
+body.btn-scale-150 .stitch-sub-transport-row .screen-theme-btn,
+body.btn-scale-140 .stitch-sub-transport-row .screen-theme-btn {
+  font-size: 11px !important;
+  padding: 3px 6px !important;
+}
+
+/* 起訖區間 3 按鍵常駐三等分，未啟動時暗色半透明禁用態，啟動時點亮鮮紅 */
+#btnStopInterval {
+  display: inline-block !important;
+  transition: all 0.25s ease !important;
+}
+
+#btnStopInterval.idle-disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+  color: #94a3b8 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(15, 23, 42, 0.4) !important;
+}
+
+#btnStopInterval.active-live {
+  opacity: 1 !important;
+  cursor: pointer !important;
+  color: #f87171 !important;
+  border-color: rgba(248, 113, 113, 0.6) !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3) !important;
 }
 
 

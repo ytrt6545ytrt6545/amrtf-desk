@@ -13,7 +13,9 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const distDir = path.join(projectRoot, 'dist');
 const portableDir = path.join(distDir, 'AMRTF-Desk-Portable');
-const zipOutput = path.join(distDir, 'AMRTF-Desk-v1.0.0-Portable.zip');
+const pkg = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
+const currentVersion = pkg && pkg.version ? pkg.version : '1.2.0';
+const zipOutput = path.join(distDir, `AMRTF-Desk-v${currentVersion}-Portable.zip`);
 
 console.log('🚀 開始建置 AMRTF-Desk 綠色免安裝便攜包...');
 console.log(`📁 專案根目錄: ${projectRoot}`);
@@ -52,6 +54,8 @@ const filesToCopy = [
   'package-lock.json',
   'DIAGNOSE.bat',
   '啟動大慈恩研討艙.bat',
+  'launch-amrtf-desk.bat',
+  'launch-amrtf-desk.ps1',
   '建立桌面捷徑.bat',
   'setup-shortcut.ps1',
   '使用說明.txt'

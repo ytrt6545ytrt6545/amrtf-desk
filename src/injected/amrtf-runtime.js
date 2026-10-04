@@ -419,6 +419,8 @@
         markers: getParagraphTimeMarkers(),
         masterRange,
         currentSubtitle: subtitle,
+        volume: audio ? Math.round(audio.volume * 100) : 100,
+        muted: audio ? !!audio.muted : false,
       }
     };
 
@@ -596,14 +598,58 @@
         scheduleStateUpdate();
       }
 
-      // 0.1 預先注入頂底防撞安全帶，確保開機第一行永不鑽入頂部播放條
-      if (!document.getElementById('amrtf-safe-padding')) {
+      // 0.1 注入【觀眾純淨放映護盾】(隱藏頂部播放條、右側捲軸、乾擾公告，保留純淨手抄稿文字)
+      if (!document.getElementById('amrtf-screen-purity-shield')) {
         const tag = document.createElement('style');
-        tag.id = 'amrtf-safe-padding';
+        tag.id = 'amrtf-screen-purity-shield';
         tag.textContent = `
+          /* 1. 徹底消滅原生垂直與水平捲軸，保留平滑滾動功能給觀眾最乾淨畫面 */
+          html, body {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+          }
+          html::-webkit-scrollbar, body::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+
+          /* 2. 徹底隱藏頂部原生音訊播放條與時間條 (移出可視區但保留 DOM 結構供 JS 點火) */
+          #audio-player-container, .mejs-container, .mejs-controls, .mejs-time-rail, .mejs-time, .mejs-playpause-button {
+            position: fixed !important;
+            top: -9999px !important;
+            left: -9999px !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            visibility: hidden !important;
+          }
+
+          /* 3. 隱藏左下角或右上角公告與提示徽章 */
+          #omw-announcement, .omw-announcement-btn, .modal-backdrop, .fixed-notice, .announcement-badge, .site-notice {
+            display: none !important;
+            visibility: hidden !important;
+          }
+
+          /* 4. 手抄稿閱讀區域純淨置頂 (不需為頂部播放條預留 90px 空白) */
           body, #page, .entry-content, .reading-content {
-            padding-top: 90px !important;
+            padding-top: 24px !important;
             padding-bottom: 160px !important;
+          }
+
+          /* 5. 劇院全螢幕放映時，外層與劇院層全面禁止捲軸溢出 */
+          html.amrtf-theater-active, body.amrtf-theater-active {
+            overflow: hidden !important;
+            scrollbar-width: none !important;
+          }
+          html.amrtf-theater-active::-webkit-scrollbar, body.amrtf-theater-active::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+          #amrtf-theater-overlay {
+            overflow: hidden !important;
           }
         `;
         document.head.appendChild(tag);
@@ -669,6 +715,11 @@
         window.jQuery('html,body').stop(true, false);
       }
 
+      // 4. 長官指定：開機預設曜石玄木深色手抄稿皮膚 (Zen Dark)
+      if (document.body.classList.contains('amec_theme')) {
+        applyTheme('dark');
+      }
+
       if (speechDone && scrollDone && curMarkers.length >= 10) {
         clearInterval(intervalId);
         console.log(`[AMRTF-Desk] 開機狀態與 ${curMarkers.length} 個黃金段落已全數就緒！`);
@@ -692,13 +743,22 @@
     enforceStartupDefaults();
   }
 
+  // 檢查音訊元素是否具備有效來源 (防止官網 AJAX 延遲期間盲目 play 導致錯誤)
+  function isAudioReady(audio) {
+    if (!audio) return false;
+    return !!(audio.currentSrc || audio.src || audio.querySelector('source[src]'));
+  }
+
   // 核心操作輔助
   function doPlay() {
-    // 1. 優先觸發大慈恩官網的原生播放按鈕
+    const audio = getAudio();
+
+    // 1. 絕對優先觸發大慈恩官網的原生播放按鈕 (此為官網 AJAX 動態載入音檔來源的點火開關，絕不可阻斷)
     const playBtn = document.querySelector('button[aria-label="播放"], button[title="播放"], .mejs-play button, .mejs-playpause-button button');
     if (playBtn) {
       try { playBtn.click(); } catch (e) {}
     }
+
     // 2. 調用 mediaelement.js 實例 API
     try {
       if (window.mejs && window.mejs.players) {
@@ -707,31 +767,43 @@
         }
       }
     } catch (e) {}
-    // 3. 原生 HTML5 audio 備援
-    const audio = getAudio();
+
+    // 3. 原生 HTML5 audio 備援 (僅在已具備來源時調用，杜絕空來源拋出 NotSupportedError)
     if (audio && audio.paused) {
-      const playPromise = audio.play().catch((err) => {
-        console.error('[AMRTF-Desk] 播放失敗:', err.name, err.message);
-        showActionHud('▶️ 播放受阻: ' + (err.name === 'NotAllowedError' ? '請點擊視窗解除靜音限制' : err.message), 'error');
-        notifyStateUpdate();
-        return err;
-      });
-      window.__AMRTF_LAST_PLAY_PROMISE__ = playPromise;
-      playPromise.then((res) => {
-        delete window.__AMRTF_LAST_PLAY_PROMISE__;
-        notifyStateUpdate();
-      });
+      if (isAudioReady(audio)) {
+        const playPromise = audio.play().catch((err) => {
+          if (err.name === 'NotAllowedError') {
+            showActionHud('▶️ 播放受阻: 請點擊視窗解除靜音限制', 'error');
+          } else {
+            console.warn('[AMRTF-Desk] 原生播放捕獲:', err.message);
+          }
+          notifyStateUpdate();
+          return err;
+        });
+        window.__AMRTF_LAST_PLAY_PROMISE__ = playPromise;
+        playPromise.then(() => {
+          delete window.__AMRTF_LAST_PLAY_PROMISE__;
+          notifyStateUpdate();
+        });
+      } else {
+        console.log('[AMRTF-Desk] 原生按鈕已點火，等待官網音訊來源完成加載...');
+      }
     }
+    return true;
   }
 
   function doPause() {
     freezeScroll();
-    // 1. 優先觸發大慈恩官網的原生暫停按鈕
-    const pauseBtn = document.querySelector('button[aria-label="暫停"], button[title="暫停"], .mejs-pause button, .mejs-playpause-button.mejs-pause button');
-    if (pauseBtn) {
-      try { pauseBtn.click(); } catch (e) {}
+    // 1. 原生 HTML5 audio 絕對優先急煞
+    const audio = getAudio();
+    if (audio) {
+      try {
+        audio.pause();
+      } catch (e) {
+        console.warn('[AMRTF-Desk] 原生 pause 例外 (已安全吸收):', e);
+      }
     }
-    // 2. 調用 mediaelement.js 實例 API
+    // 2. 調用 mediaelement.js 實例 API 徹底同步
     try {
       if (window.mejs && window.mejs.players) {
         for (const k in window.mejs.players) {
@@ -739,29 +811,44 @@
         }
       }
     } catch (e) {}
-    // 3. 原生 HTML5 audio 備援
-    const audio = getAudio();
-    if (audio && !audio.paused) {
-      audio.pause();
+    // 3. 清除未決的 playPromise 避免未決競態
+    if (window.__AMRTF_LAST_PLAY_PROMISE__) {
+      delete window.__AMRTF_LAST_PLAY_PROMISE__;
     }
     freezeScroll();
+    notifyStateUpdate();
   }
 
   function seekAudio(targetSec, shouldPlay = true) {
     const audio = getAudio();
     const target = Math.max(0, parseFloat(targetSec) || 0);
 
-    const seekElements = Array.from(document.querySelectorAll('span.seek-to, [data-time], span.lrc, span[data-s]'));
-    for (const el of seekElements) {
-      const t = el.hasAttribute('data-time') ? parseTimeToSeconds(el.getAttribute('data-time')) : parseFloat(el.getAttribute('data-s') || '0');
-      if (!isNaN(t) && Math.abs(t - target) < 0.5) {
-        try { el.click(); break; } catch (e) {}
+    // 只有在明確要求播放時才觸發歌詞 click，防止從頭急煞或歸零暫停時被官網點擊事件強行重開播放
+    if (shouldPlay) {
+      const seekElements = Array.from(document.querySelectorAll('span.seek-to, [data-time], span.lrc, span[data-s]'));
+      for (const el of seekElements) {
+        const t = el.hasAttribute('data-time') ? parseTimeToSeconds(el.getAttribute('data-time')) : parseFloat(el.getAttribute('data-s') || '0');
+        if (!isNaN(t) && Math.abs(t - target) < 0.5) {
+          try { el.click(); break; } catch (e) {}
+        }
       }
     }
 
     if (audio) {
-      try { audio.currentTime = target; } catch (e) {}
-      if (shouldPlay && audio.paused) doPlay();
+      if (isAudioReady(audio)) {
+        try { audio.currentTime = target; } catch (e) {}
+        if (shouldPlay && audio.paused) doPlay();
+      } else {
+        // 音訊尚在載入中，掛載單次就緒監聽
+        const onReady = () => {
+          audio.removeEventListener('canplay', onReady);
+          audio.removeEventListener('loadedmetadata', onReady);
+          try { audio.currentTime = target; } catch (e) {}
+          if (shouldPlay && audio.paused) doPlay();
+        };
+        audio.addEventListener('canplay', onReady, { once: true });
+        audio.addEventListener('loadedmetadata', onReady, { once: true });
+      }
     }
     scheduleStateUpdate();
   }
@@ -812,14 +899,23 @@
     }, 100);
   }
 
+  let theaterSessionToken = 0;
+
   async function playTheaterVideo(videoKey) {
     // 1. 暫停背景音檔
     doPause();
 
-    // 2. 先自癒清理任何舊劇院與舊彈窗，防止連續點擊堆疊死鎖
+    // 2. 先自癒清理任何舊劇院與舊彈窗，防止連續點擊堆疊死鎖與聲音重疊（立即停播前一部影片）
     closeTheaterVideo();
 
+    const currentToken = ++theaterSessionToken;
     isTheaterActive = true;
+
+    // 鎖定外層捲軸溢出，杜絕全螢幕影片右側露出滾動條
+    try {
+      document.documentElement.classList.add('amrtf-theater-active');
+      document.body.classList.add('amrtf-theater-active');
+    } catch (e) {}
 
     // 3. 動態建立全螢幕純黑劇院覆蓋層 (頂級 z-index，完全無邊框無任何浮動按鈕)
     const overlay = document.createElement('div');
@@ -866,7 +962,10 @@
       hasLocalFile = false;
     }
 
-    if (!isTheaterActive) return;
+    if (!isTheaterActive || currentToken !== theaterSessionToken) {
+      if (overlay) overlay.remove();
+      return;
+    }
 
     if (hasLocalFile) {
       // ======================================================================
@@ -965,6 +1064,13 @@
 
   function closeTheaterVideo() {
     isTheaterActive = false;
+    theaterSessionToken++;
+
+    // 解除劇院捲軸鎖定
+    try {
+      document.documentElement.classList.remove('amrtf-theater-active');
+      document.body.classList.remove('amrtf-theater-active');
+    } catch (e) {}
 
     // 1. 安全退出實體全螢幕
     try {
@@ -973,16 +1079,18 @@
       }
     } catch (e) {}
 
-    // 2. 激進銷毀原生 <video> 解碼管線 (遵守 8GB RAM 零洩漏鐵律)
-    const nativeVid = document.getElementById('amrtf-theater-native-video');
-    if (nativeVid) {
+    // 2. 激進銷毀原生 <video> 解碼管線 (遵守 8GB RAM 零洩漏鐵律，確保任何播放中的影片瞬間急煞中斷)
+    document.querySelectorAll('video').forEach((vid) => {
       try {
-        nativeVid.pause();
-        nativeVid.removeAttribute('src');
-        nativeVid.load(); // 通知 Chromium 內核徹底釋放硬體解碼器與音訊緩衝區
+        vid.pause();
+        vid.currentTime = 0;
+        if (vid.id.startsWith('amrtf-theater')) {
+          vid.removeAttribute('src');
+          vid.load();
+          vid.remove();
+        }
       } catch (e) {}
-      nativeVid.remove();
-    }
+    });
 
     // 3. 銷毀 YouTube Player 實例
     if (currentYtPlayer) {
@@ -1025,54 +1133,16 @@
   });
 
   // ============================================================================
-  // 🛰️ 微型 HUD 視覺反饋膠囊 (Visual Action HUD - 供長官即時反饋與視覺快照取證)
+  // 🛰️ 操作狀態紀錄 (長官指示：大慈恩畫面不出現操作狀態說明，保持觀眾純淨畫面)
   // ============================================================================
   function showActionHud(text, type = 'info') {
-    let hud = document.getElementById('amrtf-action-hud');
-    if (!hud) {
-      hud = document.createElement('div');
-      hud.id = 'amrtf-action-hud';
-      hud.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999999;
-        padding: 10px 18px;
-        border-radius: 999px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.3);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        pointer-events: none;
-        opacity: 0;
-        transform: translateY(-10px) scale(0.95);
-      `;
-      document.body.appendChild(hud);
+    // 徹底清理任何歷史殘留之 HUD DOM 節點
+    const oldHud = document.getElementById('amrtf-action-hud');
+    if (oldHud) {
+      try { oldHud.remove(); } catch (e) {}
     }
-
-    if (type === 'error') {
-      hud.style.backgroundColor = 'rgba(220, 38, 38, 0.9)';
-      hud.style.color = '#ffffff';
-      hud.style.border = '1px solid rgba(255, 100, 100, 0.6)';
-    } else {
-      hud.style.backgroundColor = 'rgba(15, 23, 42, 0.88)';
-      hud.style.color = '#38bdf8';
-      hud.style.border = '1px solid rgba(56, 189, 248, 0.4)';
-    }
-
-    hud.textContent = text;
-    hud.style.opacity = '1';
-    hud.style.transform = 'translateY(0) scale(1)';
-
-    if (window._hudFadeTimer) clearTimeout(window._hudFadeTimer);
-    window._hudFadeTimer = setTimeout(() => {
-      hud.style.opacity = '0';
-      hud.style.transform = 'translateY(-10px) scale(0.95)';
-    }, 1300);
+    // 僅在終端/控制台打印遙測日誌，絕不向大慈恩大螢幕 DOM 注入任何浮動提示框！
+    console.log(`[AMRTF Action] (${type}) ${text}`);
   }
 
   // 指令正規化轉譯表 (消滅大小寫與發送端歷史命名脫節)
@@ -1161,7 +1231,13 @@
     'TRIGGER_DEDICATION': 'modal_dedication_video',
     'modal_close': 'modal_close',
     'close_video': 'modal_close',
-    'CLOSE_VIDEO': 'modal_close'
+    'CLOSE_VIDEO': 'modal_close',
+    'stop_video': 'modal_close',
+    'STOP_VIDEO': 'modal_close',
+    'set_volume': 'set_volume',
+    'SET_VOLUME': 'set_volume',
+    'toggle_mute': 'toggle_mute',
+    'TOGGLE_MUTE': 'toggle_mute'
   };
 
   // 指令分發中心 (100% 完整對標 Companion 與手機端 Actions)
@@ -1177,14 +1253,16 @@
           doPause();
           showActionHud('⏸️ 已暫停播放');
         } else {
-          doPlay();
-          showActionHud('▶️ 開始播放');
+          if (doPlay()) {
+            showActionHud('▶️ 開始播放');
+          }
         }
         break;
 
       case 'play':
-        doPlay();
-        showActionHud('▶️ 開始播放');
+        if (doPlay()) {
+          showActionHud('▶️ 開始播放');
+        }
         break;
 
       case 'pause':
@@ -1193,29 +1271,55 @@
         break;
 
       case 'restart':
-        seekAudio(0, false);
+        if (audio && isAudioReady(audio)) {
+          seekAudio(0, false);
+        }
         doPause();
         showActionHud('⏹️ 重新回到起點');
         break;
 
       case 'rewind_5s':
-        if (audio) seekAudio(audio.currentTime - 5);
-        showActionHud('⏪ 快退 5 秒');
+        if (audio) {
+          if (isAudioReady(audio)) {
+            seekAudio(audio.currentTime - 5);
+            showActionHud('⏪ 快退 5 秒');
+          } else {
+            showActionHud('⏳ 音檔載入中...');
+          }
+        }
         break;
 
       case 'forward_5s':
-        if (audio) seekAudio(audio.currentTime + 5);
-        showActionHud('⏩ 快進 5 秒');
+        if (audio) {
+          if (isAudioReady(audio)) {
+            seekAudio(audio.currentTime + 5);
+            showActionHud('⏩ 快進 5 秒');
+          } else {
+            showActionHud('⏳ 音檔載入中...');
+          }
+        }
         break;
 
       case 'rewind_10s':
-        if (audio) seekAudio(audio.currentTime - 10);
-        showActionHud('⏪ 快退 10 秒');
+        if (audio) {
+          if (isAudioReady(audio)) {
+            seekAudio(audio.currentTime - 10);
+            showActionHud('⏪ 快退 10 秒');
+          } else {
+            showActionHud('⏳ 音檔載入中...');
+          }
+        }
         break;
 
       case 'forward_10s':
-        if (audio) seekAudio(audio.currentTime + 10);
-        showActionHud('⏩ 快進 10 秒');
+        if (audio) {
+          if (isAudioReady(audio)) {
+            seekAudio(audio.currentTime + 10);
+            showActionHud('⏩ 快進 10 秒');
+          } else {
+            showActionHud('⏳ 音檔載入中...');
+          }
+        }
         break;
 
       case 'seek_relative':
@@ -1229,7 +1333,11 @@
         break;
 
       case 'jump_to_master_start':
-        const curTime = audio ? audio.currentTime : 0;
+        if (!audio || !isAudioReady(audio)) {
+          showActionHud('⏳ 音檔載入中...');
+          break;
+        }
+        const curTime = audio.currentTime;
         const range = parseMasterAudioRange(curTime);
         if (range.start >= 0) {
           seekAudio(range.start, true);
@@ -1244,7 +1352,11 @@
           loopConfig = { enabled: false, start: 0, end: 0, type: 'none' };
           showActionHud('🔁 引文循環：關閉');
         } else {
-          const curT = audio ? audio.currentTime : 0;
+          if (!audio || !isAudioReady(audio)) {
+            showActionHud('⏳ 音檔載入中...');
+            break;
+          }
+          const curT = audio.currentTime;
           const allRanges = getAllMasterAudioRanges();
           let r = allRanges.find(item => curT >= item.start - 1 && curT <= item.end + 1);
           if (!r) r = parseMasterAudioRange(curT);
@@ -1266,17 +1378,23 @@
         if (loopConfig.enabled && loopConfig.type === 'paragraph') {
           loopConfig = { enabled: false, start: 0, end: 0, type: 'none' };
           showActionHud('🔂 段落循環：關閉');
-        } else if (audio) {
+        } else if (audio && isAudioReady(audio)) {
           const cur = audio.currentTime;
           const r = getSurroundingSentenceRange(cur, 3, 3);
           loopConfig = { enabled: true, start: r.start, end: r.end, type: 'paragraph' };
           seekAudio(r.start, true);
           showActionHud('🔂 段落循環：開啟');
+        } else {
+          showActionHud('⏳ 音檔載入中...');
         }
         scheduleStateUpdate();
         break;
 
       case 'play_interval': {
+        if (!audio || !isAudioReady(audio)) {
+          showActionHud('⏳ 音檔載入中...');
+          break;
+        }
         const iStart = Math.max(0, parseFloat(params.start) || 0);
         const iEnd = Math.max(iStart + 0.5, parseFloat(params.end) || (audio ? audio.duration : iStart + 60));
         const iLoop = !!params.loop;
@@ -1299,23 +1417,16 @@
           clearInterval(intervalPollTimer);
           intervalPollTimer = null;
         }
-        isIntervalStoppedJustNow = true;
-        freezeScroll();
-        doPause();
-        setTimeout(freezeScroll, 50);
-        setTimeout(freezeScroll, 150);
-        setTimeout(freezeScroll, 300);
-        setTimeout(() => {
-          isIntervalStoppedJustNow = false;
-        }, 800);
-        showActionHud('⏹️ 區間播放已停止');
+        showActionHud('🔓 已解除循環模式');
         scheduleStateUpdate();
         break;
 
+      case 'set_speed':
       case 'set_playback_rate':
-        const rate = parseFloat(params.rate || params.speed || 1.0);
+        const rate = parseFloat(params.rate || params.speed || params.value || 1.0);
         if (audio) audio.playbackRate = rate;
         showActionHud(`⚡ 語速切換至: ${rate}x`);
+        scheduleStateUpdate();
         break;
 
       case 'prev_lesson': {
@@ -1362,7 +1473,7 @@
           }
           showActionHud(input.checked ? '🎙️ 播稿模式已開啟' : '📖 播稿模式已關閉');
         } else {
-          showActionHud('⚠️ 未找到官方播稿開關', 'error');
+          showActionHud('ℹ️ 本講次無官方播稿功能');
         }
         scheduleStateUpdate();
         break;
@@ -1376,8 +1487,9 @@
         const nextLabel = document.querySelector(`label[for="bottom_toolbar_autoscroll-${nextVal}"]`);
         if (nextLabel) nextLabel.click();
         else if (nextRadio) nextRadio.click();
-        const scrollNames = ['即時滾動', '單句高亮', '關閉滾動'];
+        const scrollNames = ['手動', '持續', '區段'];
         showActionHud(`📜 滾動模式: ${scrollNames[nextVal] || nextVal}`);
+        setTimeout(scheduleStateUpdate, 50);
         break;
       }
 
@@ -1474,6 +1586,32 @@
         showActionHud('✖️ 關閉劇院放映');
         closeTheaterVideo();
         break;
+
+      case 'set_volume': {
+        const audio = getAudio();
+        let rawVol = params.volume !== undefined ? params.volume : (params.value !== undefined ? params.value : 100);
+        let vol = parseFloat(rawVol);
+        if (isNaN(vol)) vol = 100;
+        if (vol > 1) vol = vol / 100; // 正規化至 0.0 ~ 1.0
+        vol = Math.max(0, Math.min(1, vol));
+        if (audio) {
+          audio.volume = vol;
+          audio.muted = (vol === 0);
+        }
+        showActionHud(`🔊 音量: ${Math.round(vol * 100)}%`);
+        scheduleStateUpdate();
+        break;
+      }
+
+      case 'toggle_mute': {
+        const audio = getAudio();
+        if (audio) {
+          audio.muted = !audio.muted;
+          showActionHud(audio.muted ? '🔇 靜音' : `🔊 音量: ${Math.round(audio.volume * 100)}%`);
+          scheduleStateUpdate();
+        }
+        break;
+      }
 
       default:
         console.error(`[AMRTF_EXECUTE_COMMAND_REJECT] 🚨 未知或未支援指令: "${rawCmd}" (正規化: "${cmd}")`, params);

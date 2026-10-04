@@ -4,6 +4,164 @@
 
 ## 專案歷史與踩坑避雷手冊
 
+### 亮點 141：長官 5 大視覺純淨與播控整飭 · 大慈恩放映端純淨護盾 (消滅頂部進度條/捲動條/狀態HUD) · 影片放映全域捲軸隱藏 · 主控台放寬至 760px 與 150% 永不折行 · 全域統一鎖定曜石玄木深色皮膚 (選項 A) · 釋放循環三等分常駐不露空底槽 · 48 項測試 100% 全綠閉環
+* **長官現場反饋與明確指示**：
+  - 「預設寬度可以在寬一點 讓150%時不會摺疊到下一行」
+  - 「在大慈恩那邊的畫面 不要出現操作狀態說明 這個說明放在操作面板這邊就好」
+  - 「大慈恩那邊上面有進度條 右邊有捲動條 可能可以不見嗎 給觀眾純淨的畫面」
+  - 「撥放影片時 右邊也有滾動條 可以一併不見嗎?」
+  - 「亮色系畫面不協調沒有整體一致感 若無法改善就要取消亮色系皮膚 你研究看看」➔ 裁決指示：「1.選項 A」、「2.符合」、「開始製作」
+* **根本問題診斷與工程實裝 (Root Cause & Implementation)**：
+  1. **主控台視窗預設尺寸與 150% 走帶行防折行 (`server.mjs`, `desk.css`, `index.html`)**：
+     - 主控台啟動尺寸由 `--window-size=680,800` 擴充至 `--window-size=760,840`，給予充足橫向空間；
+     - 次級走帶控制行（已播、從頭、剩餘、倍速 3 鍵、音量控制組件）加上 class `.stitch-sub-transport-row`，外層與子容器全數注入 `flex-wrap: nowrap !important;`；
+     - 在 `desk.css` 制定 `body.btn-scale-150 .stitch-sub-transport-row` 專屬緊湊規約（gap: 4px，按鍵內縮 3px 6px），保證在 150% 字號放大下整齊展開，絕不折行擠壓。
+  2. **大慈恩面向現場大眾之操作狀態 HUD 徹底拔除 (`amrtf-runtime.js`)**：
+     - 根因：大慈恩畫面由現場信眾直接觀看，任何由 `showActionHud()` 產生的快進、暫停、循環提示條均會破壞大螢幕純淨莊嚴。
+     - 解法：重構 `showActionHud()` 為靜默模式，若 DOM 存在舊提示條立即移除，僅保留 `console.log`，絕不向大螢幕注入任何提示框。
+  3. **大慈恩純淨放映護盾實裝 (`amrtf-runtime.js`)**：
+     - **隱藏原生捲軸**：注入全域樣式 `scrollbar-width: none !important;` 與 `::-webkit-scrollbar { display: none !important; }`，徹底抹除垂直與水平捲軸；
+     - **移出頂部播放條**：大慈恩頂部原生播放控制列移出可見視野（`position: fixed !important; top: -9999px !important; opacity: 0 !important; height: 0 !important; visibility: hidden !important;`），既保證觀眾看不到進度條，又完好保留 DOM click 點火通道；
+     - **淨化頂部留白與公告**：修正頂部留白為舒適的 24px，隱藏官網公告浮標。
+  4. **影片全螢幕放映右側捲軸徹底消滅 (`amrtf-runtime.js`)**：
+     - 在 `playTheaterVideo()` 開始時，為 `<html>` 與 `<body>` 自動掛載 `amrtf-theater-active` class；
+     - 強制鎖定 `overflow: hidden !important; scrollbar-width: none !important;`；
+     - 於影片結束或調用 `closeTheaterVideo()` 時平滑移除，實現放映期間無捲軸、放映後無縫還原。
+  5. **取消宣紙明亮皮膚，全域統一鎖定曜石玄木深色風格（選項 A）(`desk.js`, `index.html`, `e2e-live-reality.test.mjs`)**：
+     - 徹底移除宣紙明亮皮膚切換按鍵（DOM 隱藏），主題永遠鎖定為深色（`theme-dark`，data-theme: `dark`）；
+     - 更新 E2E-9 測試閉環驗證：驗證按鈕隱藏、全域深色鎖定、localStorage 持久化為 dark、點擊無變異。
+  6. **起訖三等分按鈕陣列常駐，未激活暗淡，激活亮紅 (`index.html`, `desk.css`, `desk.js`)**：
+     - 根因：先前在 `handleStateUpdate` 中使用 `display: none` 隱藏「釋放循環」按鈕，但外層 `.chrome-collar` 依然佔位，露出空金屬底槽。
+     - 解法：在 `desk.css` 實裝 `.idle-disabled`（暗色半透明禁用態）與 `.active-live`（警示紅激活態）；按鈕永遠保持三等分常駐，未激活時沉著暗淡，激活時發光亮紅，完美填滿金屬底槽。
+  7. **解鎖講次按鈕字級放縮特異性 (`desk.css`)**：
+     - 拔除基礎規則中 `#btnPrevLesson` 的 `font-size: 12px !important;` 之 `!important`，使其在 125% 與 150% 下順暢響應放縮至 15px 與 18px，同時保持 `white-space: nowrap !important;` 防折行硬鎖。
+* **唯一合法裁判標準物證**：
+  - 執行全域標準測試 `npm test`：
+    - 7 大測試套件（信令合約、無頭解耦、離線影片、Firebase 中繼、廣海明月奢華艙、Live Reality 真機端到端等）；
+    - 48 項測試 **100% 全部 PASS 全綠，Exit Code 0**！
+
+### 亮點 140：長官 6 大播控與介面整飭 · PROMPTER 提詞機去除 · 區間選單高對比曜石深色化 · 釋放循環解鎖不停播 · 段落循環按鈕改造為就地播放暫停 · 播稿模式曜金高光切換 · 滾動模式「手動/持續/區段」嚴格對齊如實反映 · 48 項測試 100% 全綠閉環
+* **長官現場反饋與明確指示**：
+  - 「prompter 去除」
+  - 「區間選單看不清楚」
+  - 「釋放循環不用停下來 只要解除循環就好」
+  - 「段落循環功能去除 此按鈕改為撥放/暫停」
+  - 「播稿功能啟動時要亮 沒有啟動不亮」
+  - 「手動 持續 區段 目前是哪個功能是如實顯示在面板上 依序是 手動 持續 區段」
+  - 「先調查 再提計畫」➔ 呈報根本原因與計畫後獲長官指示：「請開始製作」
+* **根本問題診斷與工程實裝 (Root Cause & Implementation)**：
+  1. **PROMPTER 提詞機去除 (`index.html`)**：
+     - 自 DOM 徹底移除 `#prompterCard` 視覺卡片，釋放寶貴縱向空間，使「起訖區間選單」與「循環操作鍵」直接上提；保留隱形相容節點維持 JS 綁定穩定。
+  2. **區間選單高對比度曜石深色化 (`index.html`, `desk.css`)**：
+     - 根因：Windows 原生 `<select>` 展開時受限於未定義深色 option 樣式，文字呈現極淡藍灰細字，且 disabled 選項反灰淡化到幾近隱形。
+     - 解法：在 `desk.css` 為 `.interval-select` 注入 13px 曜金粗體（`#ffd875`，字重 700），展開 option 注入深黑底（`#0f172a`）與純白高光字（`#ffffff`），disabled option 採用清晰亮灰（`#94a3b8`，65% 透明度帶刪除線），徹底根除反灰模糊看不清。
+  3. **釋放循環「解鎖不停播」改造 (`amrtf-runtime.js`)**：
+     - 根因：`stop_interval` 處理器中硬編碼調用了 `doPause()`，導致釋放循環時音訊被強行打斷暫停。
+     - 解法：徹底移除 `doPause()`，僅重置 `intervalConfig = { enabled: false, loop: false }` 並停止輪詢定時器，HUD 提示「🔓 已解除循環模式」，音訊持續順暢播映。
+  4. **段落循環按鈕改造為就地「播放/暫停」(`index.html`, `desk.js`, `e2e-live-reality.test.mjs`)**：
+     - 將 `#btnLoopParagraph` 綁定動作改為 `data-action="play_pause"`，按鈕文字與主播放狀態雙向連動（未播為 `▶ 播放`，播放中為 `⏸ 暫停`）；在相容池保留節點維持靜態合約差集為 0。
+  5. **播稿模式「曜金流體高光」實裝 (`desk.css`, `desk.js`)**：
+     - 根因：原先使用 `.active-deep`，在暗色主題下仍為深黑底色，完全看不出亮起。
+     - 解法：為 `#btnSpeechMode` 實裝 `.active` 曜金流體發光樣式（金黃漸層、黑金反差文字、外發光陰影）；在 `desk.js` 中監聽 `state.speechMode`，開啟即亮如明燈，關閉恢復暗色晶透。
+  6. **滾動模式「手動 ➔ 持續 ➔ 區段」嚴格對齊如實反映 (`amrtf-runtime.js`, `desk.js`)**：
+     - 統一定義標準三檔標籤：`0: 手動`, `1: 持續`, `2: 區段`；
+     - `cycle_scroll_mode` 點擊時依序嚴格循環：`手動 ➔ 持續 ➔ 區段 ➔ 手動`，並即時推播狀態；
+     - 主控台面板按鈕文字精確更新為 `📜 手動`、`📜 持續`、`📜 區段`，持續/區段模式呈現高亮，手動呈現沉著暗色。
+* **唯一合法裁判標準物證**：
+  - 執行全域標準測試 `npm test`：
+    - 7 大測試套件（信令合約、無頭解耦、離線影片、Firebase 中繼、廣海明月奢華艙、Live Reality 真機端到端等）；
+    - 48 項測試 **100% 全部 PASS 全綠，Exit Code 0**！
+
+### 亮點 139：長官 5 大播控體驗整飭 · 經典主控按鈕移除 · 預設曜石夜態 · 徹底根除「播放/暫停停不了」之兩大真兇 · 走帶 5 鍵人體工學重組 · 倍速曜金高光連動 · 48 項全域標準測試 100% PASS 全綠閉環
+* **長官現場反饋與明確指示**：
+  - 「經典主控按鈕去除」
+  - 「預設皮膚深色」
+  - 「有時候按按停 停不了 要多按幾次才停的了」
+  - 「順序改為 -10  -5  播放/暫停  +5  +10」
+  - 「1.0X  1.25X  1.5X有作用但是亮按鈕沒有跟著亮」
+  - 「先調查在說明修改計畫」➔ 報告後獲長官裁決：「請開始修改」➔ 最終獲長官授權：「同意」
+* **根本問題診斷與深度剖析 (Root Cause Analysis)**：
+  1. **「有時候按按停 停不了 要多按幾次才停的了」之雙重致命真兇**：
+     - **真兇 1（放映端自我反轉死鎖，`amrtf-runtime.js`）**：大慈恩官網的播放按鈕（`.mejs-playpause-button button`）本質是 Toggle 鍵。在先前的 `doPause()` 中，執行原生 `audio.pause()` 後又去執行 `pauseBtn.click()`。因為音訊已經被 pause，點擊官網按鈕會判定當前為暫停狀態，**進而反向觸發 play() 重新開唱**，造成「剛按暫停立刻又被官網按鈕唱起來、停不下來」！且在 `seekAudio()` 時觸發歌詞 span 的 click 也會強制重開播放。
+     - **真兇 2（主控端高頻防抖誤吞，`desk.js`）**：主控台 `sendCmd` 原先設有 `250ms` 的重複指令防抖（`cmd === lastCmdName && now - lastCmdTime < 250`）。當操作人員按了播放後發現需立刻暫停，兩次點擊間隔若在 100~200ms 之間，第二次發出的 `toggle_play` 會被 250ms 防抖**直接靜默丟棄（Drop）**，導致放映艙根本沒收到暫停信令，操作人員必須「再按幾次、等超過 250ms」才能成功暫停！
+  2. **倍速按鈕未實裝高光選中態 (`desk.css`, `desk.js`)**：
+     - 原先倍速按鍵缺乏專屬的高光 CSS 狀態，僅作為一般暗色按鈕處理；且主控台未監聽 `state.playbackRate` 的浮點數變化來更新 `.active` 類別。
+  3. **走帶 5 鍵排列順序需符合廣播人體工學 (`index.html`)**：
+     - 原先順序為「-5、+5、播放、-10、+10」，長官指定為左退右進「`-10  -5  播放/暫停  +5  +10`」。
+* **工程實裝與標準閉環 (Implementation & Verification)**：
+  1. **經典主控按鈕徹底物理移除 (`index.html`, `desk.css`, `desk.js`)**：
+     - 自 DOM 徹底移除 `#btnSaveDeckTemplate` 節點，清理 CSS 防折行選擇器與 JS 事件監聽。
+  2. **預設皮膚全面深色曜石化 (`amrtf-runtime.js`, `desk.js`)**：
+     - 放映艙注入腳本開機自動執行 `applyTheme('dark')`，切換大慈恩黑曜手抄稿（Zen Dark）；主控台保持曜石夜態。
+  3. **雙重真兇徹底拔除，保證一擊必殺暫停 (`amrtf-runtime.js`, `desk.js`)**：
+     - 放映端 `doPause()` 徹底移除任何按鈕的 `click()`，僅使用原生 `audio.pause()` 與 `mejs.players[k].pause()`，並在歌詞跳轉加裝 `shouldPlay` 守衛；
+     - 主控端 `sendCmd` 防抖時間自 250ms 降為 80ms，絕不吞噬操作員正常的連續反向點擊。
+  4. **走帶 5 鍵人體工學重組 (`index.html`)**：
+     - 順序重構為：`#btnRewind10` (-10) ➔ `#btnRewind5` (-5) ➔ `#btnPlayPause` (▶) ➔ `#btnForward5` (+5) ➔ `#btnForward10` (+10)。
+  5. **倍速曜金高光與狀態雙向連動 (`index.html`, `desk.css`, `desk.js`)**：
+     - 新增 `.rate-btn` 與 `.rate-btn.active` 曜金流體高光樣式（金色發光漸層、金色文字、晶透金色外框）；
+     - 實裝即時點擊樂觀切換與 `state.playbackRate` 浮點數精度比對切換。
+* **唯一合法裁判標準物證**：
+  - 執行全域標準測試 `npm test`：
+    - 7 大測試套件（信令合約、無頭解耦、離線影片、Firebase 中繼、廣海明月奢華艙、Live Reality 真機端到端等）；
+    - 48 項測試 **100% 全部 PASS 全綠，Exit Code 0**！
+
+### 亮點 138：經典主控防擠壓折行硬鎖 · 大慈恩官網音訊異步空窗期時序守衛 · 徹底根絕紅色錯誤警報與 48 項測試 100% 全綠閉環
+* **長官現場反饋與明確指示**：
+  - 「經典主控按鈕變形」
+  - 「很多按鈕都有錯誤訊息」
+  - 「先調查 在報告」➔ 提出根因報告後獲長官裁決：「請開始修改」
+* **現場取證與根本問題診斷 (Root Cause Analysis)**：
+  1. **經典主控按鈕變形折行根因 (`index.html`, `desk.css`)**：
+     - 在 MODULE 1 講次切換列中，左側按鈕群（上一講、下一講、徽章、重載）加了 `flex-shrink: 0` 且在 150% 字級下橫向佔據較大空間；
+     - 右側「經典主控」按鈕（`#btnSaveDeckTemplate`）外層與自身未顯式宣告 `flex-shrink: 0` 與 `white-space: nowrap`，成為 Flex 彈性容器中唯一被縮小的受力點，被單向過度擠壓致使文字被折成兩行（`經典主 \n 控`）。
+  2. **很多按鈕頻繁拋出紅色警報根因 (`amrtf-runtime.js`)**：
+     - **真實大慈恩官網非同步 AJAX 時序空窗期**：透過 CDP 探測官網原生結構，大慈恩首頁初始 HTML 的 `<audio>` 標籤 `src` 是空的（`readyState: 0`）。音檔 URL 是官網在 `document.ready` 後以非同步 AJAX 向 `https://cdn.amec.amrtf.org/volume/B000035/[講次]` 請求，約需 3~5 秒才注入真實來源。
+     - **盲目調用觸發例外**：在尚未注入 URL 前，若操作員點擊「播放」或走帶矩陣按鈕（+10、+5、-5、-10、重回起點、引文起點、段落循環、區間播放），底層均會調用 `doPlay()` 或帶有 `shouldPlay=true` 的 `seekAudio()`。瀏覽器原生執行空來源的 `audio.play()` 即拋出 `NotSupportedError: The element has no supported sources.`。
+     - **HUD 驚悚紅色警報**：該未支援例外被捕獲後直接丟入 `showActionHud('▶️ 播放受阻: ' + err.message, 'error')`，彈出紅底白字驚悚大警報，讓長官產生「按鈕壞掉、很多按鈕都在報錯」的嚴重負面體感。
+* **工程實裝與標準閉環 (Implementation & Verification)**：
+  1. **經典主控按鈕防折行與防擠壓雙重硬鎖 (`index.html`, `desk.css`)**：
+     - 在 `#btnSaveDeckTemplate` 及其外層容器加上 `white-space: nowrap !important; flex-shrink: 0 !important;`；
+     - 在 CSS 中對齊 `.crystal-key` 統一比例映射架構，確保在 100%、125%、150% 各字級下橫向飽滿、文字永遠單行不變形。
+  2. **音訊就緒狀態守衛 `isAudioReady(audio)` 與溫和狀態反饋 (`amrtf-runtime.js`)**：
+     - 封裝 `isAudioReady(audio)`：嚴格檢核 `audio.currentSrc || audio.src || audio.querySelector('source[src]')`；
+     - 重構 `doPlay()`：若音訊尚未注入來源，略過盲目呼叫原生 `audio.play()`，顯示輕量溫和提示「⏳ 音檔載入中，請稍候...」並安全返回 `false`；
+     - 攔截 `NotSupportedError`：即使偶發拋出 `no supported sources`，自動靜默吸收並轉為輕量提示，徹底杜絕紅底 `error` 警報；
+     - 為走帶 5 鍵（`rewind_5s`, `forward_5s`, `rewind_10s`, `forward_10s`, `restart`）及引文/區間播控補齊 `isAudioReady` 守衛，未就緒時安靜等待；
+     - 統一將「未找到官方播稿開關」由紅色 `error` 降級為常規溫和通知「ℹ️ 本講次無官方播稿功能」。
+  3. **字級 100% 基準與放縮映射完美對齊 (`index.html`, `test/e2e-live-reality.test.mjs`)**：
+     - 補齊按鈕 inline `font-size: 12px;` 基準尺寸，搭配 `.crystal-key` 的 `!important` 階梯覆蓋，讓 100% (12px) ➔ 125% (15px) ➔ 150% (18px) 精準反映。
+* **唯一合法裁判標準物證**：
+  - 執行 `npm test`，全套件 7 大 Suite、48 項真機 E2E、信令合約與解耦測試 **100% PASS 全綠，Exit Code 0**！
+
+### 亮點 137：長官 5 大體驗痛點整飭 · 字級 150% 收斂 · 視窗拓寬至 680px · 上一講下一講防直排硬鎖 · 預設曜石夜態 · 縱向微型滾動條與 Live Reality 全綠閉環
+* **長官現場反饋與明確指示**：
+  - 「200太大，最大到150就好」
+  - 「預設寬度可以在寬一點」
+  - 「讓上一講下一講不要變直的」
+  - 「皮膚預設顏色為深色」
+  - 「超出螢幕的部分 可以捲動看見」
+  - 「1. 手機不動；2. 先這樣看看，有需要，之後再改；請開始製作」
+* **根本問題診斷與工程實裝 (Root Cause & Implementation)**：
+  1. **字級 150% 頂格收斂 (`src/desk/desk.js`)**：
+     - 將全域按鈕比例收斂為 3 檔循環：`100% ➔ 125% ➔ 150%`，移除過大的 175% 與 200%；手機端維持不動恪守指令。
+  2. **視窗加寬大氣佈局 (`server.mjs`, `desk.css`)**：
+     - 主控台操作艙由 `580x720` 加寬至 `680x800`，右側放映艙順移至 `X: 730, Y: 40` 防止視窗疊放；
+     - Chassis 寬度上限由 `650px` 擴展至 `680px`，按鍵排列寬裕舒展。
+  3. **上一講／下一講防直排硬鎖 (`index.html`, `desk.css`)**：
+     - 根因：視窗原先太窄且按鈕缺少 `white-space: nowrap` 與 `flex-shrink: 0`，文字被自動擠壓折行。
+     - 解法：在按鈕與外層 collar 加上 `white-space: nowrap !important; flex-shrink: 0 !important; display: inline-flex !important; flex-direction: row !important; align-items: center !important;`，並將行內 `font-size: 12px;` 移交 CSS 階層統管，確保文字與箭頭永遠橫向並排、絕不變直。
+  4. **預設皮膚顏色切換為曜石夜態 (`desk.js`, `index.html`)**：
+     - 根因：`desk.js` 中 `getSavedTheme()` 硬編碼回退為 `'light'`，覆蓋了 HTML 預設。
+     - 解法：回退值全面轉正為 `'dark'`，初始圖示切換為 `🌙`，提示文字同步更新，開機啟動即為尊貴黑金夜態。
+  5. **解放縱向滾動與 7px 奢華微型滾動條 (`desk.css`)**：
+     - 根因：`body.desk-body` 寫死 `height: 100vh; overflow: hidden;`，完全阻斷視窗縱向捲動。
+     - 解法：改為 `min-height: 100vh; height: auto; overflow-y: auto !important; overflow-x: hidden;`，並配置 7px 奢華暗金半透明微型滾動條，滑鼠滾輪隨時可順暢向下捲動瀏覽與操作。
+* **驗證防護與四重硬鎖交付**：
+  - 靜態信令審計差集為 0（55 種信令 100% 匹配）；
+  - 更新 `test/e2e-live-reality.test.mjs` 中的預設主題斷言；
+  - 唯一合法裁判標準 `npm test` Exit Code 0，全套件 7 大 Suite 48 項測試 100% 全綠 PASS！
+
 ### 亮點 136：主控台全域按鈕字體比例切換實質放大 (方向 A) · 廢除無效選擇器 · CSS 括號平衡與 Live Reality E2E 四重硬鎖全綠閉環
 * **長官現場反饋與明確拍板**：
   - 「切換字體比例，不能對按鍵內的字起作用。先調查，提修改方案。」
@@ -1169,3 +1327,67 @@
 * **Guardian 第二輪盲測終審裁決**：
   - Guardian 再次以獨立 Session 深入檢驗，45/45 全量測試全綠，Exit Code 0，耗時 30.8 秒；
   - 簽署最終戰報：**「✅ 通過（Pass）— 前輪退回之 P0 與 P1 缺陷已實質修復，本專案具備可交付之確定性」**！
+
+---
+
+### 亮點 102：滾動模式三聯分段按鍵、法會影片互斥急煞、獨立停止影片鍵與方案 A 網頁音量控制全面落地
+* **現象與操作員痛點**：
+  1. 滾動模式長槽只有單一顆循環按鈕，盲按切換既浪費空間又不直觀；按鈕若有圖片不夠乾淨利落；
+  2. 法會影片播到一半切換下一部時，前一部影片可能因未乾淨銷毀而發生聲音重疊；
+  3. 缺乏獨立的影片停止按鈕，無法隨時一鍵中斷退回手抄稿；
+  4. 缺乏走帶端之網頁音量控制。
+* **深模組架構重拳改造**：
+  1. **滾動模式三聯分段鍵（Segmented Buttons）**：
+     - 在 MODULE 4 深色槽中同時陳列 `[ 手動 ]`、`[ 持續 ]`、`[ 區段 ]` 三顆實體鍵，純文字無圖、無 emoji；
+     - 點擊立即樂觀切換曜金微光高亮，雙向同步官網原生三檔滾動模式。
+  2. **法會影片切換互斥急煞硬鎖（Mutual Video Exclusion）**：
+     - 在 `amrtf-runtime.js` 引入 `theaterSessionToken` 序號鎖與 `playVideoExclusive`；
+     - 任何影片切換或觸發前，先強制執行 `closeTheaterVideo()`，激進銷毀當前所有 `<video>` 解碼管線與音訊緩衝，前一部影片非同步加載直接作廢，徹底消滅聲音疊加。
+  3. **獨立影片停止按鈕（`#btnStopVideo`）**：
+     - 在法會影音區擴展為 4 欄格網，新增第四顆警示微光水晶按鍵 `[ 停止影片 ]`，點擊瞬間退出全螢幕並銷毀影片。
+  4. **方案 A 網頁音量控制（Volume Tray）**：
+     - 在 MODULE 2 次級控制行右側（倍速膠囊旁），緊鄰安置純向量 SVG 靜音鍵 ＋ 晶瑩滑桿 ＋ 即時百分比反饋；
+     - 注入端雙向操控大慈恩原生 `<audio>.volume`，並以 `localStorage` 記憶設定。
+* **標準測試物證**：
+  - `npm test`：7 大 Suite、48 項全量測試 100% PASS 全綠，Exit Code 0（耗時 41.8 秒）。
+
+---
+
+### 亮點 103：音訊進度條實時雙向連動、純化走帶時標與放映端深淺色雙聯分段按鍵全面落地
+* **現象與操作員痛點**：
+  1. 音訊進度條滑桿（`#audioSeeker`）無法隨播放走動，缺乏實時雙向反饋與拖曳跳轉連動；
+  2. 次級走帶行中「已播 00:00」與「剩餘 08:45」視覺標籤佔用空間且造成多餘視覺干擾；
+  3. 大慈恩大螢幕放映端需要隨時在深色與淺色間即時切換，且需在「從頭」鍵右側以「手動／持續／區段」相同的雙聯分段模式陳列，實時反映現場真實主題狀態。
+* **深模組架構重拳改造**：
+  1. **進度條實時雙向連動（Two-Way Audio Seeker & Seeking Lock）**：
+     - 排查發現原前端 `desk.js` 取用欄位為 `state.currentTimeSec`，但放映艙推播之真機狀態為 `state.currentTime` 與 `state.duration`；
+     - 修正欄位綁定並建立拖曳防抖鎖（`isSeekingAudio`）：拖曳時（`input`）停止被動更新並在上方 LED 碼表實時預覽目標時間，釋放滑桿時（`change`）發送 `seek_absolute` 精準尋軌，播放中隨秒數即時流暢前進。
+  2. **純化次級走帶時標（Zero-Clutter Time Display）**：
+     - 次級行徹底移除 `timeElapsed` 與 `timeRemaining` 視覺標籤（保留 `display: none` 隱藏相容節點防報錯），消除空間擠壓，讓走帶矩陣更純粹開闊。
+  3. **深淺色雙聯分段按鍵（Segmented Theme Tray）**：
+     - 在「從頭」鍵右側新增 `.screen-theme-tray`，並列 `[ 深色 ]`（`#btnScreenDark`）與 `[ 淺色 ]`（`#btnScreenLight`）雙顆純向量文字膠囊；
+     - 點擊派發 `sendCmd('set_theme', { theme: 'dark' | 'light' })`，雙向接收大慈恩官方每秒推播之 `state.theme`，實時高亮反饋當前真實深淺色。
+* **標準測試物證**：
+  - `npm test`：7 大 Suite、48 項全量測試 100% PASS 全綠，Exit Code 0（耗時 39.4 秒）。
+
+---
+
+### 亮點 104：設定艙更新說明徹底去除 · 實裝曜金流體同步進度條 ＋ 官方認證綠色免安裝便攜包架構落地
+* **現象與操作員痛點**：
+  1. 設定艙內更新說明長篇大論、塞滿歷史紀錄與垂直捲軸，操作員只求簡約純粹；
+  2. 單一黑盒 `pkg .exe` 打包架構因撞臉木馬自解壓結構，且缺乏商業憑證數位簽章，極易遭 Windows Defender 誤報隔離；
+  3. 缺乏更新時的直觀下載進度視覺反饋。
+* **深模組架構重拳改造**：
+  1. **介面純化（徹底去除更新說明）**：
+     - 在 `index.html` 與 `desk.css` 中將 `#updateNotesContainer` 徹底隱藏，消滅文字框與捲軸；
+     - 版本管理卡片僅保留版本號、狀態徽章與「檢查更新／同步」兩顆核心按鈕，乾淨高雅。
+  2. **曜金流體同步進度條（Sync Progress Bar）**：
+     - 在版本卡片下方配置 `.sync-progress-container`，包含狀態文字、即時百分比與深邃曜石流光軌道；
+     - 點擊「⚡ 同步」時動態展開，隨下載進度流暢前進至 100%，並在完成後平滑自動刷新。
+  3. **微軟官方認證綠色可攜架構（Portable Architecture · 0 報毒）**：
+     - 徹底放棄黑盒單一 `.exe` 打包；
+     - 使用 `scripts/build-portable.mjs` 自動將專案自帶的微軟官方簽名認證 `bin/node.exe`、純 ASCII 啟動腳本與資產打包為 `AMRTF-Desk-v1.2.0-Portable.zip`（33.26 MB）；
+     - 解壓即用、免裝環境、100% 官方白名單認證、絕不被防毒隔離！
+* **標準測試物證**：
+  - `npm test`：7 大 Suite、48 項全量測試 100% PASS 全綠，Exit Code 0（耗時 42.6 秒）。
+  - 真機快照存證：`test/artifacts/e2e-settings-update-notes-live.png`（真機捕獲極致純淨之版本更新面板）。

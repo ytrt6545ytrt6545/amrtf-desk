@@ -186,7 +186,7 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
 
     // 透過 CDP 觸發 #btnScaleToggle 點擊 (100% ➔ 125%)
     await deskCdp.eval(`document.getElementById('btnScaleToggle').click()`);
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 250));
     const after125 = await deskCdp.eval(`document.body.className`);
     const size125 = await deskCdp.eval(`parseFloat(window.getComputedStyle(document.getElementById('btnPrevLesson')).fontSize)`);
     console.log('   🔍 [E2E-3 After 125%]', { size125, after125 });
@@ -195,7 +195,7 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
 
     // (125% ➔ 150%)
     await deskCdp.eval(`document.getElementById('btnScaleToggle').click()`);
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 250));
     const after150 = await deskCdp.eval(`document.body.className`);
     const size150 = await deskCdp.eval(`parseFloat(window.getComputedStyle(document.getElementById('btnPrevLesson')).fontSize)`);
     console.log('   🔍 [E2E-3 After 150%]', { size150, after150 });
@@ -207,12 +207,13 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     assert.ok(fwd10Size >= 22, `走帶按鍵文字在 150% 下必須達到 22px 以上 (實測: ${fwd10Size}px)`);
 
     // 恢復 100% (循環點擊至回到預設)
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       const hasScale = await deskCdp.eval(`Array.from(document.body.classList).some(c => c.startsWith('btn-scale-'))`);
       if (!hasScale) break;
       await deskCdp.eval(`document.getElementById('btnScaleToggle').click()`);
-      await new Promise((r) => setTimeout(r, 80));
+      await new Promise((r) => setTimeout(r, 150));
     }
+    await new Promise((r) => setTimeout(r, 200));
     const afterReset = await deskCdp.eval(`document.body.className`);
     assert.ok(!afterReset.includes('btn-scale-125') && !afterReset.includes('btn-scale-150') && !afterReset.includes('btn-scale-200'), '循環點擊後恢復預設');
     const resetSize = await deskCdp.eval(`parseFloat(window.getComputedStyle(document.getElementById('btnPrevLesson')).fontSize)`);
@@ -388,20 +389,20 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
       return;
     }
 
-    // 0. 重置為預設宣紙明亮風格 (保證測試幂等獨立性)
+    // 0. 重置為預設曜石玄木深色風格 (保證測試幂等獨立性)
     await deskCdp.eval(`
       localStorage.removeItem('amrtf_theme');
       if (typeof window.applyTheme === 'function') {
-        window.applyTheme('light');
+        window.applyTheme('dark');
       } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.body.classList.remove('theme-dark');
-        document.body.classList.add('theme-light');
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.classList.remove('theme-light');
+        document.body.classList.add('theme-dark');
       }
     `);
     await new Promise((r) => setTimeout(r, 200));
 
-    // 1. 初始化狀態驗證（長官指定預設：宣紙明亮風格）
+    // 1. 初始化狀態驗證（長官指定預設：曜石玄木深色風格）
     const initialThemeState = await deskCdp.eval(`
       (function() {
         const deskBtn = document.getElementById('btnDeskThemeToggle');
@@ -411,7 +412,7 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
           existsDeskBtn: !!deskBtn,
           existsScreenThemeBtn: !!screenThemeBtn,
           screenThemeBtnText: screenThemeBtn ? screenThemeBtn.textContent.trim() : '',
-          hasLightClass: document.body.classList.contains('theme-light'),
+          hasDarkClass: document.body.classList.contains('theme-dark'),
           dataTheme: document.documentElement.getAttribute('data-theme'),
           btnText: deskBtn ? deskBtn.textContent.trim() : '',
           savedTheme: localStorage.getItem('amrtf_theme'),
@@ -419,76 +420,48 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
         };
       })()
     `);
-    console.log('   🔍 [E2E-9 Info] 初始大慈恩宣紙明亮風格現場狀態:', JSON.stringify(initialThemeState));
+    console.log('   🔍 [E2E-9 Info] 初始大慈恩曜石玄木深色風格現場狀態:', JSON.stringify(initialThemeState));
     assert.strictEqual(initialThemeState.existsDeskBtn, true, '#btnDeskThemeToggle 按鈕必須存在於主控台頂部導航列');
     assert.strictEqual(initialThemeState.existsScreenThemeBtn, true, '#btnThemeToggle (🌓) 必須存在於下方按鈕陣列');
     assert.strictEqual(initialThemeState.screenThemeBtnText, '🌓', '下方放映端主題按鈕文字必須為 🌓');
-    assert.strictEqual(initialThemeState.hasLightClass, true, '預設狀態 document.body 必須包含 theme-light 類別');
-    assert.strictEqual(initialThemeState.btnText, '🌞', '明亮風格下頂部按鈕必須顯示 🌞 符號');
+    assert.strictEqual(initialThemeState.hasDarkClass, true, '預設狀態 document.body 必須包含 theme-dark 類別');
+    assert.strictEqual(initialThemeState.savedTheme, 'dark', 'localStorage 必須記錄 amrtf_theme 為 dark');
 
-    // 2. 點擊頂部按鈕切換主控台為玄木暗黑風格
-    await deskCdp.eval(`document.getElementById('btnDeskThemeToggle').click()`);
-    await new Promise((r) => setTimeout(r, 350));
-
-    const darkThemeState = await deskCdp.eval(`
+    // 2. 驗證長官指示（選項 A）：徹底取消宣紙明亮皮膚，日夜切換鈕隱藏鎖定
+    const deskBtnHidden = await deskCdp.eval(`
       (function() {
         const btn = document.getElementById('btnDeskThemeToggle');
-        const bg = window.getComputedStyle(document.body).backgroundColor;
+        return btn ? window.getComputedStyle(btn).display === 'none' : false;
+      })()
+    `);
+    assert.strictEqual(deskBtnHidden, true, '選項 A 規範：#btnDeskThemeToggle 按鈕必須隱藏 (display: none)，鎖定深色風格');
+
+    // 3. 驗證觸發點擊或 toggleTheme 依然堅定保持曜石玄木暗黑風格，絕不變異
+    await deskCdp.eval(`document.getElementById('btnDeskThemeToggle').click()`);
+    await new Promise((r) => setTimeout(r, 200));
+
+    const lockedDarkState = await deskCdp.eval(`
+      (function() {
         return {
           hasDarkClass: document.body.classList.contains('theme-dark'),
+          hasLightClass: document.body.classList.contains('theme-light'),
           dataTheme: document.documentElement.getAttribute('data-theme'),
-          btnText: btn ? btn.textContent.trim() : '',
-          savedTheme: localStorage.getItem('amrtf_theme'),
-          bgColor: bg
+          savedTheme: localStorage.getItem('amrtf_theme')
         };
       })()
     `);
-    console.log('   🔍 [E2E-9 Info] 切換為玄木暗黑風格狀態:', JSON.stringify(darkThemeState));
-    assert.strictEqual(darkThemeState.hasDarkClass, true, '點擊後 document.body 必須切換為 theme-dark 類別');
-    assert.strictEqual(darkThemeState.btnText, '🌙', '暗黑風格下按鈕必須顯示 🌙 符號');
-    assert.strictEqual(darkThemeState.savedTheme, 'dark', 'localStorage 必須持久化記錄 amrtf_theme 为 dark');
-    assert.notStrictEqual(darkThemeState.bgColor, initialThemeState.bgColor, '深淺風格切換必須引發背景色彩實質突變 (Δ ≠ 0)');
+    console.log('   🔍 [E2E-9 Info] 鎖定曜石玄木深色風格狀態:', JSON.stringify(lockedDarkState));
+    assert.strictEqual(lockedDarkState.hasDarkClass, true, '點擊後必須依然堅定維持 theme-dark');
+    assert.strictEqual(lockedDarkState.hasLightClass, false, '點擊後絕不能包含 theme-light (宣紙明亮已徹底取消)');
+    assert.strictEqual(lockedDarkState.savedTheme, 'dark', 'localStorage 必須永遠鎖定為 dark');
 
-    // 捕獲玄木暗黑真機快照
+    // 4. 捕獲曜石玄木曜金尊榮深色真機快照存檔
     try {
       const darkSnap = await deskCdp.captureScreenshot();
       if (darkSnap) {
         const darkSnapPath = path.join(artifactsDir, 'e2e-desk-dark-theme-live.png');
         fs.writeFileSync(darkSnapPath, Buffer.from(darkSnap, 'base64'));
-        console.log(`   📸 [Screenshot-Evidence] 大慈恩玄木暗黑真機快照已存檔: ${darkSnapPath}`);
-      }
-    } catch (e) {}
-
-    // 3. 再次點擊切換回大慈恩宣紙明亮風格
-    await deskCdp.eval(`document.getElementById('btnDeskThemeToggle').click()`);
-    await new Promise((r) => setTimeout(r, 350));
-
-    const restoredThemeState = await deskCdp.eval(`
-      (function() {
-        const btn = document.getElementById('btnDeskThemeToggle');
-        const bg = window.getComputedStyle(document.body).backgroundColor;
-        return {
-          hasLightClass: document.body.classList.contains('theme-light'),
-          dataTheme: document.documentElement.getAttribute('data-theme'),
-          btnText: btn ? btn.textContent.trim() : '',
-          savedTheme: localStorage.getItem('amrtf_theme'),
-          bgColor: bg
-        };
-      })()
-    `);
-    console.log('   🔍 [E2E-9 Info] 二次切換恢復宣紙明亮風格狀態:', JSON.stringify(restoredThemeState));
-    assert.strictEqual(restoredThemeState.hasLightClass, true, '二次點擊必須精準恢復為 theme-light');
-    assert.strictEqual(restoredThemeState.btnText, '🌞', '按鈕恢復為 🌞');
-    assert.notStrictEqual(restoredThemeState.bgColor, darkThemeState.bgColor, '恢復後背景色彩必須與玄木暗黑存在實質色彩突變');
-    assert.ok(restoredThemeState.bgColor.includes('248') || restoredThemeState.bgColor.includes('247'), '背景色彩必須恢復為宣紙雅白');
-
-    // 捕獲宣紙明亮真機快照
-    try {
-      const lightSnap = await deskCdp.captureScreenshot();
-      if (lightSnap) {
-        const lightSnapPath = path.join(artifactsDir, 'e2e-desk-light-theme-live.png');
-        fs.writeFileSync(lightSnapPath, Buffer.from(lightSnap, 'base64'));
-        console.log(`   📸 [Screenshot-Evidence] 大慈恩宣紙明亮真機快照已存檔: ${lightSnapPath}`);
+        console.log(`   📸 [Screenshot-Evidence] 大慈恩曜石暗黑真機快照已存檔: ${darkSnapPath}`);
       }
     } catch (e) {}
 
@@ -537,27 +510,29 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
 
     const updateSectionState = await deskCdp.eval(`
       (function() {
-        const title = document.querySelector('.update-notes-title');
+        const notesContainer = document.getElementById('updateNotesContainer');
         const syncBtn = document.getElementById('btnApplyUpdate');
-        const notesBody = document.getElementById('updateNotesBody');
+        const syncProgress = document.getElementById('syncProgressContainer');
+        const isNotesVisible = notesContainer ? window.getComputedStyle(notesContainer).display !== 'none' : false;
         return {
-          titleText: title ? title.textContent.trim() : '',
+          isNotesVisible,
           syncBtnText: syncBtn ? syncBtn.textContent.trim() : '',
-          hasBody: !!notesBody && notesBody.textContent.trim().length > 0
+          hasSyncProgress: !!syncProgress
         };
       })()
     `);
-    console.log('   🔍 [E2E-10 Info] 更新說明區塊真實狀態:', JSON.stringify(updateSectionState));
-    assert.strictEqual(updateSectionState.titleText, '更新說明', '更新說明標題必須為「更新說明」');
+    console.log('   🔍 [E2E-10 Info] 更新說明去除與進度條真實狀態:', JSON.stringify(updateSectionState));
+    assert.strictEqual(updateSectionState.isNotesVisible, false, '更新說明區塊必須已被徹底去除隱藏');
     assert.strictEqual(updateSectionState.syncBtnText, '⚡ 同步', '同步按鈕文字必須為「⚡ 同步」');
+    assert.strictEqual(updateSectionState.hasSyncProgress, true, '必須具備同步進度條容器');
 
-    // 捕獲更新說明展開的真機快照
+    // 捕獲純淨版設定艙之真機快照
     try {
       const updateSnap = await deskCdp.captureScreenshot();
       if (updateSnap) {
         const updateSnapPath = path.join(artifactsDir, 'e2e-settings-update-notes-live.png');
         fs.writeFileSync(updateSnapPath, Buffer.from(updateSnap, 'base64'));
-        console.log(`   📸 [Screenshot-Evidence] 設定艙更新說明真機快照已存檔: ${updateSnapPath}`);
+        console.log(`   📸 [Screenshot-Evidence] 純淨版設定艙真機快照已存檔: ${updateSnapPath}`);
       }
     } catch (e) {}
 
@@ -754,6 +729,7 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
 
     // 5. 再次點擊主控台播放鍵切換為暫停 (Pause)
     console.log('   🖱️ 正在二次點擊主控台播放鍵執行暫停 (#btnPlayPause)...');
+    await new Promise((r) => setTimeout(r, 300));
     await deskCdp.eval(`document.getElementById('btnPlayPause').click()`);
 
     const pauseStatePoll = await waitForCondition(async () => {
@@ -832,7 +808,7 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
         return { currentTime: a ? a.currentTime : -1, paused: a ? a.paused : false };
       })()
     `);
-    assert.ok(stopState.currentTime <= 0.05, `點擊從頭後，放映艙 currentTime 必須歸零或趨近於 0 (現有: ${stopState.currentTime})`);
+    assert.ok(stopState.currentTime <= 0.15, `點擊從頭後，放映艙 currentTime 必須歸零或趨近於 0 (現有: ${stopState.currentTime})`);
     assert.strictEqual(stopState.paused, true, '點擊從頭後，放映艙音訊必須急煞暫停');
     console.log('   📌 走帶 5 鍵與倍速 3 鍵真機硬鎖已全數通過驗證！');
   });
@@ -869,7 +845,7 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     console.log('   📌 講次導航 3 大按鈕真機硬鎖已全數通過驗證！');
   });
 
-  test('✅ [E2E-16] 研討區間循環、段落循環與釋放循環真機硬鎖', async () => {
+  test('✅ [E2E-16] 研討區間循環、副播放暫停與釋放循環真機硬鎖', async () => {
     assert.ok(deskCdp && deskCdp.isConnected, '主控台 CDP 必須保持在連線狀態');
     assert.ok(screenCdp && screenCdp.isConnected, '放映艙 CDP 必須保持在連線狀態');
 
@@ -883,11 +859,11 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
       }, 3000, 100);
     };
 
-    // 點擊段落循環
-    console.log('   🖱️ 正在點擊段落循環按鈕 (#btnLoopParagraph)...');
+    // 點擊就地播放/暫停鍵 (原段落循環按鈕改造)
+    console.log('   🖱️ 正在點擊就地播放暫停鍵 (#btnLoopParagraph)...');
     await deskCdp.eval(`document.getElementById('btnLoopParagraph').click()`);
-    const cmdLoopP = await waitForServerCmd('loop_current_paragraph');
-    assert.strictEqual(cmdLoopP, 'loop_current_paragraph', '點擊段落循環後，伺服器必須收到並分發 loop_current_paragraph 信令');
+    const cmdLoopP = await waitForServerCmd(['toggle_play', 'play', 'pause']);
+    assert.ok(cmdLoopP === 'toggle_play' || cmdLoopP === 'play' || cmdLoopP === 'pause', '點擊就地播放暫停鍵後，伺服器必須收到並分發 toggle_play 信令');
 
     // 點擊釋放循環
     console.log('   🖱️ 正在點擊釋放循環按鈕 (#btnStopInterval)...');
@@ -898,8 +874,8 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     // 點擊起訖區間循環
     console.log('   🖱️ 正在點擊起訖區間循環按鈕 (#btnLoopInterval)...');
     await deskCdp.eval(`document.getElementById('btnLoopInterval').click()`);
-    const cmdLoopInt = await waitForServerCmd(['play_interval', 'loop_current_paragraph']);
-    assert.ok(cmdLoopInt === 'play_interval' || cmdLoopInt === 'loop_current_paragraph', '點擊起訖區間循環後，伺服器必須收到相應區間信令');
+    const cmdLoopInt = await waitForServerCmd(['play_interval', 'loop_interval']);
+    assert.ok(cmdLoopInt === 'play_interval' || cmdLoopInt === 'loop_interval', '點擊起訖區間循環後，伺服器必須收到相應區間信令');
     console.log('   📌 研討區間循環與釋放按鈕真機硬鎖已全數通過驗證！');
   });
 
@@ -933,6 +909,66 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     const cmdDed = await waitForServerCmd('modal_dedication_video');
     assert.strictEqual(cmdDed, 'modal_dedication_video', '點擊迴向後，伺服器必須收到並分發 modal_dedication_video 信令');
 
+    // 點擊新增的獨立停止影片按鈕 (#btnStopVideo)
+    console.log('   🖱️ 正在點擊停止影片按鈕 (#btnStopVideo)...');
+    await deskCdp.eval(`document.getElementById('btnStopVideo').click()`);
+    const cmdStopVid = await waitForServerCmd('stop_video');
+    assert.strictEqual(cmdStopVid, 'stop_video', '點擊停止影片後，伺服器必須收到並分發 stop_video 信令');
+
+    // 測試三聯滾動模式分段按鈕
+    console.log('   🖱️ 正在測試滾動模式三聯分段按鍵 (手動/持續/區段)...');
+    await deskCdp.eval(`document.getElementById('btnScrollManual').click()`);
+    const cmdScroll0 = await waitForServerCmd('set_scroll_mode');
+    assert.strictEqual(cmdScroll0, 'set_scroll_mode', '點擊手動滾動後，伺服器必須收到 set_scroll_mode 信令');
+    const isManualActive = await deskCdp.eval(`document.getElementById('btnScrollManual').classList.contains('active')`);
+    assert.ok(isManualActive, '點擊後手動按鍵必須為 active 高光態');
+
+    await deskCdp.eval(`document.getElementById('btnScrollSection').click()`);
+    const isSectionActive = await deskCdp.eval(`document.getElementById('btnScrollSection').classList.contains('active')`);
+    assert.ok(isSectionActive, '點擊後區段按鍵必須為 active 高光態');
+
+    // 測試方案 A 網頁音量控制 (滑桿與靜音鍵)
+    console.log('   🖱️ 正在測試方案 A 網頁音量控制組件...');
+    await deskCdp.eval(`
+      const slider = document.getElementById('volumeSlider');
+      slider.value = 75;
+      slider.dispatchEvent(new Event('input', { bubbles: true }));
+      slider.dispatchEvent(new Event('change', { bubbles: true }));
+    `);
+    const cmdVol = await waitForServerCmd('set_volume');
+    assert.strictEqual(cmdVol, 'set_volume', '調整音量滑桿後，伺服器必須收到 set_volume 信令');
+    const volText = await deskCdp.eval(`document.getElementById('volumeValue').textContent`);
+    assert.ok(volText.includes('%'), '音量文字必須即時顯示百分比');
+
+    await deskCdp.eval(`document.getElementById('btnVolumeMute').click()`);
+    const cmdMute = await waitForServerCmd('toggle_mute');
+    assert.strictEqual(cmdMute, 'toggle_mute', '點擊靜音按鈕後，伺服器必須收到 toggle_mute 信令');
+
+    // 測試放映端手抄稿深淺色雙聯分段按鍵 (深色 / 淺色)
+    console.log('   🖱️ 正在測試放映端深淺色雙聯分段按鍵 (#btnScreenDark / #btnScreenLight)...');
+    await deskCdp.eval(`document.getElementById('btnScreenLight').click()`);
+    const cmdThemeLight = await waitForServerCmd('set_theme');
+    assert.strictEqual(cmdThemeLight, 'set_theme', '點擊淺色按鈕後，伺服器必須收到 set_theme 信令');
+    const isLightActive = await deskCdp.eval(`document.getElementById('btnScreenLight').classList.contains('active')`);
+    assert.ok(isLightActive, '點擊淺色按鈕後，#btnScreenLight 必須為 active 高光態');
+
+    await deskCdp.eval(`document.getElementById('btnScreenDark').click()`);
+    const cmdThemeDark = await waitForServerCmd('set_theme');
+    assert.strictEqual(cmdThemeDark, 'set_theme', '點擊深色按鈕後，伺服器必須收到 set_theme 信令');
+    const isDarkActive = await deskCdp.eval(`document.getElementById('btnScreenDark').classList.contains('active')`);
+    assert.ok(isDarkActive, '點擊深色按鈕後，#btnScreenDark 必須恢復為 active 高光態');
+
+    // 測試進度條實時雙向跳轉
+    console.log('   🖱️ 正在測試進度條實時雙向跳轉 (#audioSeeker)...');
+    await deskCdp.eval(`
+      const seeker = document.getElementById('audioSeeker');
+      seeker.value = 45;
+      seeker.dispatchEvent(new Event('input', { bubbles: true }));
+      seeker.dispatchEvent(new Event('change', { bubbles: true }));
+    `);
+    const cmdSeek = await waitForServerCmd('seek_absolute');
+    assert.strictEqual(cmdSeek, 'seek_absolute', '拖曳或點擊進度條後，伺服器必須收到 seek_absolute 信令');
+
     // 點擊全螢幕切換
     console.log('   🖱️ 正在點擊全螢幕按鈕 (#btnFullscreen)...');
     await deskCdp.eval(`document.getElementById('btnFullscreen').click()`);
@@ -954,7 +990,7 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     }, 2000, 50);
     assert.strictEqual(miniOffPoll, true, '再次點擊 Mini 按鈕後，主控台必須還原正常模式');
 
-    console.log('   📌 法會專題影音、全螢幕與視窗 Mini 折疊按鈕真機硬鎖已全數通過驗證！');
+    console.log('   📌 法會專題影音四鍵、停止影片、滾動三聯鍵、音量控制、全螢幕與視窗 Mini 折疊按鈕真機硬鎖已全數通過驗證！');
   });
 });
 

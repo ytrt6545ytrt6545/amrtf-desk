@@ -477,12 +477,18 @@ const server = http.createServer((req, res) => {
     return;
   }
   if (url === '/desk.css') {
-    res.writeHead(200, { 'Content-Type': 'text/css; charset=utf-8' });
+    res.writeHead(200, {
+      'Content-Type': 'text/css; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    });
     res.end(fs.readFileSync(path.join(__dirname, 'src', 'desk', 'desk.css'), 'utf8'));
     return;
   }
   if (url === '/desk.js') {
-    res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+    res.writeHead(200, {
+      'Content-Type': 'application/javascript; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    });
     res.end(fs.readFileSync(path.join(__dirname, 'src', 'desk', 'desk.js'), 'utf8'));
     return;
   }
@@ -835,7 +841,7 @@ server.listen(9998, '0.0.0.0', async () => {
     '--remote-debugging-address=127.0.0.1',
     '--disable-cache',
     '--window-position=30,40',
-    '--window-size=580,720',
+    '--window-size=760,840',
     `--user-data-dir=${deskProfileDir}`,
     '--new-window',
     '--no-default-browser-check',
@@ -854,13 +860,13 @@ server.listen(9998, '0.0.0.0', async () => {
     console.log(`[System] 主控台啟動程序已移交後台 (code: ${code})`);
   });
 
-  // (B) 在主螢幕右側 (X: 630, Y: 40) 拉起大慈恩放映艙視窗
+  // (B) 在主螢幕右側 (X: 730, Y: 40) 拉起大慈恩放映艙視窗
   console.log('⏳ [3/4] 正在拉起大慈恩放映艙視窗 (主螢幕右側，免手勢有聲)...');
   screenProcess = spawn(browserBin, [
     `--app=${targetUrl}`,
     '--remote-debugging-port=9222',
     '--remote-debugging-address=127.0.0.1',
-    '--window-position=630,40',
+    '--window-position=730,40',
     '--window-size=1000,800',
     `--user-data-dir=${screenProfileDir}`,
     '--new-window',
