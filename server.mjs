@@ -16,6 +16,7 @@ import { CompanionBridgeClient } from './src/server/companion-bridge.js';
 import { MobileLayoutStore } from './src/server/mobile-layout-store.js';
 import { VideoManager } from './src/server/video-manager.js';
 import { FirebaseRelayManager } from './src/server/firebase-relay.js';
+import { FeedbackService } from './src/server/feedback-service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -149,6 +150,10 @@ const firebaseRelay = new FirebaseRelayManager({
   mobileLayoutStore: mobileLayoutStore,
   enableCloud: true
 });
+const feedbackService = new FeedbackService({
+  feedbackDir: path.join(__dirname, 'data', 'feedback'),
+  targetEmail: 'truechi2687@gmail.com'
+});
 
 const server = http.createServer((req, res) => {
   const url = req.url.split('?')[0];
@@ -240,6 +245,24 @@ const server = http.createServer((req, res) => {
       } catch (err) {
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // 💬 使用者意見與問題回饋 API (POST /api/feedback)
+  if (requestUrl.pathname === '/api/feedback' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body || '{}');
+        const result = await feedbackService.processFeedback(data);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: true, success: true, message: '感謝您的回饋，已成功送出！', filename: result.filename }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: false, success: false, error: err.message }));
       }
     });
     return;

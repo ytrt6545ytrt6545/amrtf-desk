@@ -97,6 +97,7 @@ async function runGuardianAudit() {
     { id: 'btnMobileStudioToggle', name: '手機編排艙切換', category: '模組管理', expect: '手機預覽抽屜開關' },
     { id: 'btnSettingsToggle', name: '設定艙開啟鈕', category: '系統設定', expect: '彈出設定抽屜' },
     { id: 'btnSettingsClose', name: '設定艙關閉鈕', category: '系統設定', expect: '關閉設定抽屜' },
+    { id: 'btnFeedback', name: '回饋按鈕', category: '使用者回饋', expect: '彈出意見回饋彈窗' },
     { id: 'btnDeskThemeToggle', name: '主控台日夜皮膚切換', category: '皮膚換裝', expect: '黑曜夜態 ⇄ 宣紙明晝切換' },
     { id: 'btnQrCode', name: 'QR 遙控配對鈕', category: '無線遙控', expect: '彈出 QR 配對彈窗' },
     { id: 'btnCloseQr', name: 'QR 彈窗關閉鈕', category: '無線遙控', expect: '關閉 QR 配對彈窗' },

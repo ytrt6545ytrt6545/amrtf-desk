@@ -82,6 +82,14 @@
               <span class="update-badge-dot" id="updateBadgeDot" style="display: none; position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; border-radius: 50%; background: #f43f5e; box-shadow: 0 0 6px #f43f5e;"></span>
             </button>
           </div>
+
+          <!-- 回饋按鈕 (純文字，無圖案) -->
+          <div class="chrome-collar">
+            <button class="crystal-key key-standard" id="btnFeedback" style="padding: 4px 10px; font-size: 11px; font-weight: 600; font-family: 'Noto Serif TC', serif;" title="意見反饋與問題提報">
+              <div class="crystal-lens-reflection"></div>
+              <span>回饋</span>
+            </button>
+          </div>
         </div>
 
         <!-- 右群組：QR、最小化、退出 (全系統鎖定曜石玄木曜金尊榮深色皮膚，取消亮色) -->
@@ -492,6 +500,41 @@
           <a class="settings-action-btn btn-primary" id="btnDownloadRelease" href="https://github.com/ytrt6545ytrt6545/amrtf-desk/releases" target="_blank" style="display: none; text-decoration: none; text-align: center;">🌐 前往下載最新安裝包</a>
         </div>
       </section>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 💬 使用者意見與問題回饋 Modal                                              -->
+  <!-- ========================================================================= -->
+  <div class="feedback-modal" id="feedbackModal">
+    <div class="feedback-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px;">
+        <span style="font-size: 15px; font-weight: 700; font-family: 'Noto Serif TC', serif; color: #ffd875;">使用者意見與問題回饋</span>
+        <button id="btnCloseFeedbackX" style="background: transparent; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; padding: 2px 8px; line-height: 1;">✕</button>
+      </div>
+
+      <!-- 系統自動診斷標籤 -->
+      <div class="recess-tray" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; width: 100%; box-sizing: border-box;">
+        <div style="color: #94a3b8;"><span style="color: #facc15; font-weight: 700;">填寫日期：</span><span id="fbDate">載入中...</span></div>
+        <div style="color: #94a3b8;"><span style="color: #38bdf8; font-weight: 700;">現場狀態：</span><span id="fbStatus">載入中...</span></div>
+      </div>
+
+      <!-- 回饋說明引導 (100% 依長官指示文案) -->
+      <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6; font-family: 'Noto Serif TC', serif; background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #facc15;">
+        請說明你遇到的問題，或你希望新增的功能，或覺得不必要的功能等等。若你願意留下聯絡方式更好。
+      </div>
+
+      <!-- 大文字輸入框 -->
+      <textarea id="fbContent" rows="4" style="width: 100%; border-radius: 8px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); color: #ffffff; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; outline: none; box-sizing: border-box;" placeholder="請說明你遇到的問題、或你希望新增的功能、或覺得不必要的功能等等..."></textarea>
+
+      <!-- 聯絡方式（選填） -->
+      <input type="text" id="fbContact" style="width: 100%; border-radius: 8px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); color: #ffffff; padding: 8px 10px; font-size: 12px; font-family: inherit; outline: none; box-sizing: border-box;" placeholder="聯絡方式（Line / 手機 / 稱呼，可不填）" />
+
+      <!-- 操作按鈕 -->
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px;">
+        <button class="crystal-key key-standard" id="btnCancelFeedback" style="padding: 6px 14px; font-size: 12px; font-family: 'Noto Serif TC', serif;">取消</button>
+        <button class="crystal-key key-gold-hero" id="btnSubmitFeedback" style="padding: 6px 18px; font-size: 12px; font-weight: 700; font-family: 'Noto Serif TC', serif;">送出回饋</button>
+      </div>
     </div>
   </div>
 

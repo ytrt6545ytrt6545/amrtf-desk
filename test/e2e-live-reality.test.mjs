@@ -543,6 +543,71 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     console.log('   📌 系統版本號與更新檢測介面已通過端到端驗證！');
   });
 
+  test('✅ [E2E-10B] 使用者回饋純文字按鍵、自動診斷物證帶入與彈窗真機快照閉環 (Feedback Modal Live Reality)', async () => {
+    // 1. 檢驗回饋按鈕存在且為純文字「回饋」
+    const btnState = await deskCdp.eval(`
+      (() => {
+        const btn = document.getElementById('btnFeedback');
+        if (!btn) return null;
+        return {
+          exists: true,
+          text: btn.textContent.trim(),
+          hasImg: !!btn.querySelector('img'),
+          hasSvg: !!btn.querySelector('svg')
+        };
+      })()
+    `);
+    assert.ok(btnState && btnState.exists, '回饋按鈕必須存在於 DOM 中');
+    assert.strictEqual(btnState.text, '回饋', '回饋按鈕必須為純文字「回饋」');
+    assert.strictEqual(btnState.hasImg, false, '回饋按鈕內不可有任何 img 圖示');
+    assert.strictEqual(btnState.hasSvg, false, '回饋按鈕內不可有任何 svg 圖示');
+
+    // 2. 點擊按鈕開啟彈窗
+    await deskCdp.eval(`document.getElementById('btnFeedback').click()`);
+    await new Promise((r) => setTimeout(r, 200));
+
+    // 3. 檢驗彈窗開啟與系統自動診斷欄位帶入
+    const modalState = await deskCdp.eval(`
+      (() => {
+        const modal = document.getElementById('feedbackModal');
+        const fbDate = document.getElementById('fbDate');
+        const fbStatus = document.getElementById('fbStatus');
+        const contentBox = document.getElementById('fbContent');
+        const contactBox = document.getElementById('fbContact');
+        return {
+          isActive: modal ? modal.classList.contains('active') : false,
+          dateText: fbDate ? fbDate.textContent.trim() : '',
+          statusText: fbStatus ? fbStatus.textContent.trim() : '',
+          hasContentBox: !!contentBox,
+          hasContactBox: !!contactBox
+        };
+      })()
+    `);
+    assert.strictEqual(modalState.isActive, true, 'feedbackModal 點擊後必須具備 .active 類別');
+    assert.ok(modalState.dateText.length > 0 && modalState.dateText !== '載入中...', '填寫日期必須自動帶入真實時間');
+    assert.ok(modalState.statusText.includes('講') || modalState.statusText.includes('未知講次'), '現場狀態必須自動帶入講次或模式');
+    assert.strictEqual(modalState.hasContentBox, true, '必須存在回饋多行大文字輸入框');
+    assert.strictEqual(modalState.hasContactBox, true, '必須存在聯絡方式輸入框');
+
+    // 4. 捕獲回饋彈窗真機快照存證
+    try {
+      const fbSnap = await deskCdp.captureScreenshot();
+      if (fbSnap) {
+        const fbSnapPath = path.join(artifactsDir, 'e2e-feedback-modal-live.png');
+        fs.writeFileSync(fbSnapPath, Buffer.from(fbSnap, 'base64'));
+        console.log(`   📸 [Screenshot-Evidence] 回饋彈窗真機快照已存檔: ${fbSnapPath}`);
+      }
+    } catch (e) {}
+
+    // 5. 關閉彈窗並驗證乾淨還原
+    await deskCdp.eval(`document.getElementById('btnCancelFeedback').click()`);
+    await new Promise((r) => setTimeout(r, 200));
+    const closed = await deskCdp.eval(`!document.getElementById('feedbackModal').classList.contains('active')`);
+    assert.strictEqual(closed, true, '取消後 feedbackModal 必須成功關閉');
+
+    console.log('   📌 使用者回饋純文字按鍵與真機彈窗閉環已通過端到端驗證！');
+  });
+
   test('✅ [E2E-11] Firebase 雲端純掃碼中繼 API、SPA 靜態託管與主控台雙軌 QR Modal 端到端驗證', async () => {
     // 1. 驗證 REST API /api/cloud-relay/status
     const relayRes = await fetchHttp('http://127.0.0.1:9998/api/cloud-relay/status');

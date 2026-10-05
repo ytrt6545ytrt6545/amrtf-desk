@@ -979,11 +979,103 @@
     });
   }
 
+  // 💬 使用者意見與問題回饋
+  const btnFeedback = document.getElementById('btnFeedback');
+  const feedbackModal = document.getElementById('feedbackModal');
+  const btnCloseFeedbackX = document.getElementById('btnCloseFeedbackX');
+  const btnCancelFeedback = document.getElementById('btnCancelFeedback');
+  const btnSubmitFeedback = document.getElementById('btnSubmitFeedback');
+  const fbDate = document.getElementById('fbDate');
+  const fbStatus = document.getElementById('fbStatus');
+  const fbContent = document.getElementById('fbContent');
+  const fbContact = document.getElementById('fbContact');
+
+  function openFeedbackModal() {
+    if (!feedbackModal) return;
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    if (fbDate) fbDate.textContent = dateStr;
+
+    const curLesson = lessonBadge ? lessonBadge.textContent.trim() : '未知講次';
+    const curClock = ledClock ? ledClock.textContent.trim() : '00:00';
+    const isDark = document.getElementById('btnScreenDark')?.classList.contains('active');
+    const curTheme = isDark ? '黑曜深色' : '宣紙淺色';
+    const scrollLabel = scrollLabels[currentScrollMode] || '持續';
+    const speechStr = isSpeechMode ? '播稿開' : '播稿關';
+    if (fbStatus) {
+      fbStatus.textContent = `${curLesson} ｜ ${curClock} ｜ ${curTheme} ｜ ${scrollLabel}捲動 ｜ ${speechStr}`;
+    }
+
+    feedbackModal.classList.add('active');
+    setTimeout(() => { if (fbContent) fbContent.focus(); }, 100);
+  }
+
+  function closeFeedbackModal() {
+    if (feedbackModal) feedbackModal.classList.remove('active');
+  }
+
+  if (btnFeedback) btnFeedback.addEventListener('click', openFeedbackModal);
+  if (btnCloseFeedbackX) btnCloseFeedbackX.addEventListener('click', closeFeedbackModal);
+  if (btnCancelFeedback) btnCancelFeedback.addEventListener('click', closeFeedbackModal);
+  if (feedbackModal) {
+    feedbackModal.addEventListener('click', (e) => {
+      if (e.target === feedbackModal) closeFeedbackModal();
+    });
+  }
+
+  if (btnSubmitFeedback) {
+    btnSubmitFeedback.addEventListener('click', async () => {
+      const content = fbContent ? fbContent.value.trim() : '';
+      if (!content) {
+        alert('請先輸入回饋內容再點擊送出。');
+        if (fbContent) fbContent.focus();
+        return;
+      }
+
+      btnSubmitFeedback.disabled = true;
+      const originalText = btnSubmitFeedback.textContent;
+      btnSubmitFeedback.textContent = '⏳ 正在傳送...';
+
+      const payload = {
+        date: fbDate ? fbDate.textContent : '',
+        status: fbStatus ? fbStatus.textContent : '',
+        content,
+        contact: fbContact ? fbContact.value.trim() : '',
+        lesson: lessonBadge ? lessonBadge.textContent.trim() : '',
+        clock: ledClock ? ledClock.textContent.trim() : ''
+      };
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result && (result.ok || result.success)) {
+          alert('✅ 感謝您的回饋，已成功送出！');
+          if (fbContent) fbContent.value = '';
+          if (fbContact) fbContact.value = '';
+          closeFeedbackModal();
+        } else {
+          alert('⚠️ 送出異常：' + (result.error || '伺服器未回應'));
+        }
+      } catch (err) {
+        alert('❌ 連線錯誤：' + err.message);
+      } finally {
+        btnSubmitFeedback.disabled = false;
+        btnSubmitFeedback.textContent = originalText;
+      }
+    });
+  }
+
   // 全域鍵盤快捷鍵：Esc 關閉設定艙 / 彈窗
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeSettings();
       if (qrModal) qrModal.classList.remove('active');
+      closeFeedbackModal();
     }
   });
 
