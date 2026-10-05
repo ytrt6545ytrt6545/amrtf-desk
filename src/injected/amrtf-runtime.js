@@ -715,9 +715,9 @@
         window.jQuery('html,body').stop(true, false);
       }
 
-      // 4. 長官指定：開機預設曜石玄木深色手抄稿皮膚 (Zen Dark)
-      if (document.body.classList.contains('amec_theme')) {
-        applyTheme('dark');
+      // 4. 長官指定：開機預設宣紙淺色手抄稿皮膚 (Paper Light)
+      if (!document.body.classList.contains('amec_theme')) {
+        applyTheme('light');
       }
 
       if (speechDone && scrollDone && curMarkers.length >= 10) {

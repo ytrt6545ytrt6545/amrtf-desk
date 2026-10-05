@@ -4,6 +4,22 @@
 
 ## 專案歷史與踩坑避雷手冊
 
+### 亮點 143：長官指示放映端手抄稿（標的 A）改為預設宣紙淺色 · 開機自律引擎與主控台雙聯按鍵全面對齊 · 48 項測試 100% 全綠閉環
+* **長官現場反饋與明確指示**：
+  - 「現在預設是深色 希望改為預設淺色 先調查 我看看你理解對不對」➔ 呈報雙標的（標的 A：放映端大螢幕手抄稿 vs 標的 B：主控台面板）調查後，長官裁決：「標的 A，請開始製作」。
+* **根本問題診斷與工程實裝 (Root Cause & Implementation)**：
+  1. **放映端開機自律引擎切換為預設淺色 (`amrtf-runtime.js`)**：
+     - 將開機自律守護哨兵由強制轉深色改為若無 `amec_theme` 則執行 `applyTheme('light')`，開機立即呈現經典宣紙米白底黑字手抄稿；
+  2. **主控台雙聯分段按鍵預設狀態與 Fallback (`index.html`, `desk.js`)**：
+     - 在 `index.html` 將初始 `active` 高亮類別自 `#btnScreenDark` 移至 `#btnScreenLight`，開機立即忠實反映淺色就緒；
+     - 在 `desk.js` 將 `updateScreenThemeButtons` 預設回退值改為淺色（`const isDark = theme === 'dark'`）。
+  3. **真機端到端測試同步升級 (`test/e2e-live-reality.test.mjs`)**：
+     - E2E 測試流程同步升級為「預設淺色態驗證 ➔ 點擊深色切換 ➔ 點擊淺色還原」，完全貼合最新預設架構。
+* **唯一合法裁判標準物證**：
+  - 執行全域標準測試 `npm test`：
+    - 7 大測試套件、48 項測試 **100% 全部 PASS 全綠，Exit Code 0**！
+  - 真機截圖物證：放映端實機快照 [test/artifacts/e2e-screen-large-font-live.png](file:///d:/AI-made/projects/amrtf-desk/test/artifacts/e2e-screen-large-font-live.png) 實證呈現高雅米白宣紙手抄稿背景，主控台快照 [test/artifacts/e2e-stitch-luxury-desk-live.png](file:///d:/AI-made/projects/amrtf-desk/test/artifacts/e2e-stitch-luxury-desk-live.png) 實證次級行 `[淺色]` 按鍵高光亮起。
+
 ### 亮點 142：長官指示起訖區間播控精進化 · 「起訖區間循環」改為「起訖區間播放」 · 大小不變水平置中 · 單次精準播放至訖點急煞定格 · 冗餘按鈕移除與測試 100% 綠燈閉環
 * **長官現場反饋與明確指示**：
   - 「起訖間循環這個按鈕原本會一直循環，改為從起撥到迄就停止，若要在聽一次，就在按 起訖間循環 這個按鈕，就會從起在撥到迄然後停止」

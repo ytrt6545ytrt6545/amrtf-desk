@@ -379,7 +379,7 @@
   const btnScreenLight = document.getElementById('btnScreenLight');
 
   function updateScreenThemeButtons(theme) {
-    const isDark = theme !== 'light'; // 預設黑曜深色
+    const isDark = theme === 'dark'; // 預設宣紙淺色
     if (btnScreenDark) btnScreenDark.classList.toggle('active', isDark);
     if (btnScreenLight) btnScreenLight.classList.toggle('active', !isDark);
   }

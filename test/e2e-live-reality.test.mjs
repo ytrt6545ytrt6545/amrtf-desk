@@ -944,19 +944,19 @@ describe('🌟 AMRTF-Desk 真機端到端 (Live Reality E2E) 全方位閉環檢�
     const cmdMute = await waitForServerCmd('toggle_mute');
     assert.strictEqual(cmdMute, 'toggle_mute', '點擊靜音按鈕後，伺服器必須收到 toggle_mute 信令');
 
-    // 測試放映端手抄稿深淺色雙聯分段按鍵 (深色 / 淺色)
+    // 測試放映端手抄稿深淺色雙聯分段按鍵 (預設淺色，切換深色再切回淺色)
     console.log('   🖱️ 正在測試放映端深淺色雙聯分段按鍵 (#btnScreenDark / #btnScreenLight)...');
-    await deskCdp.eval(`document.getElementById('btnScreenLight').click()`);
-    const cmdThemeLight = await waitForServerCmd('set_theme');
-    assert.strictEqual(cmdThemeLight, 'set_theme', '點擊淺色按鈕後，伺服器必須收到 set_theme 信令');
-    const isLightActive = await deskCdp.eval(`document.getElementById('btnScreenLight').classList.contains('active')`);
-    assert.ok(isLightActive, '點擊淺色按鈕後，#btnScreenLight 必須為 active 高光態');
-
     await deskCdp.eval(`document.getElementById('btnScreenDark').click()`);
     const cmdThemeDark = await waitForServerCmd('set_theme');
     assert.strictEqual(cmdThemeDark, 'set_theme', '點擊深色按鈕後，伺服器必須收到 set_theme 信令');
     const isDarkActive = await deskCdp.eval(`document.getElementById('btnScreenDark').classList.contains('active')`);
-    assert.ok(isDarkActive, '點擊深色按鈕後，#btnScreenDark 必須恢復為 active 高光態');
+    assert.ok(isDarkActive, '點擊深色按鈕後，#btnScreenDark 必須為 active 高光態');
+
+    await deskCdp.eval(`document.getElementById('btnScreenLight').click()`);
+    const cmdThemeLight = await waitForServerCmd('set_theme');
+    assert.strictEqual(cmdThemeLight, 'set_theme', '點擊淺色按鈕後，伺服器必須收到 set_theme 信令');
+    const isLightActive = await deskCdp.eval(`document.getElementById('btnScreenLight').classList.contains('active')`);
+    assert.ok(isLightActive, '點擊淺色按鈕後，#btnScreenLight 必須恢復為 active 高光態');
 
     // 測試進度條實時雙向跳轉
     console.log('   🖱️ 正在測試進度條實時雙向跳轉 (#audioSeeker)...');
