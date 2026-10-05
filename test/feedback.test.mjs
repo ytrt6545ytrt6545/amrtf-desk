@@ -72,6 +72,8 @@ describe('💬 [FeedbackService] 使用者意見與問題回饋服務測試', ()
     // 驗證 Email 轉發 Payload 正確發往 truechi2687@gmail.com
     assert.strictEqual(capturedFetchUrl, 'https://formsubmit.co/ajax/truechi2687@gmail.com');
     assert.ok(capturedFetchOptions);
+    assert.strictEqual(capturedFetchOptions.headers.Referer, 'https://my-amrtf.web.app/feedback');
+    assert.strictEqual(capturedFetchOptions.headers.Origin, 'https://my-amrtf.web.app');
     const body = JSON.parse(capturedFetchOptions.body);
     assert.strictEqual(body._subject, '【AMRTF-Desk 使用者回饋】第 123 講');
     assert.strictEqual(body._template, 'table');

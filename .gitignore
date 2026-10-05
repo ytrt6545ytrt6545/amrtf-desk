@@ -18,6 +18,7 @@ last-room.json
 logs/
 scratch/
 .firebase/
+data/feedback/
 
 # OS & Editor files
 .DS_Store

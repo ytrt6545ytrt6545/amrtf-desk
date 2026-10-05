@@ -65,9 +65,22 @@ export class FeedbackService {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Referer': 'https://my-amrtf.web.app/feedback',
+            'Origin': 'https://my-amrtf.web.app'
           },
           body: JSON.stringify(emailPayload)
+        }).then(async (res) => {
+          try {
+            const resJson = await res.json();
+            if (resJson && resJson.success === 'true') {
+              console.log('[Feedback] 雲端 Email 已成功投遞至:', this.targetEmail);
+            } else if (resJson && resJson.message && resJson.message.includes('Activation')) {
+              console.warn(`[Feedback] ⚠️ 首次發送需激活：FormSubmit 已寄送驗證信至 ${this.targetEmail}，請點擊信中 'Activate Form' 即可永久啟用。`);
+            } else {
+              console.log('[Feedback] 雲端通道回應:', resJson);
+            }
+          } catch (e) {}
         }).catch(err => {
           console.warn('[Feedback] 雲端寄信通道警告 (可能處於離線狀態):', err.message);
         });
