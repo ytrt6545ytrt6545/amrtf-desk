@@ -538,7 +538,7 @@
         const start = parseFloat(selectIntervalStart ? selectIntervalStart.value : 0) || 0;
         const end = parseFloat(selectIntervalEnd ? selectIntervalEnd.value : 0) || 0;
         if (end > start) {
-          sendCmd('play_interval', { start, end, loop: true });
+          sendCmd('play_interval', { start, end, loop: false });
         } else {
           sendCmd('loop_current_paragraph');
         }
@@ -1292,14 +1292,15 @@
     btnLoopQuote.classList.toggle('active', isLoopQuote);
     btnLoopParagraph.classList.toggle('active', isLoopParagraph);
 
-    // 區段播映狀態反饋 (長官指定：釋放循環按鈕三等分常駐，未激活時暗淡，激活時發光亮紅，絕不露空底槽)
+    // 區段播映狀態反饋 (起訖區間播放：播放中發光高亮，到達訖點自動停止並熄滅)
     if (state.interval) {
       const isIntervalActive = !!state.interval.enabled;
-      btnPlayInterval.classList.toggle('active', isIntervalActive && !state.interval.loop);
-      btnLoopInterval.classList.toggle('active', isIntervalActive && !!state.interval.loop);
-      btnStopInterval.style.display = 'block';
-      btnStopInterval.classList.toggle('active-live', isIntervalActive);
-      btnStopInterval.classList.toggle('idle-disabled', !isIntervalActive);
+      if (btnPlayInterval) btnPlayInterval.classList.toggle('active', isIntervalActive && !state.interval.loop);
+      if (btnLoopInterval) btnLoopInterval.classList.toggle('active', isIntervalActive);
+      if (btnStopInterval) {
+        btnStopInterval.classList.toggle('active-live', isIntervalActive);
+        btnStopInterval.classList.toggle('idle-disabled', !isIntervalActive);
+      }
     }
 
     // 動態填充手抄稿各段秒數下拉選單 (供講師隨選指定起訖)

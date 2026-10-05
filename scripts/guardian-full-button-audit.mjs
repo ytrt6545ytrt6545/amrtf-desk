@@ -123,7 +123,7 @@ async function runGuardianAudit() {
     // [Module 3: 提詞與區間循環]
     { id: 'selectIntervalStart', name: '起點秒數選單', category: '區間研討', isSelect: true, expect: '選項約束互斥' },
     { id: 'selectIntervalEnd', name: '訖點秒數選單', category: '區間研討', isSelect: true, expect: '選項約束互斥' },
-    { id: 'btnLoopInterval', name: '起訖區間循環鍵', category: '區間研討', expect: 'play_interval / loop_interval 信令' },
+    { id: 'btnLoopInterval', name: '起訖區間播放鍵', category: '區間研討', expect: 'play_interval / loop_interval 信令' },
     { id: 'btnLoopParagraph', name: '段落循環鍵', category: '區間研討', expect: 'loop_current_paragraph 信令' },
     { id: 'btnStopInterval', name: '釋放循環鍵', category: '區間研討', expect: 'stop_interval 信令' },
 
