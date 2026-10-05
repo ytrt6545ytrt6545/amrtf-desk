@@ -62,7 +62,19 @@ try {
   execSync(`"${ghCmd}" release upload ${tagName} "${zipPath}" --clobber`, { cwd: ROOT_DIR, stdio: 'inherit' });
 } catch {
   console.log(`🚀 正在建立全新 Release ${tagName}...`);
-  execSync(`"${ghCmd}" release create ${tagName} "${zipPath}" --title "${releaseTitle}" --generate-notes`, { cwd: ROOT_DIR, stdio: 'inherit' });
+  const notesPath = path.join(ROOT_DIR, 'scratch', 'release-notes.md');
+  const notesContent = `### 🔄 修改變動之功能
+1. **起訖區間播放模式重整**：原「起訖間循環」改為「**起訖區間播放**」，大小規格保持不變並水平置中；播放至訖點自動停止定格，再次點擊重新起播，更加契合現場研討討論節奏；拔除冗餘的「播放」鍵與「釋放循環」鍵，徹底消除按鈕歧義與視覺擁擠。
+2. **手抄稿放映端開機預設淺色**：放映端開機載入預設為米白底黑字之「**宣紙淺色**」（\`light\` 主題），滿足現場投影清晰利讀需求；主控台深淺色雙聯分段按鈕即時雙向聯動反饋。
+
+### 🌟 新增之功能
+1. **純文字使用者意見與問題回饋系統**：頂部導航配置純文字 \`[回饋]\` 晶透水晶按鍵（100% 無圖標、無 emoji）；點擊開啟彈窗，系統自動診斷帶入「填寫日期」與「現場狀態物證（講次、時間碼、深淺色、捲動模式、播稿狀態）」；提供大文字輸入框與選填聯絡方式。
+2. **雙軌離線防護 ＋ Email 直達長官信箱**：本地 \`data/feedback/\` 100% 離線防護備份 ＋ 雲端 FormSubmit 免金鑰通道非同步直接寄送至長官指定信箱 \`truechi2687@gmail.com\`；軟體介面不殘留回饋歷史紀錄，確保學員隱私與主控台極致純粹。`;
+
+  if (!fs.existsSync(path.dirname(notesPath))) fs.mkdirSync(path.dirname(notesPath), { recursive: true });
+  fs.writeFileSync(notesPath, notesContent, 'utf-8');
+
+  execSync(`"${ghCmd}" release create ${tagName} "${zipPath}" --title "${releaseTitle}" --notes-file "${notesPath}"`, { cwd: ROOT_DIR, stdio: 'inherit' });
 }
 
 console.log(`\n============================================================`);

@@ -6,8 +6,8 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%2B-blue.svg)](#)
-[![Release Version](https://img.shields.io/badge/Release-v1.2.0-blue.svg)](https://github.com/ytrt6545ytrt6545/amrtf-desk/releases)
-[![Single Source of Truth](https://img.shields.io/badge/Tests-48%2F48%20PASS-success.svg)](#)
+[![Release Version](https://img.shields.io/badge/Release-v1.2.1-blue.svg)](https://github.com/ytrt6545ytrt6545/amrtf-desk/releases)
+[![Single Source of Truth](https://img.shields.io/badge/Tests-52%2F52%20PASS-success.svg)](#)
 
 ---
 
@@ -35,7 +35,7 @@ graph LR
 ```
 
 ### 步驟 1：下載並解壓縮
-* 前往 GitHub **[Releases](https://github.com/ytrt6545ytrt6545/amrtf-desk/releases)** 下載最新版綠色便攜壓縮包（例如 `AMRTF-Desk-v1.2.0-Portable.zip`）。
+* 前往 GitHub **[Releases](https://github.com/ytrt6545ytrt6545/amrtf-desk/releases)** 下載最新版綠色便攜壓縮包（例如 `AMRTF-Desk-v1.2.1-Portable.zip`）。
 * 解壓縮至電腦任意慣用目錄（建議解壓縮至 `D:\AMRTF-Desk` 或桌面，路徑盡量避免特殊符號）。
 
 ### 步驟 2：一鍵建立桌面捷徑

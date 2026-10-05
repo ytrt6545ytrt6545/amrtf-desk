@@ -8,7 +8,7 @@
   if (window.__AMRTF_INJECTED_READY__) return;
   window.__AMRTF_INJECTED_READY__ = true;
 
-  console.log('[AMRTF-Desk] 原生放映艙全功能注入核心已就緒 (v1.2.0-Pro)');
+  console.log('[AMRTF-Desk] 原生放映艙全功能注入核心已就緒 (v1.2.1-Pro)');
 
   // 🛡️ 護欄三：全域靜默吸收大慈恩官方暫態 Alert（徹底根除「音檔仍在準備中...」系統模態彈窗）
   try {

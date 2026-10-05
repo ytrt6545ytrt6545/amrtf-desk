@@ -1,6 +1,6 @@
 {
   "name": "amrtf-desk",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "大慈恩官網 (AMRTF) 獨立雙視窗播控艙",
   "main": "server.mjs",
   "type": "module",
